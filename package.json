@@ -1,0 +1,46 @@
+{
+  "name": "fintrack",
+  "version": "0.0.0",
+  "private": true,
+  "description": "FINTRACK — controle financeiro pessoal (Web + Android + API)",
+  "type": "module",
+  "engines": {
+    "node": ">=24.0.0",
+    "npm": ">=11.0.0"
+  },
+  "workspaces": [
+    "packages/shared",
+    "apps/api",
+    "apps/web"
+  ],
+  "scripts": {
+    "build:shared": "npm run build -w @fintrack/shared",
+    "dev": "npm run build:shared && npm run dev --workspaces --if-present",
+    "dev:api": "npm run build:shared && npm run dev -w @fintrack/api",
+    "dev:web": "npm run build:shared && npm run dev -w @fintrack/web",
+    "build": "npm run build --workspaces --if-present",
+    "typecheck": "npm run build:shared && npm run typecheck --workspaces --if-present",
+    "lint": "npm run build:shared && eslint .",
+    "lint:fix": "npm run build:shared && eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "npm run build:shared && npm run test --workspaces --if-present",
+    "db:generate": "npm run db:generate -w @fintrack/api",
+    "db:migrate": "npm run db:migrate -w @fintrack/api",
+    "db:seed": "npm run db:seed -w @fintrack/api",
+    "db:up": "docker compose up -d db",
+    "db:down": "docker compose down"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^24.19.0",
+    "eslint": "^10.11.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.7",
+    "globals": "^17.12.0",
+    "prettier": "^3.9.9",
+    "typescript": "~6.0.3",
+    "typescript-eslint": "^8.70.1"
+  }
+}

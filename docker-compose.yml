@@ -1,0 +1,46 @@
+# Ambiente local do FINTRACK — não depende do Railway.
+#   docker compose up -d db              → só o PostgreSQL (desenvolvimento com npm run dev)
+#   docker compose --profile full up -d  → PostgreSQL + API em container (imagem de produção)
+name: fintrack
+
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-fintrack}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-fintrack}
+      POSTGRES_DB: ${POSTGRES_DB:-fintrack}
+    ports:
+      - '${POSTGRES_PORT:-5432}:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      # Cria o banco fintrack_test (usado pelos testes de integração) na primeira inicialização.
+      - ./database/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    profiles: ['full']
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    environment:
+      NODE_ENV: production
+      PORT: 3333
+      DATABASE_URL: postgres://${POSTGRES_USER:-fintrack}:${POSTGRES_PASSWORD:-fintrack}@db:5432/${POSTGRES_DB:-fintrack}
+      CORS_ORIGINS: http://localhost:5173
+      API_DOCS_ENABLED: 'true'
+    # Replica o fluxo do Railway: migrations antes de subir o servidor.
+    command: ['sh', '-c', 'node dist/db/migrate.js && node dist/server.js']
+    ports:
+      - '3333:3333'
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  pgdata:

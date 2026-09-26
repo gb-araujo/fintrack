@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<lint>
+    <!-- AAPT2 exige o qualificador -v26 para <adaptive-icon> mesmo com minSdk 26;
+         sem ele o link de recursos falha ("mipmap/ic_launcher not found"). -->
+    <issue id="ObsoleteSdkInt">
+        <ignore path="src/main/res/mipmap-anydpi-v26" />
+    </issue>
+</lint>

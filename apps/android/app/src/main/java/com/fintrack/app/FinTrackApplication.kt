@@ -1,0 +1,17 @@
+package com.fintrack.app
+
+import android.app.Application
+import com.fintrack.app.core.di.AppContainer
+
+class FinTrackApplication : Application() {
+    lateinit var container: AppContainer
+        private set
+
+    override fun onCreate() {
+        super.onCreate()
+        container = AppContainer(
+            baseUrl = BuildConfig.API_BASE_URL,
+            enableHttpLogging = BuildConfig.DEBUG,
+        )
+    }
+}
