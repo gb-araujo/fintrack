@@ -6,7 +6,7 @@ import {
   useQueryClient,
   type QueryClient,
 } from '@tanstack/react-query';
-import { fetchDashboard } from '../../services/dashboard';
+import { fetchDashboard, type DashboardHorizon } from '../../services/dashboard';
 import * as ledger from '../../services/ledger';
 
 export const queryKeys = {
@@ -16,10 +16,10 @@ export const queryKeys = {
 };
 
 /** Painel calculado pelo backend ("Quanto posso gastar?", saldos, mês, pendências). */
-export function useDashboard(until?: string) {
+export function useDashboard(horizon: DashboardHorizon = {}) {
   return useQuery({
-    queryKey: ['dashboard', { until: until ?? null }],
-    queryFn: ({ signal }) => fetchDashboard(until, signal),
+    queryKey: ['dashboard', { until: horizon.until ?? null, days: horizon.days ?? null }],
+    queryFn: ({ signal }) => fetchDashboard(horizon, signal),
     // Ao mudar o horizonte, mantém o painel anterior na tela até o novo cálculo chegar.
     placeholderData: keepPreviousData,
   });

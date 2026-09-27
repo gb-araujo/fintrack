@@ -357,12 +357,117 @@ describe.skipIf(!databaseUrl)('painel e "Quanto posso gastar?" (integração)', 
     });
   });
 
+  describe('fluxo de caixa (quando entra e quando sai)', () => {
+    it('lista item a item o que compõe o disponível, com o saldo depois de cada um', async () => {
+      const user = await registerUser(env.app);
+      const inter = await user.createAccount({ name: 'Inter', initialBalanceCents: 10_000 });
+      const porquinho = await user.createAccount({ name: 'Porquinho', type: 'investment' });
+      await user.transfer({
+        fromAccountId: inter.id,
+        toAccountId: porquinho.id,
+        amountCents: 5_000,
+        transferDate: user.today(1),
+        status: 'pending',
+      });
+      await user.addTransaction({
+        accountId: inter.id,
+        type: 'expense',
+        amountCents: 20_000,
+        status: 'pending',
+        transactionDate: user.today(2),
+        description: 'Luz',
+      });
+      await user.ok(
+        user.post('/recurring', {
+          name: 'Freela',
+          type: 'income',
+          amountCents: 100_000,
+          accountId: inter.id,
+          frequency: 'weekly',
+          startDate: user.today(3),
+          endDate: user.today(3),
+        }),
+        201,
+      );
+      // Fecha no último dia do mês e vence dia 1º: a compra de hoje vence em até 31 dias.
+      const card = await user.ok<{ id: string }>(
+        user.post('/credit-cards', {
+          name: 'Nubank',
+          limitCents: 500_000,
+          closingDay: 31,
+          dueDay: 1,
+          paymentAccountId: inter.id,
+        }),
+        201,
+      );
+      await user.ok(
+        user.post(`/credit-cards/${card.id}/purchases`, {
+          description: 'Mercado',
+          purchaseDate: user.today(),
+          totalAmountCents: 45_000,
+        }),
+        201,
+      );
+
+      const body = await user.ok(user.get('/dashboard?days=40'));
+      const d = dashboardSchema.parse(body);
+      const { cashflow } = d;
+
+      expect(d.until).toBe(user.today(40));
+      expect(d.availableToSpend.amountCents).toBe(10_000 - 5_000 - 20_000 + 100_000 - 45_000);
+      expect(new Set(cashflow.entries.map((e) => e.kind))).toEqual(
+        new Set(['transfer', 'transaction', 'recurring', 'invoice']),
+      );
+      expect(cashflow.inCents).toBe(100_000);
+      expect(cashflow.outCents).toBe(70_000);
+      expect(cashflow.entries.at(-1)?.balanceAfterCents).toBe(d.availableToSpend.amountCents);
+      const dates = cashflow.entries.map((e) => e.date);
+      expect(dates).toEqual([...dates].sort());
+      // A conta de luz vence antes do freela entrar: o saldo fica negativo no caminho.
+      expect(cashflow.lowestBalanceCents).toBeLessThanOrEqual(-15_000);
+      expect(cashflow.safeToSpendNowCents).toBe(0);
+      const luz = cashflow.entries.find((e) => e.description === 'Luz');
+      expect(luz).toMatchObject({ direction: 'out', accountId: inter.id, overdue: false });
+      const freela = cashflow.entries.find((e) => e.kind === 'recurring');
+      expect(freela).toMatchObject({ direction: 'in', description: 'Freela', date: user.today(3) });
+      const invoice = cashflow.entries.find((e) => e.kind === 'invoice');
+      expect(invoice).toMatchObject({ direction: 'out', amountCents: 45_000 });
+      expect(invoice?.invoiceId).toEqual(expect.any(String));
+    });
+
+    it('sem pendências: pode gastar hoje o saldo inteiro', async () => {
+      const user = await registerUser(env.app);
+      await user.createAccount({ name: 'Inter', initialBalanceCents: 80_000 });
+
+      const d = await dashboard(user);
+
+      expect(d.cashflow).toEqual({
+        entries: [],
+        inCents: 0,
+        outCents: 0,
+        lowestBalanceCents: 80_000,
+        lowestBalanceDate: d.today,
+        safeToSpendNowCents: 80_000,
+      });
+    });
+  });
+
   describe('validação e isolamento', () => {
     it('horizonte anterior a hoje → 422; data inválida → 400', async () => {
       const user = await registerUser(env.app);
       expect((await user.get(`/dashboard?until=${user.today(-1)}`)).statusCode).toBe(422);
       expect((await user.get('/dashboard?until=2026-02-30')).statusCode).toBe(400);
       expect((await user.get('/dashboard?until=amanha')).statusCode).toBe(400);
+    });
+
+    it('horizonte por dias: 1 a 366, e não junto com until', async () => {
+      const user = await registerUser(env.app);
+      expect((await user.get('/dashboard?days=0')).statusCode).toBe(400);
+      expect((await user.get('/dashboard?days=367')).statusCode).toBe(400);
+      expect((await user.get('/dashboard?days=abc')).statusCode).toBe(400);
+      expect((await user.get(`/dashboard?days=10&until=${user.today(5)}`)).statusCode).toBe(400);
+      const d = dashboardSchema.parse(await user.ok(user.get('/dashboard?days=30')));
+      expect(d.until).toBe(user.today(30));
     });
 
     it('exige autenticação', async () => {
@@ -517,6 +622,21 @@ describe.skipIf(!databaseUrl)('painel e "Quanto posso gastar?" (integração)', 
         const d = await dashboard(user, until);
 
         expect(d.availableToSpend.amountCents).toBe(expected);
+        // O fluxo de caixa lista exatamente os mesmos itens: saldo + entradas − saídas = disponível.
+        const { cashflow } = d;
+        expect(
+          d.availableToSpend.components.liquidBalanceCents + cashflow.inCents - cashflow.outCents,
+        ).toBe(expected);
+        expect(
+          cashflow.entries.at(-1)?.balanceAfterCents ??
+            d.availableToSpend.components.liquidBalanceCents,
+        ).toBe(expected);
+        expect(cashflow.lowestBalanceCents).toBe(
+          Math.min(
+            d.availableToSpend.components.liquidBalanceCents,
+            ...cashflow.entries.map((e) => e.balanceAfterCents),
+          ),
+        );
       },
     );
   });

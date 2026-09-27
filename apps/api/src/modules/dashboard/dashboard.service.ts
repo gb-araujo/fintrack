@@ -14,6 +14,7 @@ import type { ForecastOccurrence } from '../recurring/recurring.types.js';
 import type { UsersRepository } from '../users/users.repository.js';
 import type { DashboardRepository, OutstandingInvoice } from './dashboard.repository.js';
 import { availableAmount, isLiquidForAvailable, resolveHorizon } from './domain/available.js';
+import { buildCashflow, type CashflowItem } from './domain/cashflow.js';
 
 const NEXT_BILLS = 5;
 /** Compromissos futuros: despesas previstas por recorrências nos N dias seguintes ao horizonte. */
@@ -63,6 +64,22 @@ function invoiceBill(invoice: OutstandingInvoice, today: string): PendingBill {
   };
 }
 
+function billToCashflowItem(bill: PendingBill, direction: 'in' | 'out'): CashflowItem {
+  return {
+    id: bill.id,
+    kind: bill.kind,
+    direction,
+    description: bill.description,
+    amountCents: bill.amountCents,
+    estimated: bill.estimated,
+    date: bill.date,
+    overdue: bill.overdue,
+    accountId: bill.accountId,
+    recurringId: bill.recurringId,
+    invoiceId: bill.invoiceId,
+  };
+}
+
 /** Monta o painel. O backend é a fonte da verdade: os clientes só exibem estes números. */
 export class DashboardService {
   private readonly now: () => Date;
@@ -71,12 +88,12 @@ export class DashboardService {
     this.now = deps.now ?? (() => new Date());
   }
 
-  async get(userId: string, requestedUntil?: string): Promise<Dashboard> {
+  async get(userId: string, requestedUntil?: string, days?: number): Promise<Dashboard> {
     const user = await this.deps.users.findById(userId);
     if (!user) throw new NotFoundError('Usuário não encontrado.');
 
     const today = todayInTimeZone(user.timezone, this.now());
-    const until = resolveHorizon(today, requestedUntil);
+    const until = resolveHorizon(today, requestedUntil, days);
     const monthFrom = startOfMonth(today);
     const monthTo = endOfMonth(today);
 
@@ -97,8 +114,8 @@ export class DashboardService {
       cardExpense,
     ] = await Promise.all([
       this.deps.accounts.list(userId, { includeArchived: false }),
-      this.deps.dashboard.liquidPending(userId, until),
-      this.deps.dashboard.pendingTransferCrossings(userId, until),
+      this.deps.dashboard.liquidPendingEntries(userId, until),
+      this.deps.dashboard.pendingTransferCrossingEntries(userId, until),
       this.deps.dashboard.completedTotals(userId, monthFrom, monthTo),
       this.deps.dashboard.pendingBills(userId, until, today, NEXT_BILLS),
       this.deps.dashboard.futureCommitments(userId, until),
@@ -120,19 +137,62 @@ export class DashboardService {
     const cash = accounts.filter((account) => account.type !== 'investment');
     const investments = accounts.filter((account) => account.type === 'investment');
 
+    const amountOf = <T extends { amountCents: number }>(
+      items: T[],
+      predicate: (item: T) => boolean,
+    ) => items.filter(predicate).reduce((total, item) => total + item.amountCents, 0);
+
     // Previsões que entram no "disponível": recorrências marcadas e em contas líquidas.
     const counted = (item: ForecastOccurrence) => item.includeInForecast && item.accountLiquid;
     const components: AvailableComponents = {
       liquidBalanceCents: sum(accounts.filter(isLiquidForAvailable)),
-      pendingIncomeCents: liquidPending.incomeCents,
-      pendingExpensesCents: liquidPending.expenseCents,
-      pendingTransfersInCents: crossings.inCents,
-      pendingTransfersOutCents: crossings.outCents,
+      pendingIncomeCents: amountOf(liquidPending, (entry) => entry.type === 'income'),
+      pendingExpensesCents: amountOf(liquidPending, (entry) => entry.type === 'expense'),
+      pendingTransfersInCents: amountOf(crossings, (entry) => entry.direction === 'in'),
+      pendingTransfersOutCents: amountOf(crossings, (entry) => entry.direction === 'out'),
       forecastIncomeCents: sumBy(forecast, (item) => counted(item) && item.type === 'income'),
       forecastExpensesCents: sumBy(forecast, (item) => counted(item) && item.type === 'expense'),
       // Faturas de cartão com vencimento até o horizonte (inclui vencidas): o que resta pagar.
       invoicesCents: dueInvoices.reduce((total, invoice) => total + invoice.remainingCents, 0),
     };
+
+    // Fluxo de caixa: os MESMOS itens dos componentes, um a um, em ordem de data.
+    const cashflow = buildCashflow(
+      components.liquidBalanceCents,
+      [
+        ...liquidPending.map((entry): CashflowItem => ({
+          id: entry.id,
+          kind: 'transaction',
+          direction: entry.type === 'income' ? 'in' : 'out',
+          description: entry.description,
+          amountCents: entry.amountCents,
+          estimated: false,
+          date: entry.date,
+          overdue: entry.date < today,
+          accountId: entry.accountId,
+          recurringId: null,
+          invoiceId: null,
+        })),
+        ...crossings.map((entry): CashflowItem => ({
+          id: entry.id,
+          kind: 'transfer',
+          direction: entry.direction,
+          description: entry.description,
+          amountCents: entry.amountCents,
+          estimated: false,
+          date: entry.date,
+          overdue: entry.date < today,
+          accountId: entry.accountId,
+          recurringId: null,
+          invoiceId: null,
+        })),
+        ...forecast
+          .filter(counted)
+          .map((item) => billToCashflowItem(toBill(item), item.type === 'income' ? 'in' : 'out')),
+        ...dueInvoices.map((invoice) => billToCashflowItem(invoiceBill(invoice, today), 'out')),
+      ],
+      today,
+    );
 
     // "Contas pendentes": lançamentos pendentes + despesas previstas por recorrências (contas ativas).
     const forecastBills = forecast.filter((item) => item.type === 'expense' && item.accountUsable);
@@ -188,6 +248,7 @@ export class DashboardService {
       },
       pendingBills,
       futureCommitments,
+      cashflow,
     };
   }
 }

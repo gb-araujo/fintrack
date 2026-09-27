@@ -207,7 +207,7 @@ describe('Dashboard — "Quanto posso gastar?"', () => {
     ).toBeInTheDocument();
   });
 
-  it('trocar o horizonte consulta o backend com ?until=', async () => {
+  it('padrão de 30 dias; trocar o horizonte consulta o backend com ?until=', async () => {
     const fetchMock = mockLedgerApi(
       { accounts: [inter] },
       { 'GET /api/v1/dashboard': () => jsonResponse(dashboard) },
@@ -215,7 +215,9 @@ describe('Dashboard — "Quanto posso gastar?"', () => {
     renderRoute('/');
     const date = await screen.findByLabelText('Considerar até');
     expect(date).toHaveValue('2026-09-30');
+    expect(lastQuery(fetchMock, '/api/v1/dashboard').get('days')).toBe('30');
     expect(lastQuery(fetchMock, '/api/v1/dashboard').has('until')).toBe(false);
+    expect(screen.getByRole('button', { name: '30 dias' })).toHaveAttribute('aria-pressed', 'true');
 
     // Campo de data: o navegador entrega o valor completo de uma vez.
     fireEvent.change(date, { target: { value: '2026-12-31' } });
@@ -223,7 +225,29 @@ describe('Dashboard — "Quanto posso gastar?"', () => {
     await waitFor(() =>
       expect(lastQuery(fetchMock, '/api/v1/dashboard').get('until')).toBe('2026-12-31'),
     );
-    expect(screen.getByText('Horizonte personalizado.')).toBeInTheDocument();
+    expect(lastQuery(fetchMock, '/api/v1/dashboard').has('days')).toBe(false);
+    expect(screen.getByRole('button', { name: '30 dias' })).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    );
+  });
+
+  it('atalhos de período: fim do mês (padrão do backend) e 60 dias', async () => {
+    const fetchMock = mockLedgerApi(
+      { accounts: [inter] },
+      { 'GET /api/v1/dashboard': () => jsonResponse(dashboard) },
+    );
+    renderRoute('/');
+    await screen.findByLabelText('Considerar até');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Fim do mês' }));
+    await waitFor(() => {
+      const query = lastQuery(fetchMock, '/api/v1/dashboard');
+      expect(query.has('days') || query.has('until')).toBe(false);
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: '60 dias' }));
+    await waitFor(() => expect(lastQuery(fetchMock, '/api/v1/dashboard').get('days')).toBe('60'));
   });
 
   it('erro do backend mostra alerta com nova tentativa', async () => {
@@ -238,5 +262,154 @@ describe('Dashboard — "Quanto posso gastar?"', () => {
 
     expect(await screen.findByRole('alert')).toHaveTextContent('Erro interno do servidor.');
     expect(screen.getByRole('button', { name: 'Tentar novamente' })).toBeInTheDocument();
+  });
+});
+
+describe('Dashboard — plano: gastar, guardar, pagar e receber', () => {
+  const invoiceId = crypto.randomUUID();
+  const entry = {
+    estimated: false,
+    overdue: false,
+    accountId: inter.id,
+    recurringId: null,
+    invoiceId: null,
+  };
+  const plan = {
+    ...emptyDashboard,
+    until: '2026-10-27',
+    investmentsCents: 125_495,
+    availableToSpend: {
+      amountCents: 57_619,
+      components: { ...emptyDashboard.availableToSpend.components, liquidBalanceCents: 50_000 },
+    },
+    cashflow: {
+      entries: [
+        {
+          ...entry,
+          id: crypto.randomUUID(),
+          kind: 'transaction',
+          direction: 'out',
+          description: 'Conta atrasada',
+          amountCents: 10_000,
+          date: '2026-09-25',
+          overdue: true,
+          balanceAfterCents: 40_000,
+        },
+        {
+          ...entry,
+          id: `recurring:${recurringId}:2026-10-08`,
+          kind: 'recurring',
+          direction: 'out',
+          description: 'Enel',
+          amountCents: 37_900,
+          estimated: true,
+          recurringId,
+          date: '2026-10-08',
+          balanceAfterCents: 2_100,
+        },
+        {
+          ...entry,
+          id: `invoice:${invoiceId}`,
+          kind: 'invoice',
+          direction: 'out',
+          description: 'Fatura Cartão Inter 10/2026',
+          amountCents: 244_481,
+          invoiceId,
+          date: '2026-10-10',
+          balanceAfterCents: -242_381,
+        },
+        {
+          ...entry,
+          id: `recurring:${recurringId}:2026-10-20`,
+          kind: 'recurring',
+          direction: 'in',
+          description: 'Salário',
+          amountCents: 300_000,
+          recurringId,
+          date: '2026-10-20',
+          balanceAfterCents: 57_619,
+        },
+      ],
+      inCents: 300_000,
+      outCents: 292_381,
+      lowestBalanceCents: -242_381,
+      lowestBalanceDate: '2026-10-10',
+      safeToSpendNowCents: 0,
+    },
+  };
+
+  it('mostra quanto dá para gastar hoje, quanto guardar e quanto vai entrar', async () => {
+    mockLedgerApi({ accounts: [inter] }, { 'GET /api/v1/dashboard': () => jsonResponse(plan) });
+    renderRoute('/');
+
+    expect(await screen.findByLabelText('Pode gastar hoje')).toHaveTextContent(/R\$\s0,00/);
+    expect(screen.getByLabelText('Precisa guardar')).toHaveTextContent(/R\$\s2\.923,81/);
+    expect(screen.getByLabelText('Vai entrar')).toHaveTextContent(/R\$\s3\.000,00/);
+    expect(screen.getByText('Seu plano até 27/10/2026')).toBeInTheDocument();
+    expect(screen.getByLabelText('Resumo do período').textContent?.replace(/\s/g, '')).toBe(
+      'SaldohojeR$500,00+entraR$3.000,00−saiR$2.923,81=sobraR$576,19em27/10',
+    );
+  });
+
+  it('avisa quando vai faltar dinheiro antes de a receita entrar', async () => {
+    mockLedgerApi({ accounts: [inter] }, { 'GET /api/v1/dashboard': () => jsonResponse(plan) });
+    renderRoute('/');
+
+    const alert = await screen.findByRole('alert');
+    expect(alert).toHaveTextContent(/Vai faltar R\$\s2\.423,81 até 10\/10\/2026/);
+    expect(alert).toHaveTextContent('Fatura Cartão Inter 10/2026');
+    expect(alert).toHaveTextContent(/R\$\s1\.254,95 guardados em investimentos/);
+  });
+
+  it('lista as contas em ordem, dizendo se o saldo cobre cada uma', async () => {
+    mockLedgerApi({ accounts: [inter] }, { 'GET /api/v1/dashboard': () => jsonResponse(plan) });
+    renderRoute('/');
+
+    const bills = await screen.findByRole('list', { name: 'Contas a pagar' });
+    const [late, enel, invoice] = within(bills).getAllByRole('listitem') as [
+      HTMLElement,
+      HTMLElement,
+      HTMLElement,
+    ];
+    expect(late).toHaveTextContent('Conta atrasada');
+    expect(within(late).getByText('Vencida')).toBeInTheDocument();
+    expect(within(late).getByText('Coberta')).toBeInTheDocument();
+    expect(enel).toHaveTextContent('08/10');
+    expect(within(enel).getByText('Recorrente · estimado')).toBeInTheDocument();
+    expect(within(enel).getByText('Coberta')).toBeInTheDocument();
+    expect(within(invoice).getByText('Fatura')).toBeInTheDocument();
+    expect(within(invoice).getByText(/Falta R\$\s2\.423,81/)).toBeInTheDocument();
+
+    const income = screen.getByRole('list', { name: 'Dinheiro que vai entrar' });
+    const [salary] = within(income).getAllByRole('listitem') as [HTMLElement];
+    expect(salary).toHaveTextContent('Salário');
+    expect(salary).toHaveTextContent('20/10');
+    expect(salary).toHaveTextContent(/\+R\$\s3\.000,00/);
+  });
+
+  it('sem contas nem entradas: todo o saldo livre e convite para cadastrar recebimentos', async () => {
+    const calm = {
+      ...emptyDashboard,
+      availableToSpend: {
+        amountCents: 80_000,
+        components: { ...emptyDashboard.availableToSpend.components, liquidBalanceCents: 80_000 },
+      },
+      cashflow: {
+        ...emptyDashboard.cashflow,
+        lowestBalanceCents: 80_000,
+        safeToSpendNowCents: 80_000,
+      },
+    };
+    mockLedgerApi({ accounts: [inter] }, { 'GET /api/v1/dashboard': () => jsonResponse(calm) });
+    renderRoute('/');
+
+    expect(await screen.findByLabelText('Pode gastar hoje')).toHaveTextContent(/R\$\s800,00/);
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    expect(screen.getByText('Nenhuma conta a pagar no período.')).toBeInTheDocument();
+    expect(screen.getByText(/Nenhuma entrada prevista no período/)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Cadastrar recebimento' })).toHaveAttribute(
+      'href',
+      '/recurring',
+    );
   });
 });

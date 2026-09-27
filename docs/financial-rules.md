@@ -16,30 +16,30 @@
 
 ## 2. Tipos de movimentação
 
-| Tipo | Significado | Afeta saldo da conta | Conta como receita/despesa | Afeta patrimônio |
-|---|---|---|---|---|
-| `income` | Receita (salário, VR, …) | + | receita | + |
-| `expense` | Despesa paga por conta (débito, pix, dinheiro) | − | despesa | − |
-| `transfer` | Uma perna de transferência entre contas do usuário | − origem / + destino | **não** | 0 |
-| `card_payment` | Pagamento de fatura de cartão a partir de uma conta | − conta pagadora | **não** (já contado nas parcelas) | 0 (quita passivo) |
+| Tipo           | Significado                                         | Afeta saldo da conta | Conta como receita/despesa        | Afeta patrimônio  |
+| -------------- | --------------------------------------------------- | -------------------- | --------------------------------- | ----------------- |
+| `income`       | Receita (salário, VR, …)                            | +                    | receita                           | +                 |
+| `expense`      | Despesa paga por conta (débito, pix, dinheiro)      | −                    | despesa                           | −                 |
+| `transfer`     | Uma perna de transferência entre contas do usuário  | − origem / + destino | **não**                           | 0                 |
+| `card_payment` | Pagamento de fatura de cartão a partir de uma conta | − conta pagadora     | **não** (já contado nas parcelas) | 0 (quita passivo) |
 
 Status: `pending` (prevista/agendada), `completed` (efetivada — única que afeta saldo), `cancelled`.
 
 ## 3. Onde cada evento é reconhecido (uma única vez)
 
-| Evento | Saldo | Receita/Despesa (relatórios e orçamento) | Patrimônio |
-|---|---|---|---|
-| Receita completed | + conta | receita | + |
-| Despesa completed | − conta | despesa na categoria | − |
-| Transferência Inter → Mercado Pago | − Inter / + Mercado Pago | nada | 0 |
-| Compra no Mercado Pago (saldo MP) | − Mercado Pago | despesa na categoria da compra | − |
-| Compra no cartão R$ 900 em 3x | nada na hora | **despesa por parcela** (R$ 300) no mês de cada fatura | − (passivo) |
-| Pagamento da fatura (`card_payment`) | − conta pagadora | nada | 0 |
-| Aplicação em investimento | transferência para conta `investment` | nada | 0 |
-| Resgate de investimento | transferência para conta líquida | nada (**não** é receita operacional) | 0 |
-| Rendimento de investimento | não altera saldo direto; é o que **sobra** do saldo depois de descontar aportes/resgates (derivado, nunca gravado — ADR 0020) | não é receita operacional | + |
-| Recorrência prevista (não confirmada) | nada | nada (apenas previsão) | nada |
-| Recorrência confirmada | vira transação vinculada `(recurring_id, occurrence_date)` | como a transação | como a transação |
+| Evento                                | Saldo                                                                                                                         | Receita/Despesa (relatórios e orçamento)               | Patrimônio       |
+| ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ | ---------------- |
+| Receita completed                     | + conta                                                                                                                       | receita                                                | +                |
+| Despesa completed                     | − conta                                                                                                                       | despesa na categoria                                   | −                |
+| Transferência Inter → Mercado Pago    | − Inter / + Mercado Pago                                                                                                      | nada                                                   | 0                |
+| Compra no Mercado Pago (saldo MP)     | − Mercado Pago                                                                                                                | despesa na categoria da compra                         | −                |
+| Compra no cartão R$ 900 em 3x         | nada na hora                                                                                                                  | **despesa por parcela** (R$ 300) no mês de cada fatura | − (passivo)      |
+| Pagamento da fatura (`card_payment`)  | − conta pagadora                                                                                                              | nada                                                   | 0                |
+| Aplicação em investimento             | transferência para conta `investment`                                                                                         | nada                                                   | 0                |
+| Resgate de investimento               | transferência para conta líquida                                                                                              | nada (**não** é receita operacional)                   | 0                |
+| Rendimento de investimento            | não altera saldo direto; é o que **sobra** do saldo depois de descontar aportes/resgates (derivado, nunca gravado — ADR 0020) | não é receita operacional                              | +                |
+| Recorrência prevista (não confirmada) | nada                                                                                                                          | nada (apenas previsão)                                 | nada             |
+| Recorrência confirmada                | vira transação vinculada `(recurring_id, occurrence_date)`                                                                    | como a transação                                       | como a transação |
 
 Regras derivadas:
 
@@ -85,6 +85,28 @@ compras de cartão diretamente (só via fatura), parcelas de faturas que vencem 
   sinalizada como "estimado" na interface.
 
 A API retorna o valor **e a decomposição** de cada termo da fórmula.
+
+O horizonte também pode ser pedido por dias: `?days=N` = hoje + N dias (1 a 366; não junto com
+`until`). A página inicial usa 30 dias por padrão, para enxergar a próxima fatura e o próximo
+recebimento mesmo no fim do mês.
+
+## 4c. Fluxo de caixa e "pode gastar hoje"
+
+O painel devolve também `cashflow`: **os mesmos itens** do "Quanto posso gastar?", um a um
+(pendentes em contas líquidas, transferências que cruzam a fronteira líquida, ocorrências de
+recorrências que entram na previsão e faturas que vencem até o horizonte), em ordem de data, com o
+saldo projetado depois de cada um. Por construção:
+
+```
+saldo das contas líquidas + Σ entradas − Σ saídas = disponível   (= saldo depois do último item)
+```
+
+- Itens vencidos (data < hoje, ainda pendentes) contam **hoje**.
+- No mesmo dia, entradas vêm antes das saídas (dá para pagar a conta no dia em que o dinheiro entra).
+- `lowestBalanceCents` = menor saldo projetado entre hoje (inclusive) e o horizonte.
+- `safeToSpendNowCents` = `max(0, lowestBalanceCents)`: o que dá para gastar **hoje** sem o saldo
+  ficar negativo em nenhum dia. É ≤ disponível: uma receita que chega depois de uma conta não a paga.
+- `outCents` é o "precisa guardar": o total que sai até o horizonte.
 
 ## 4b. Cartão de crédito — FASE 5
 

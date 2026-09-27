@@ -1,4 +1,9 @@
-import { endOfMonth, isFutureDate, type AvailableComponents } from '@fintrack/shared';
+import {
+  addDaysToDate,
+  endOfMonth,
+  isFutureDate,
+  type AvailableComponents,
+} from '@fintrack/shared';
 import { BusinessRuleError } from '../../../shared/errors/index.js';
 
 /**
@@ -50,9 +55,9 @@ export function isLiquidForAvailable(account: LiquidityInput): boolean {
   return account.type !== 'investment' && account.includeInAvailable && account.archivedAt === null;
 }
 
-/** Horizonte padrão: último dia do mês corrente. Nunca anterior a hoje. */
-export function resolveHorizon(today: string, requested?: string): string {
-  const until = requested ?? endOfMonth(today);
+/** Horizonte: a data pedida, ou hoje + `days`, ou (padrão) o último dia do mês. Nunca anterior a hoje. */
+export function resolveHorizon(today: string, requested?: string, days?: number): string {
+  const until = requested ?? (days !== undefined ? addDaysToDate(today, days) : endOfMonth(today));
   if (isFutureDate(today, until)) {
     throw new BusinessRuleError('O horizonte não pode ser anterior a hoje.');
   }

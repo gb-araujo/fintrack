@@ -46,6 +46,50 @@ export const pendingBillSchema = z.object({
 });
 export type PendingBill = z.infer<typeof pendingBillSchema>;
 
+/**
+ * Um item do fluxo de caixa até o horizonte: exatamente os itens que compõem o "Quanto posso
+ * gastar?" (docs/financial-rules.md §4c), com o saldo projetado logo depois de cada um.
+ */
+export const cashflowEntrySchema = z.object({
+  /** Id do lançamento/transferência pendente, "recurring:<id>:<data>" ou "invoice:<id>". */
+  id: z.string(),
+  kind: z.enum(['transaction', 'recurring', 'invoice', 'transfer']),
+  /** `in` = entra nas contas disponíveis; `out` = sai delas. */
+  direction: z.enum(['in', 'out']),
+  description: z.string(),
+  /** Sempre positivo: o sentido está em `direction`. */
+  amountCents: signedCentsSchema,
+  estimated: z.boolean(),
+  date: dateOnlySchema,
+  /** Data já passou e o item segue pendente: conta como se acontecesse hoje. */
+  overdue: z.boolean(),
+  accountId: z.uuid().nullable(),
+  recurringId: z.uuid().nullable(),
+  invoiceId: z.uuid().nullable(),
+  /** Saldo projetado das contas disponíveis logo depois deste item. */
+  balanceAfterCents: signedCentsSchema,
+});
+export type CashflowEntry = z.infer<typeof cashflowEntrySchema>;
+
+export const cashflowSchema = z.object({
+  /** Em ordem cronológica (vencidos primeiro; no mesmo dia, entradas antes das saídas). */
+  entries: z.array(cashflowEntrySchema),
+  /** Σ entradas até o horizonte. */
+  inCents: signedCentsSchema,
+  /** Σ saídas até o horizonte: o que precisa ficar guardado para as contas. */
+  outCents: signedCentsSchema,
+  /** Menor saldo projetado entre hoje (inclusive) e o horizonte. */
+  lowestBalanceCents: signedCentsSchema,
+  lowestBalanceDate: dateOnlySchema,
+  /**
+   * Quanto dá para gastar HOJE sem o saldo ficar negativo em nenhum dia até o horizonte
+   * (= menor saldo projetado, nunca abaixo de zero). Pode ser menor que o "disponível", que só
+   * olha o saldo no fim do horizonte: uma receita que chega depois de uma conta não a paga.
+   */
+  safeToSpendNowCents: signedCentsSchema,
+});
+export type Cashflow = z.infer<typeof cashflowSchema>;
+
 export const dashboardSchema = z.object({
   today: dateOnlySchema,
   /** Horizonte do cálculo (padrão: último dia do mês corrente, no fuso do usuário). */
@@ -89,10 +133,26 @@ export const dashboardSchema = z.object({
     count: z.number().int().nonnegative(),
     totalCents: signedCentsSchema,
   }),
+  cashflow: cashflowSchema,
 });
 export type Dashboard = z.infer<typeof dashboardSchema>;
 
-export const dashboardQuerySchema = z.object({
-  /** Horizonte opcional (AAAA-MM-DD, não anterior a hoje). */
-  until: dateOnlySchema.optional(),
-});
+export const MAX_HORIZON_DAYS = 366;
+
+export const dashboardQuerySchema = z
+  .object({
+    /** Horizonte opcional (AAAA-MM-DD, não anterior a hoje). */
+    until: dateOnlySchema.optional(),
+    /** Alternativa a `until`: hoje + N dias (no fuso do usuário). */
+    days: z.coerce
+      .number({ error: 'Número de dias inválido.' })
+      .int({ error: 'Número de dias inválido.' })
+      .min(1, { error: 'Informe ao menos 1 dia.' })
+      .max(MAX_HORIZON_DAYS, { error: `No máximo ${MAX_HORIZON_DAYS} dias.` })
+      .optional(),
+  })
+  .refine((value) => value.until === undefined || value.days === undefined, {
+    error: 'Informe o horizonte por data (until) ou por dias (days), não os dois.',
+    path: ['days'],
+  });
+export type DashboardQuery = z.infer<typeof dashboardQuerySchema>;

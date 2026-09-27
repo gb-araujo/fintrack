@@ -97,4 +97,9 @@ describe('resolveHorizon', () => {
   it('recusa horizonte no passado', () => {
     expect(() => resolveHorizon('2026-09-27', '2026-09-26')).toThrow(BusinessRuleError);
   });
+
+  it('por dias: hoje + N, atravessando o mês', () => {
+    expect(resolveHorizon('2026-09-27', undefined, 30)).toBe('2026-10-27');
+    expect(resolveHorizon('2026-12-15', undefined, 60)).toBe('2027-02-13');
+  });
 });

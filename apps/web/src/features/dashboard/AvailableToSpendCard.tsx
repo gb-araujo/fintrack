@@ -21,15 +21,18 @@ function Line({ label, cents, sign }: { label: string; cents: number; sign: '+' 
  */
 export function AvailableToSpendCard({
   data,
+  title = 'Quanto posso gastar?',
   until,
   onUntilChange,
 }: {
   data: Dashboard;
-  until: string;
-  onUntilChange: (value: string) => void;
+  title?: string;
+  /** Sem `onUntilChange`, o card não mostra o seletor de data (o horizonte é escolhido fora). */
+  until?: string;
+  onUntilChange?: (value: string) => void;
 }) {
   const { amountCents, components } = data.availableToSpend;
-  const isDefaultHorizon = until === '';
+  const isDefaultHorizon = !until;
 
   return (
     <section
@@ -37,7 +40,7 @@ export function AvailableToSpendCard({
       className="rounded-2xl border border-brand-100 bg-brand-50 p-5 shadow-sm md:col-span-2"
     >
       <h2 id="available-title" className="text-sm font-medium text-brand-900">
-        Quanto posso gastar?
+        {title}
       </h2>
       <p
         aria-label="Dinheiro disponível"
@@ -51,18 +54,20 @@ export function AvailableToSpendCard({
           : `Já descontando o que está previsto até ${formatDate(data.until)}.`}
       </p>
 
-      <div className="mt-4 max-w-xs">
-        <InputField
-          label="Considerar até"
-          type="date"
-          value={until || data.until}
-          min={data.today}
-          onChange={(event) =>
-            onUntilChange(event.target.value === data.until ? '' : event.target.value)
-          }
-          hint={isDefaultHorizon ? 'Padrão: fim do mês.' : 'Horizonte personalizado.'}
-        />
-      </div>
+      {onUntilChange ? (
+        <div className="mt-4 max-w-xs">
+          <InputField
+            label="Considerar até"
+            type="date"
+            value={until || data.until}
+            min={data.today}
+            onChange={(event) =>
+              onUntilChange(event.target.value === data.until ? '' : event.target.value)
+            }
+            hint={isDefaultHorizon ? 'Padrão: fim do mês.' : 'Horizonte personalizado.'}
+          />
+        </div>
+      ) : null}
 
       <details className="mt-4 rounded-lg bg-white/70 p-3">
         <summary className="cursor-pointer text-sm font-medium text-slate-700">

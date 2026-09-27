@@ -98,6 +98,14 @@ export const emptyDashboard = {
   },
   pendingBills: { count: 0, totalCents: 0, overdueCount: 0, overdueCents: 0, next: [] },
   futureCommitments: { count: 0, totalCents: 0 },
+  cashflow: {
+    entries: [],
+    inCents: 0,
+    outCents: 0,
+    lowestBalanceCents: 0,
+    lowestBalanceDate: '2026-09-27',
+    safeToSpendNowCents: 0,
+  },
 };
 
 type Handler = (request: { url: string; init: RequestInit }) => Response | Promise<Response>;

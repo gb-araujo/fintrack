@@ -19,17 +19,31 @@ export interface OutstandingInvoice {
   remainingCents: number;
 }
 
+/** Receita/despesa PENDENTE em conta líquida, com data até o horizonte. */
+export interface LiquidPendingEntry {
+  id: string;
+  type: 'income' | 'expense';
+  description: string;
+  amountCents: number;
+  date: string;
+  accountId: string;
+}
+
+/** Transferência PENDENTE até o horizonte que cruza a fronteira líquida. */
+export interface TransferCrossingEntry {
+  id: string;
+  /** `in` = de conta não líquida para líquida (ex.: resgate); `out` = o contrário (ex.: aplicação). */
+  direction: 'in' | 'out';
+  description: string;
+  amountCents: number;
+  date: string;
+  /** A conta líquida da transferência (onde o dinheiro entra ou de onde sai). */
+  accountId: string;
+}
+
 export interface DashboardRepository {
-  /** Receitas/despesas PENDENTES em contas líquidas, com data até o horizonte. */
-  liquidPending(
-    userId: string,
-    until: string,
-  ): Promise<{ incomeCents: number; expenseCents: number }>;
-  /** Transferências PENDENTES até o horizonte que cruzam a fronteira líquida. */
-  pendingTransferCrossings(
-    userId: string,
-    until: string,
-  ): Promise<{ inCents: number; outCents: number }>;
+  liquidPendingEntries(userId: string, until: string): Promise<LiquidPendingEntry[]>;
+  pendingTransferCrossingEntries(userId: string, until: string): Promise<TransferCrossingEntry[]>;
   /** Receitas/despesas EFETIVADAS no período (transferências não contam). */
   completedTotals(
     userId: string,
@@ -66,36 +80,69 @@ const num = (value: unknown): number => Number(value ?? 0);
 export class DrizzleDashboardRepository implements DashboardRepository {
   constructor(private readonly db: DrizzleDb) {}
 
-  async liquidPending(userId: string, until: string) {
-    const [row] = await this.db.execute<{ income: string; expense: string }>(sql`
-      select
-        coalesce(sum(t.amount_cents) filter (where t.type = 'income'), 0) as income,
-        coalesce(sum(t.amount_cents) filter (where t.type = 'expense'), 0) as expense
+  async liquidPendingEntries(userId: string, until: string) {
+    // Só receita/despesa: `card_payment` agendado não entra (a fatura já conta pelo valor em aberto).
+    const rows = await this.db.execute<{
+      id: string;
+      type: 'income' | 'expense';
+      description: string;
+      amount_cents: string;
+      transaction_date: string;
+      account_id: string;
+    }>(sql`
+      select t.id, t.type, t.description, t.amount_cents,
+             t.transaction_date::text as transaction_date, t.account_id
       from transactions t
       join accounts a on a.id = t.account_id and a.user_id = t.user_id
       where t.user_id = ${userId}
         and t.status = 'pending'
+        and t.type in ('income', 'expense')
         and t.transaction_date <= ${until}::date
-        and a.archived_at is null and a.type in ('bank', 'wallet') and a.include_in_available`);
-    return { incomeCents: num(row?.income), expenseCents: num(row?.expense) };
+        and a.archived_at is null and a.type in ('bank', 'wallet') and a.include_in_available
+      order by t.transaction_date asc, t.created_at asc, t.id asc`);
+    return rows.map((row) => ({
+      id: row.id,
+      type: row.type,
+      description: row.description,
+      amountCents: num(row.amount_cents),
+      date: row.transaction_date,
+      accountId: row.account_id,
+    }));
   }
 
-  async pendingTransferCrossings(userId: string, until: string) {
-    const [row] = await this.db.execute<{ outgoing: string; incoming: string }>(sql`
+  async pendingTransferCrossingEntries(userId: string, until: string) {
+    const rows = await this.db.execute<{
+      id: string;
+      direction: 'in' | 'out';
+      description: string;
+      amount_cents: string;
+      transfer_date: string;
+      account_id: string;
+    }>(sql`
       with liquid as (
         select id, user_id, (archived_at is null and type in ('bank', 'wallet') and include_in_available) as is_liquid
         from accounts where user_id = ${userId}
       )
-      select
-        coalesce(sum(tr.amount_cents) filter (where src.is_liquid and not dst.is_liquid), 0) as outgoing,
-        coalesce(sum(tr.amount_cents) filter (where not src.is_liquid and dst.is_liquid), 0) as incoming
+      select tr.id,
+             case when src.is_liquid then 'out' else 'in' end as direction,
+             tr.description, tr.amount_cents, tr.transfer_date::text as transfer_date,
+             case when src.is_liquid then src.id else dst.id end as account_id
       from transfers tr
       join liquid src on src.id = tr.from_account_id and src.user_id = tr.user_id
       join liquid dst on dst.id = tr.to_account_id and dst.user_id = tr.user_id
       where tr.user_id = ${userId}
         and tr.status = 'pending'
-        and tr.transfer_date <= ${until}::date`);
-    return { inCents: num(row?.incoming), outCents: num(row?.outgoing) };
+        and tr.transfer_date <= ${until}::date
+        and src.is_liquid <> dst.is_liquid
+      order by tr.transfer_date asc, tr.created_at asc, tr.id asc`);
+    return rows.map((row) => ({
+      id: row.id,
+      direction: row.direction,
+      description: row.description,
+      amountCents: num(row.amount_cents),
+      date: row.transfer_date,
+      accountId: row.account_id,
+    }));
   }
 
   async completedTotals(userId: string, from: string, to: string) {
