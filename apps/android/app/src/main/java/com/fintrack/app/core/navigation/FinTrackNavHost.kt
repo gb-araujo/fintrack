@@ -43,6 +43,8 @@ import com.fintrack.app.presentation.imports.ImportScreen
 import com.fintrack.app.presentation.imports.ImportViewModel
 import com.fintrack.app.presentation.more.MoreEntry
 import com.fintrack.app.presentation.more.MoreScreen
+import com.fintrack.app.presentation.reports.ReportsScreen
+import com.fintrack.app.presentation.reports.ReportsViewModel
 import com.fintrack.app.presentation.recurring.RecurringScreen
 import com.fintrack.app.presentation.recurring.RecurringViewModel
 import com.fintrack.app.presentation.transactions.TransactionsScreen
@@ -71,6 +73,8 @@ import kotlinx.serialization.Serializable
 @Serializable data object BudgetsRoute
 
 @Serializable data object ImportRoute
+
+@Serializable data object ReportsRoute
 
 @Serializable data object RecurringRoute
 
@@ -138,7 +142,7 @@ private fun MainNavHost(container: AppContainer) {
         Tab(AccountsRoute, "Contas"),
         Tab(CardsRoute, "Cartões", also = listOf(CardDetailRoute::class)),
         // Telas secundárias ficam sob "Mais" (a barra inferior não passa de 4 itens).
-        Tab(MoreRoute, "Mais", also = listOf(BudgetsRoute::class, RecurringRoute::class, ImportRoute::class)),
+        Tab(MoreRoute, "Mais", also = listOf(BudgetsRoute::class, RecurringRoute::class, ImportRoute::class, ReportsRoute::class)),
     )
     val backStack by navController.currentBackStackEntryAsState()
     val destination = backStack?.destination
@@ -242,6 +246,9 @@ private fun MainNavHost(container: AppContainer) {
                         MoreEntry("Importar extrato", "Leia o CSV do banco, revise e confirme") {
                             navController.navigate(ImportRoute) { launchSingleTop = true }
                         },
+                        MoreEntry("Relatórios", "Despesas, receitas, fluxo de caixa e patrimônio") {
+                            navController.navigate(ReportsRoute) { launchSingleTop = true }
+                        },
                     ),
                 )
             }
@@ -257,6 +264,22 @@ private fun MainNavHost(container: AppContainer) {
                     ),
                 )
                 ImportScreen(viewModel = viewModel, onBack = { navController.popBackStack() })
+            }
+            composable<ReportsRoute> {
+                val viewModel: ReportsViewModel = viewModel(
+                    factory = ReportsViewModel.factory(
+                        container.getExpensesByCategory,
+                        container.getIncomeVsExpenses,
+                        container.getMonthlyEvolution,
+                        container.getExpensesByAccount,
+                        container.getExpensesByCard,
+                        container.getCashFlow,
+                        container.getBudgetHistory,
+                        container.getNetWorth,
+                        container.getInvestmentsReport,
+                    ),
+                )
+                ReportsScreen(viewModel = viewModel)
             }
             composable<BudgetsRoute> {
                 val viewModel: BudgetsViewModel = viewModel(

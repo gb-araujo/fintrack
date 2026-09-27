@@ -23,3 +23,4 @@ Um ADR aceito só muda por meio de um novo ADR que o substitua.
 | [0016](./0016-recorrencias-implementacao.md) | Recorrências: decisões de implementação | Aceito (FASE 4) |
 | [0017](./0017-cartao-faturas-e-parcelas.md) | Cartão de crédito: faturas, parcelas e pagamento | Aceito (FASE 5) |
 | [0018](./0018-importacao-de-extratos.md) | Importação de extratos (CSV): revisão, duplicidade e sugestões | Aceito (FASE 6) |
+| [0019](./0019-relatorios.md) | Relatórios: mesmas definições do painel, do orçamento e das faturas | Aceito (FASE 7) |

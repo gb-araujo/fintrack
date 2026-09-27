@@ -18,7 +18,7 @@ investimentos, transferências e orçamento — sem contar nenhuma movimentaçã
 | 4 | Recorrências + orçamento | ✅ concluída |
 | 5 | Cartão + faturas + parcelas | ✅ concluída |
 | 6 | Importação CSV | ✅ concluída |
-| 7 | Relatórios | — |
+| 7 | Relatórios | ✅ concluída |
 | 8 | Investimentos | — |
 | 9 | Melhorias e automações | — |
 

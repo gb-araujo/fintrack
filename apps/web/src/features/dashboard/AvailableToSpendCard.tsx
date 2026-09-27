@@ -108,6 +108,7 @@ export function AvailableToSpendCard({
   );
 }
 
+/** Reaproveitado pelos relatórios (FASE 7): título, valor formatado, tom automático opcional. */
 export function StatCard({
   title,
   cents,
