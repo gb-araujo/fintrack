@@ -36,6 +36,27 @@
       "when": 1790479546423,
       "tag": "0004_recurring_and_budgets",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1790481580345,
+      "tag": "0005_credit_cards_invoices_installments",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1790481588509,
+      "tag": "0006_installments_integrity_trigger",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1790481669162,
+      "tag": "0007_invoice_due_not_before_closing",
+      "breakpoints": true
     }
   ]
 }

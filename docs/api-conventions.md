@@ -115,6 +115,22 @@ futuras são acrescentados sem quebrar clientes (campos desconhecidos são ignor
   (`ok|warning|exceeded`), `totals` e `unbudgetedSpentCents`. `PUT /budgets` faz upsert por
   `(categoryId, month)`; `DELETE /budgets/:id` → `204`. Categoria de receita → `422`.
 
+## Cartões (FASE 5)
+
+- **Cartões** (`/credit-cards`): `POST` cadastra (limite > 0; dias de fechamento/vencimento 1–31;
+  conta de pagamento opcional, banco/carteira). `GET` devolve `usedLimitCents`, `availableLimitCents`
+  (pode ser negativo: a API não bloqueia) e a fatura aberta. Arquivar: `POST …/archive|unarchive`.
+- **Compras**: `POST /credit-cards/:id/purchases` `{ description, purchaseDate (≤ hoje), totalAmountCents,
+  installmentsCount (1–48), categoryId? }` devolve as parcelas já distribuídas nas faturas. Data futura,
+  categoria de receita, valor menor que o nº de parcelas → `422`; cartão arquivado → `409`.
+  `PATCH /purchases/:id` (só descrição/categoria); `POST /purchases/:id/cancel` (estorno, idempotente).
+- **Faturas**: `GET /credit-cards/:id/invoices` (mais recente primeiro) e `GET /invoices/:id` (parcelas e
+  pagamentos). Status `open|closed|paid` + `overdue`, calculados no backend.
+- **Pagar**: `POST /invoices/:id/payments` `{ accountId, amountCents?, paymentDate? }` → `201` com a
+  transação `card_payment` (`creditCardInvoiceId`). Mais que o em aberto, ou fatura sem saldo → `422`;
+  conta de investimento → `422`; arquivada → `409`. Efetivar/cancelar: `/transactions/:id/complete|cancel`;
+  editar → `409`.
+
 ## Paginação
 
 Listagens grandes usam cursor: `?limit=50&cursor=<opaco>` → `{ "items": [...], "nextCursor": "..." | null }`.

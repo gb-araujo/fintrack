@@ -131,6 +131,28 @@ async function main(): Promise<void> {
       startDate: day(1),
     });
 
+    // Cartão de crédito: compras viram parcelas em faturas; nada sai da conta até pagar a fatura.
+    const nubank = await domain.creditCardsService.create(userId, {
+      name: 'Nubank',
+      limitCents: 600_000,
+      closingDay: 25,
+      dueDay: 5,
+      paymentAccountId: inter.id,
+    });
+    await domain.creditCardsService.createPurchase(userId, nubank.id, {
+      description: 'Notebook',
+      purchaseDate: day(-12),
+      totalAmountCents: 240_000,
+      installmentsCount: 3,
+    });
+    await domain.creditCardsService.createPurchase(userId, nubank.id, {
+      description: 'Restaurante',
+      purchaseDate: day(-3),
+      totalAmountCents: 18_990,
+      installmentsCount: 1,
+      categoryId: category('Alimentação', 'expense'),
+    });
+
     // Orçamentos do mês corrente.
     const month = today.slice(0, 7);
     for (const [name, limitCents] of [
@@ -162,7 +184,7 @@ async function main(): Promise<void> {
     });
 
     process.stdout.write(
-      `[seed] criado: ${DEMO_EMAIL} / ${DEMO_PASSWORD} (4 contas, 12 lançamentos, 2 transferências, 3 recorrências, 4 orçamentos)\n`,
+      `[seed] criado: ${DEMO_EMAIL} / ${DEMO_PASSWORD} (4 contas, 12 lançamentos, 2 transferências, 3 recorrências, 1 cartão com 2 compras, 4 orçamentos)\n`,
     );
   } finally {
     await database.close();

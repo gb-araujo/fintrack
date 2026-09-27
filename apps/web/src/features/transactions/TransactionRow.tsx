@@ -35,8 +35,15 @@ export function TransactionRow({
   const cents = signedAmount(transaction);
   const cancelled = transaction.status === 'cancelled';
   const isTransfer = transaction.type === 'transfer';
-  // Transferência não é receita nem despesa: valor em cinza, para não parecer entrada/saída de patrimônio.
-  const tone = isTransfer ? 'text-slate-600' : cents > 0 ? 'text-emerald-700' : 'text-rose-600';
+  const isCardPayment = transaction.type === 'card_payment';
+  // Transferência e pagamento de fatura não são despesa (a despesa já foi contada nas parcelas):
+  // valor em cinza, para não parecer uma despesa nova.
+  const tone =
+    isTransfer || isCardPayment
+      ? 'text-slate-600'
+      : cents > 0
+        ? 'text-emerald-700'
+        : 'text-rose-600';
 
   return (
     <li className="flex flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
@@ -52,6 +59,7 @@ export function TransactionRow({
           {transaction.status === 'pending' ? <Badge tone="amber">Pendente</Badge> : null}
           {cancelled ? <Badge>Cancelado</Badge> : null}
           {isTransfer ? <Badge tone="sky">Transferência</Badge> : null}
+          {isCardPayment ? <Badge tone="sky">Pagamento de fatura</Badge> : null}
         </p>
       </div>
 
@@ -69,14 +77,17 @@ export function TransactionRow({
                 {isTransfer ? 'Efetivar' : transaction.type === 'income' ? 'Recebi' : 'Paguei'}
               </Button>
             ) : null}
-            <Button
-              variant="secondary"
-              size="sm"
-              disabled={busy}
-              onClick={() => onEdit(transaction)}
-            >
-              Editar
-            </Button>
+            {/* Pagamento de fatura não se edita: cancele e pague de novo (a API recusa a edição). */}
+            {isCardPayment ? null : (
+              <Button
+                variant="secondary"
+                size="sm"
+                disabled={busy}
+                onClick={() => onEdit(transaction)}
+              >
+                Editar
+              </Button>
+            )}
             <Button variant="ghost" size="sm" disabled={busy} onClick={() => onCancel(transaction)}>
               Cancelar
             </Button>

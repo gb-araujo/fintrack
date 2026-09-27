@@ -1,6 +1,7 @@
 import type {
   AccountType,
   PaymentMethod,
+  InvoiceStatus,
   RecurrenceFrequency,
   Recurring,
   TransactionStatus,
@@ -46,6 +47,12 @@ export function formatDate(date: string): string {
   const [year, month, day] = date.split('-');
   return `${day}/${month}/${year}`;
 }
+
+export const INVOICE_STATUS_LABEL: Record<InvoiceStatus, string> = {
+  open: 'Aberta',
+  closed: 'Fechada',
+  paid: 'Paga',
+};
 
 export const FREQUENCY_LABEL: Record<RecurrenceFrequency, string> = {
   weekly: 'Semanal',

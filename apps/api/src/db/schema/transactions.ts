@@ -13,6 +13,7 @@ import {
 import { accounts } from './accounts.js';
 import { categories } from './categories.js';
 import { createdAt, primaryId, updatedAt } from './columns.js';
+import { creditCardInvoices } from './credit-cards.js';
 import {
   paymentMethodEnum,
   transactionStatusEnum,
@@ -49,6 +50,8 @@ export const transactions = pgTable(
     /** Ocorrência de recorrência que originou (ou pulou) este lançamento — FASE 4. */
     recurringTransactionId: uuid(),
     occurrenceDate: date({ mode: 'string' }),
+    /** Fatura paga por este lançamento — só em `card_payment` (FASE 5, ADR 0004). */
+    creditCardInvoiceId: uuid(),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
@@ -73,6 +76,18 @@ export const transactions = pgTable(
       columns: [table.recurringTransactionId, table.userId],
       foreignColumns: [recurringTransactions.id, recurringTransactions.userId],
     }),
+    foreignKey({
+      name: 'transactions_invoice_fk',
+      columns: [table.creditCardInvoiceId, table.userId],
+      foreignColumns: [creditCardInvoices.id, creditCardInvoices.userId],
+    }),
+    // Pagamento de fatura ⇔ referencia a fatura; não tem categoria (não é despesa) nem é perna.
+    check(
+      'transactions_card_payment_shape',
+      sql`(${table.type} = 'card_payment' and ${table.creditCardInvoiceId} is not null and ${table.categoryId} is null)
+        or (${table.type} <> 'card_payment' and ${table.creditCardInvoiceId} is null)`,
+    ),
+    index('transactions_invoice_idx').on(table.creditCardInvoiceId),
     // recurring_transaction_id e occurrence_date andam juntos, e só em receita/despesa.
     check(
       'transactions_recurring_shape',

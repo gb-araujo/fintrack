@@ -9,6 +9,7 @@ data class AvailableComponents(
     val pendingTransfersOutCents: Long,
     val forecastIncomeCents: Long = 0,
     val forecastExpensesCents: Long = 0,
+    val invoicesCents: Long = 0,
 )
 
 data class PendingBill(
@@ -19,6 +20,8 @@ data class PendingBill(
     val overdue: Boolean,
     /** Ocorrência prevista de uma recorrência (ainda não é lançamento). */
     val recurring: Boolean = false,
+    /** Fatura de cartão a vencer (kind = "invoice"). */
+    val invoice: Boolean = false,
     /** Valor estimado (recorrência de valor variável). */
     val estimated: Boolean = false,
 )
@@ -32,6 +35,10 @@ data class DashboardSummary(
     val investmentsCents: Long,
     val monthIncomeCents: Long,
     val monthExpenseCents: Long,
+    /** Parte de `monthExpenseCents` vinda de parcelas de cartão (informativo). */
+    val monthCardExpenseCents: Long = 0,
+    /** Tudo que ainda se deve nos cartões (todas as faturas, inclusive parcelas futuras). */
+    val cardLiabilitiesCents: Long = 0,
     val pendingCount: Int,
     val pendingTotalCents: Long,
     val overdueCount: Int,

@@ -51,6 +51,7 @@ const columns = {
   status: transactions.status,
   transferId: transactions.transferId,
   recurringId: transactions.recurringTransactionId,
+  creditCardInvoiceId: transactions.creditCardInvoiceId,
   transferDirection: transactions.transferDirection,
   fromAccountId: transfers.fromAccountId,
   toAccountId: transfers.toAccountId,
@@ -70,6 +71,7 @@ interface Row {
   status: TransactionStatus;
   transferId: string | null;
   recurringId: string | null;
+  creditCardInvoiceId: string | null;
   transferDirection: TransferDirection | null;
   /** Vêm do LEFT JOIN com transfers: nulos quando o lançamento não é perna de transferência. */
   fromAccountId: string | null;
@@ -90,6 +92,7 @@ function toRecord(row: Row): TransactionRecord {
     paymentMethod: row.paymentMethod,
     status: row.status,
     recurringId: row.recurringId,
+    creditCardInvoiceId: row.creditCardInvoiceId,
     transfer:
       row.transferId && row.transferDirection && row.fromAccountId && row.toAccountId
         ? {

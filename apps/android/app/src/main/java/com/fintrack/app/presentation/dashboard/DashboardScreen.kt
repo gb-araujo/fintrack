@@ -85,6 +85,12 @@ private fun DashboardBody(uiState: DashboardUiState, onRetry: () -> Unit) {
             AvailableCard(summary)
             StatRow("Saldo total", formatBRL(summary.totalBalanceCents), "Investimentos", formatBRL(summary.investmentsCents))
             StatRow("Receitas do mês", formatBRL(summary.monthIncomeCents), "Despesas do mês", formatBRL(summary.monthExpenseCents))
+            StatRow(
+                "Cartões em aberto",
+                formatBRL(summary.cardLiabilitiesCents),
+                "Parcelas no mês",
+                formatBRL(summary.monthCardExpenseCents),
+            )
             PendingCard(summary)
             StatRow(
                 "Compromissos futuros",
@@ -136,6 +142,7 @@ private fun ComponentLines(components: AvailableComponents, available: Long) {
     ComponentLine("+", "Entradas agendadas (resgates)", components.pendingTransfersInCents)
     ComponentLine("−", "Despesas pendentes", components.pendingExpensesCents)
     ComponentLine("−", "Despesas previstas (recorrências)", components.forecastExpensesCents)
+    ComponentLine("−", "Faturas de cartão a pagar", components.invoicesCents)
     ComponentLine("−", "Saídas agendadas (aplicações)", components.pendingTransfersOutCents)
     ComponentLine("=", "Disponível", available)
 }
@@ -185,6 +192,7 @@ private fun BillLine(bill: PendingBill) {
     val suffix = buildString {
         if (bill.overdue) append(" · vencida")
         if (bill.recurring) append(if (bill.estimated) " · recorrente (estimado)" else " · recorrente")
+        if (bill.invoice) append(" · fatura")
     }
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
         Text(

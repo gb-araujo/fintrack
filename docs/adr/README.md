@@ -21,3 +21,4 @@ Um ADR aceito só muda por meio de um novo ADR que o substitua.
 | [0014](./0014-dinheiro-disponivel.md) | Definição do "dinheiro disponível" | Aceito |
 | [0015](./0015-orcamentos-mensais.md) | Orçamentos mensais por categoria | Aceito (FASE 4) |
 | [0016](./0016-recorrencias-implementacao.md) | Recorrências: decisões de implementação | Aceito (FASE 4) |
+| [0017](./0017-cartao-faturas-e-parcelas.md) | Cartão de crédito: faturas, parcelas e pagamento | Aceito (FASE 5) |

@@ -32,6 +32,8 @@ export const transactionSchema = z.object({
   status: transactionStatusSchema,
   /** Recorrência que originou este lançamento (confirmado ou pulado), se houver. */
   recurringId: z.uuid().nullable(),
+  /** Fatura paga por este lançamento (apenas `card_payment`). */
+  creditCardInvoiceId: z.uuid().nullable(),
   /** Presente apenas nas pernas de uma transferência. */
   transfer: z
     .object({

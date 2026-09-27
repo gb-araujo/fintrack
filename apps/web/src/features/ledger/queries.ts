@@ -63,6 +63,8 @@ export function invalidateLedger(client: QueryClient) {
     // Orçamento (gasto) e previsões de recorrências também dependem dos lançamentos.
     client.invalidateQueries({ queryKey: ['budgets'] }),
     client.invalidateQueries({ queryKey: ['recurring'] }),
+    // Cancelar/efetivar um pagamento de fatura muda faturas e limite dos cartões.
+    client.invalidateQueries({ queryKey: ['cards'] }),
   ]);
 }
 

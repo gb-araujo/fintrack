@@ -16,6 +16,7 @@ const dashboard = {
       forecastIncomeCents: 30_000,
       pendingExpensesCents: 120_000,
       forecastExpensesCents: 30_000,
+      invoicesCents: 0,
       pendingTransfersInCents: 5_000,
       pendingTransfersOutCents: 25_000,
     },
@@ -23,7 +24,14 @@ const dashboard = {
   totalBalanceCents: 250_000,
   investmentsCents: 50_000,
   netWorthCents: 300_000,
-  month: { from: '2026-09-01', to: '2026-09-30', incomeCents: 590_000, expenseCents: 199_999 },
+  cardLiabilitiesCents: 0,
+  month: {
+    from: '2026-09-01',
+    to: '2026-09-30',
+    incomeCents: 590_000,
+    expenseCents: 199_999,
+    cardExpenseCents: 0,
+  },
   pendingBills: {
     count: 2,
     totalCents: 27_834,
@@ -34,6 +42,7 @@ const dashboard = {
         id: crypto.randomUUID(),
         kind: 'transaction',
         recurringId: null,
+        invoiceId: null,
         estimated: false,
         description: 'Vivo Fibra',
         amountCents: 9_099,
@@ -46,6 +55,7 @@ const dashboard = {
         id: `${recurringId}|2026-09-29`,
         kind: 'recurring',
         recurringId,
+        invoiceId: null,
         estimated: true,
         description: 'Enel',
         amountCents: 18_735,
@@ -96,6 +106,7 @@ describe('Dashboard — "Quanto posso gastar?"', () => {
       '+Entradasagendadas(resgates)R$50,00',
       '−DespesaspendentesR$1.200,00',
       '−Despesasprevistas(recorrências)R$300,00',
+      '−FaturasdecartãoapagarR$0,00',
       '−Saídasagendadas(aplicações)R$250,00',
       '=DisponívelR$1.300,00',
     ]);
@@ -127,6 +138,56 @@ describe('Dashboard — "Quanto posso gastar?"', () => {
     expect(within(second).getByText('Recorrente · estimado')).toBeInTheDocument();
     expect(within(first).queryByText(/Recorrente/)).not.toBeInTheDocument();
     expect(within(second).getByText(/Banco Inter/)).toBeInTheDocument();
+  });
+
+  it('fatura de cartão aparece nas contas a pagar e reduz o disponível pelo valor em aberto', async () => {
+    const invoiceId = crypto.randomUUID();
+    const withInvoice = {
+      ...dashboard,
+      availableToSpend: {
+        amountCents: 110_000,
+        components: { ...dashboard.availableToSpend.components, invoicesCents: 20_000 },
+      },
+      cardLiabilitiesCents: 62_000,
+      month: { ...dashboard.month, expenseCents: 219_999, cardExpenseCents: 20_000 },
+      pendingBills: {
+        ...dashboard.pendingBills,
+        next: [
+          {
+            id: `invoice:${invoiceId}`,
+            kind: 'invoice',
+            recurringId: null,
+            invoiceId,
+            description: 'Fatura Nubank 09/2026',
+            amountCents: 20_000,
+            estimated: false,
+            date: '2026-09-28',
+            accountId: null,
+            categoryId: null,
+            overdue: false,
+          },
+        ],
+      },
+    };
+    mockLedgerApi(
+      { accounts: [inter] },
+      { 'GET /api/v1/dashboard': () => jsonResponse(withInvoice) },
+    );
+    renderRoute('/');
+    await screen.findByLabelText('Dinheiro disponível');
+
+    const list = screen.getByLabelText('Componentes do cálculo');
+    expect(
+      within(list)
+        .getByText(/Faturas de cartão a pagar/)
+        .closest('li'),
+    ).toHaveTextContent(/R\$\s200,00/);
+    const bills = screen.getByRole('list', { name: 'Próximas contas a pagar' });
+    expect(within(bills).getByText('Fatura')).toBeInTheDocument();
+    expect(within(bills).getByText(/Fatura Nubank 09\/2026/)).toBeInTheDocument();
+    expect(screen.getByLabelText('Cartões em aberto')).toHaveTextContent(/R\$\s620,00/);
+    expect(screen.getByLabelText('Despesas do mês')).toHaveTextContent(/R\$\s2\.199,99/);
+    expect(screen.getByText(/Inclui R\$\s200,00 em parcelas de cartão/)).toBeInTheDocument();
   });
 
   it('avisa quando o disponível fica negativo', async () => {

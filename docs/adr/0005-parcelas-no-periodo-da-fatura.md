@@ -1,6 +1,7 @@
 # ADR 0005 — Parcelas reconhecidas no período da fatura
 
-- **Status:** aceito (FASE 0)
+- **Status:** aceito (FASE 0); implementado na FASE 5 ([ADR 0017](./0017-cartao-faturas-e-parcelas.md)):
+  "mês de referência" = mês do **vencimento** da fatura
 
 ## Contexto
 

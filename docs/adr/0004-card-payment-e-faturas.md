@@ -1,6 +1,8 @@
 # ADR 0004 — Tipo `card_payment` e tabela de faturas
 
-- **Status:** aceito (FASE 0) — desvio aprovado da lista original de tipos (income/expense/transfer)
+- **Status:** aceito (FASE 0) — desvio aprovado da lista original de tipos (income/expense/transfer);
+  implementado na FASE 5 ([ADR 0017](./0017-cartao-faturas-e-parcelas.md): o status da fatura passou a
+  ser derivado, não gravado)
 
 ## Contexto
 

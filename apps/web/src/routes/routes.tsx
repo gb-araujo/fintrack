@@ -6,6 +6,8 @@ import { LoginPage } from '../features/auth/LoginPage';
 import { RegisterPage } from '../features/auth/RegisterPage';
 import { PublicOnly, RequireAuth } from '../features/auth/RouteGuards';
 import { BudgetsPage } from '../features/budgets/BudgetsPage';
+import { CreditCardDetailPage } from '../features/credit-cards/CreditCardDetailPage';
+import { CreditCardsPage } from '../features/credit-cards/CreditCardsPage';
 import { CategoriesPage } from '../features/categories/CategoriesPage';
 import { RecurringPage } from '../features/recurring/RecurringPage';
 import { TransactionsPage } from '../features/transactions/TransactionsPage';
@@ -22,6 +24,7 @@ const IMPLEMENTED = new Set([
   '/categories',
   '/budgets',
   '/recurring',
+  '/credit-cards',
 ]);
 
 const placeholderRoutes: RouteObject[] = NAV_ITEMS.filter((item) => !IMPLEMENTED.has(item.to)).map(
@@ -52,6 +55,8 @@ export const routes: RouteObject[] = [
           { path: 'categories', element: <CategoriesPage /> },
           { path: 'budgets', element: <BudgetsPage /> },
           { path: 'recurring', element: <RecurringPage /> },
+          { path: 'credit-cards', element: <CreditCardsPage /> },
+          { path: 'credit-cards/:cardId', element: <CreditCardDetailPage /> },
           ...placeholderRoutes,
           { path: 'more', element: <MorePage /> },
           { path: '*', element: <NotFoundPage /> },

@@ -86,6 +86,22 @@ compras de cartão diretamente (só via fatura), parcelas de faturas que vencem 
 
 A API retorna o valor **e a decomposição** de cada termo da fórmula.
 
+## 4b. Cartão de crédito — FASE 5
+
+- Compra no cartão = parcelas em faturas; **a despesa é a parcela**, reconhecida no mês do
+  **vencimento** da fatura (orçamento, "despesas do mês", relatórios). Pagar a fatura
+  (`card_payment`) só tira dinheiro da conta: **não é despesa** e não entra em orçamento.
+- Compra até o dia do fechamento (inclusive) cai na fatura do mês; depois, na seguinte. Parcelas:
+  uma fatura por mês, resto dos centavos na 1ª (R$ 100 em 3x = 33,34 + 33,33 + 33,33). O total das
+  parcelas é sempre o total da compra (garantido no banco).
+- Fatura: total − pago = em aberto (negativo = crédito de estorno); status derivado
+  (aberta → fechada → paga; vencida se passou do vencimento com valor em aberto).
+- "Quanto posso gastar?" subtrai o valor em aberto das faturas com vencimento até o horizonte
+  (inclui vencidas); pagar a fatura não muda o disponível. Faturas depois do horizonte são
+  compromissos futuros. Patrimônio = saldos − tudo que se deve nos cartões.
+- Não se paga nem agenda mais que o em aberto da fatura; cancelar a compra (estorno) tira as parcelas
+  de fatura, limite e orçamento. ([ADR 0017](./adr/0017-cartao-faturas-e-parcelas.md))
+
 ## 5. Recorrências — FASE 4
 
 - Uma recorrência gera **previsões** (ocorrências virtuais), não transações.
@@ -139,9 +155,12 @@ Fluxo: arquivo → parser → normalização → detecção de duplicidade → s
   líquida). Definição formal e decisões no [ADR 0014](./adr/0014-dinheiro-disponivel.md).
 - Conta líquida = banco/carteira, ativa e marcada como disponível; investimento **nunca** entra.
 - Horizonte padrão: fim do mês no fuso do usuário; `?until=` opcional (não anterior a hoje).
+- FASE 5: `invoicesCents` (valor em aberto das faturas com vencimento até o horizonte) subtrai do
+  disponível; `cardLiabilitiesCents` reduz o patrimônio; `month.cardExpenseCents` mostra a parte
+  da despesa do mês que vem de parcelas de cartão.
 - FASE 4: previsões de recorrências (`includeInForecast`, conta líquida, até o horizonte) entram como
   `forecastIncomeCents`/`forecastExpensesCents`; confirmar uma ocorrência não altera o resultado
-  (sai da previsão, entra no saldo). Faturas (FASE 5) serão acrescentadas ao mesmo cálculo.
+  (sai da previsão, entra no saldo).
 
 ## 7. Pendências conhecidas
 

@@ -16,7 +16,7 @@ investimentos, transferências e orçamento — sem contar nenhuma movimentaçã
 | 2 | Contas + categorias + transações | ✅ concluída |
 | 3 | Dashboard + cálculo de dinheiro disponível | ✅ concluída |
 | 4 | Recorrências + orçamento | ✅ concluída |
-| 5 | Cartão + faturas + parcelas | — |
+| 5 | Cartão + faturas + parcelas | ✅ concluída |
 | 6 | Importação CSV | — |
 | 7 | Relatórios | — |
 | 8 | Investimentos | — |

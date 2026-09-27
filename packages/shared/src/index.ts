@@ -11,3 +11,4 @@ export * from './contracts/transfers.js';
 export * from './contracts/dashboard.js';
 export * from './contracts/recurring.js';
 export * from './contracts/budgets.js';
+export * from './contracts/credit-cards.js';

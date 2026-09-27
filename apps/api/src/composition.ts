@@ -3,6 +3,8 @@ import { DrizzleAccountsRepository } from './modules/accounts/accounts.repositor
 import { AccountsService } from './modules/accounts/accounts.service.js';
 import { DrizzleBudgetsRepository } from './modules/budgets/budgets.repository.js';
 import { BudgetsService } from './modules/budgets/budgets.service.js';
+import { DrizzleCreditCardsRepository } from './modules/credit-cards/credit-cards.repository.js';
+import { CreditCardsService } from './modules/credit-cards/credit-cards.service.js';
 import { DrizzleDashboardRepository } from './modules/dashboard/dashboard.repository.js';
 import { DashboardService } from './modules/dashboard/dashboard.service.js';
 import { DrizzleCategoriesRepository } from './modules/categories/categories.repository.js';
@@ -28,6 +30,7 @@ export function buildDomain(db: DrizzleDb, options: { now?: () => Date } = {}) {
   const transfersRepository = new DrizzleTransfersRepository(db);
   const dashboardRepository = new DrizzleDashboardRepository(db);
   const budgetsRepository = new DrizzleBudgetsRepository(db);
+  const creditCardsRepository = new DrizzleCreditCardsRepository(db);
   const recurringRepository = new DrizzleRecurringRepository(db);
   const now = options.now ? { now: options.now } : {};
 
@@ -53,6 +56,13 @@ export function buildDomain(db: DrizzleDb, options: { now?: () => Date } = {}) {
       ...now,
     }),
     recurringService,
+    creditCardsService: new CreditCardsService({
+      cards: creditCardsRepository,
+      accounts: accountsRepository,
+      categories: categoriesRepository,
+      users: usersRepository,
+      ...now,
+    }),
     budgetsService: new BudgetsService({
       budgets: budgetsRepository,
       categories: categoriesRepository,

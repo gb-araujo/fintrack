@@ -57,7 +57,16 @@ export function DashboardPage() {
           <StatCard
             title="Despesas do mês"
             cents={dashboard.data.month.expenseCents}
-            hint="Transferências e investimentos não contam"
+            hint={
+              dashboard.data.month.cardExpenseCents > 0
+                ? `Inclui ${formatBRL(dashboard.data.month.cardExpenseCents)} em parcelas de cartão · transferências e pagamento de fatura não contam`
+                : 'Transferências e investimentos não contam'
+            }
+          />
+          <StatCard
+            title="Cartões em aberto"
+            cents={dashboard.data.cardLiabilitiesCents}
+            hint="Todas as faturas a pagar, inclusive parcelas futuras"
           />
 
           <section
@@ -69,6 +78,12 @@ export function DashboardPage() {
                 Contas pendentes
               </h2>
               <span className="flex gap-3">
+                <Link
+                  to="/credit-cards"
+                  className="text-xs font-medium text-brand-700 hover:underline"
+                >
+                  Cartões
+                </Link>
                 <Link
                   to="/recurring"
                   className="text-xs font-medium text-brand-700 hover:underline"
@@ -110,11 +125,17 @@ export function DashboardPage() {
                     <span className="min-w-0 truncate">
                       {bill.description || 'Despesa'}
                       <span className="ml-2 text-xs text-slate-500">
-                        {formatDate(bill.date)} · {accountName(bill.accountId)}
+                        {formatDate(bill.date)}
+                        {bill.accountId ? ` · ${accountName(bill.accountId)}` : ''}
                       </span>
                       {bill.overdue ? (
                         <span className="ml-2">
                           <Badge tone="rose">Vencida</Badge>
+                        </span>
+                      ) : null}
+                      {bill.kind === 'invoice' ? (
+                        <span className="ml-2">
+                          <Badge tone="sky">Fatura</Badge>
                         </span>
                       ) : null}
                       {bill.kind === 'recurring' ? (

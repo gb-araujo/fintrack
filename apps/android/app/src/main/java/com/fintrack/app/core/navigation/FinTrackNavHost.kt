@@ -20,6 +20,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.toRoute
 import com.fintrack.app.core.di.AppContainer
 import com.fintrack.app.domain.models.SessionState
 import com.fintrack.app.presentation.auth.LoginScreen
@@ -32,6 +33,10 @@ import com.fintrack.app.presentation.accounts.AccountsScreen
 import com.fintrack.app.presentation.accounts.AccountsViewModel
 import com.fintrack.app.presentation.budgets.BudgetsScreen
 import com.fintrack.app.presentation.budgets.BudgetsViewModel
+import com.fintrack.app.presentation.cards.CardDetailScreen
+import com.fintrack.app.presentation.cards.CardDetailViewModel
+import com.fintrack.app.presentation.cards.CardsScreen
+import com.fintrack.app.presentation.cards.CardsViewModel
 import com.fintrack.app.presentation.dashboard.DashboardScreen
 import com.fintrack.app.presentation.dashboard.DashboardViewModel
 import com.fintrack.app.presentation.more.MoreEntry
@@ -54,6 +59,10 @@ import kotlinx.serialization.Serializable
 @Serializable data object TransactionsRoute
 
 @Serializable data object AccountsRoute
+
+@Serializable data object CardsRoute
+
+@Serializable data class CardDetailRoute(val cardId: String)
 
 @Serializable data object MoreRoute
 
@@ -109,7 +118,12 @@ private fun AuthNavHost(container: AppContainer) {
     }
 }
 
-private data class Tab(val route: Any, val label: String, val also: List<Any> = emptyList())
+private data class Tab(
+    val route: Any,
+    val label: String,
+    /** Outras telas que mantêm esta aba selecionada (ex.: detalhe de um cartão). */
+    val also: List<kotlin.reflect.KClass<*>> = emptyList(),
+)
 
 @Composable
 private fun MainNavHost(container: AppContainer) {
@@ -118,8 +132,9 @@ private fun MainNavHost(container: AppContainer) {
         Tab(DashboardRoute, "Início"),
         Tab(TransactionsRoute, "Transações"),
         Tab(AccountsRoute, "Contas"),
+        Tab(CardsRoute, "Cartões", also = listOf(CardDetailRoute::class)),
         // Telas secundárias ficam sob "Mais" (a barra inferior não passa de 4 itens).
-        Tab(MoreRoute, "Mais", also = listOf(BudgetsRoute, RecurringRoute)),
+        Tab(MoreRoute, "Mais", also = listOf(BudgetsRoute::class, RecurringRoute::class)),
     )
     val backStack by navController.currentBackStackEntryAsState()
     val destination = backStack?.destination
@@ -130,7 +145,7 @@ private fun MainNavHost(container: AppContainer) {
                 tabs.forEach { tab ->
                     NavigationBarItem(
                         selected = destination != null &&
-                            (listOf(tab.route) + tab.also).any { destination.hasRoute(it::class) },
+                            (listOf(tab.route::class) + tab.also).any { destination.hasRoute(it) },
                         onClick = {
                             // Sem saveState: cada visita cria a tela de novo e recarrega os saldos do servidor.
                             navController.navigate(tab.route) {
@@ -182,6 +197,34 @@ private fun MainNavHost(container: AppContainer) {
                     factory = AccountsViewModel.factory(container.listAccounts, container.createAccount),
                 )
                 AccountsScreen(viewModel = viewModel)
+            }
+            composable<CardsRoute> {
+                val viewModel: CardsViewModel = viewModel(
+                    factory = CardsViewModel.factory(container.listCards, container.createCard, container.listAccounts),
+                )
+                CardsScreen(
+                    viewModel = viewModel,
+                    onOpenCard = { id -> navController.navigate(CardDetailRoute(id)) { launchSingleTop = true } },
+                )
+            }
+            composable<CardDetailRoute> { entry ->
+                val route = entry.toRoute<CardDetailRoute>()
+                val viewModel: CardDetailViewModel = viewModel(
+                    factory = CardDetailViewModel.factory(
+                        route.cardId,
+                        container.getCard,
+                        container.listInvoices,
+                        container.getInvoice,
+                        container.listPurchases,
+                        container.createPurchase,
+                        container.cancelPurchase,
+                        container.payInvoice,
+                        container.listAccounts,
+                        container.listCategories,
+                        today = { todayFor(container) },
+                    ),
+                )
+                CardDetailScreen(viewModel = viewModel, onBack = { navController.popBackStack() })
             }
             composable<MoreRoute> {
                 MoreScreen(

@@ -3,7 +3,11 @@ import type {
   Account,
   Budget,
   Category,
+  CreditCard,
+  InvoiceDetail,
+  InvoiceSummary,
   Occurrence,
+  Purchase,
   Recurring,
   Transaction,
 } from '@fintrack/shared';
@@ -52,6 +56,7 @@ export function transaction(overrides: Partial<Transaction> = {}): Transaction {
     status: 'completed',
     transfer: null,
     recurringId: null,
+    creditCardInvoiceId: null,
     createdAt: NOW,
     updatedAt: NOW,
     ...overrides,
@@ -108,6 +113,66 @@ export function budget(overrides: Partial<Budget> = {}): Budget {
     remainingCents: 60_000,
     percentUsed: 25,
     status: 'ok',
+    ...overrides,
+  };
+}
+
+export function invoiceSummary(overrides: Partial<InvoiceSummary> = {}): InvoiceSummary {
+  return {
+    id: randomUUID(),
+    creditCardId: randomUUID(),
+    referenceMonth: '2026-10',
+    closingDate: '2026-09-28',
+    dueDate: '2026-10-05',
+    status: 'closed',
+    overdue: false,
+    totalCents: 90_000,
+    paidCents: 0,
+    scheduledCents: 0,
+    remainingCents: 90_000,
+    ...overrides,
+  };
+}
+
+export function creditCard(overrides: Partial<CreditCard> = {}): CreditCard {
+  return {
+    id: randomUUID(),
+    name: 'Nubank',
+    limitCents: 500_000,
+    closingDay: 28,
+    dueDay: 5,
+    paymentAccountId: null,
+    archivedAt: null,
+    usedLimitCents: 90_000,
+    availableLimitCents: 410_000,
+    openInvoice: null,
+    createdAt: NOW,
+    ...overrides,
+  };
+}
+
+export function invoiceDetail(overrides: Partial<InvoiceDetail> = {}): InvoiceDetail {
+  return {
+    ...invoiceSummary(),
+    cardName: 'Nubank',
+    installments: [],
+    payments: [],
+    ...overrides,
+  };
+}
+
+export function purchase(overrides: Partial<Purchase> = {}): Purchase {
+  return {
+    id: randomUUID(),
+    creditCardId: randomUUID(),
+    description: 'Notebook',
+    purchaseDate: '2026-09-20',
+    totalAmountCents: 90_000,
+    installmentsCount: 3,
+    categoryId: null,
+    cancelled: false,
+    installments: [],
+    createdAt: NOW,
     ...overrides,
   };
 }

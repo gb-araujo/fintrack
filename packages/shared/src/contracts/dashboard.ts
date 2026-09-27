@@ -21,21 +21,26 @@ export const availableComponentsSchema = z.object({
   forecastIncomeCents: signedCentsSchema,
   /** − despesas previstas por recorrências ainda não confirmadas (até o horizonte, inclui atrasadas). */
   forecastExpensesCents: signedCentsSchema,
+  /** − valor em aberto das faturas de cartão com vencimento até o horizonte (inclui vencidas). */
+  invoicesCents: signedCentsSchema,
 });
 export type AvailableComponents = z.infer<typeof availableComponentsSchema>;
 
 export const pendingBillSchema = z.object({
-  /** Id do lançamento pendente, ou "recurring:<id>:<data>" para previsões de recorrências. */
+  /** Id do lançamento pendente, "recurring:<id>:<data>" (previsões) ou "invoice:<id>" (faturas). */
   id: z.string(),
-  kind: z.enum(['transaction', 'recurring']),
+  kind: z.enum(['transaction', 'recurring', 'invoice']),
   /** Preenchido quando kind = "recurring" (para confirmar/pular a ocorrência). */
   recurringId: z.uuid().nullable(),
+  /** Preenchido quando kind = "invoice" (para abrir/pagar a fatura). */
+  invoiceId: z.uuid().nullable(),
   description: z.string(),
   amountCents: signedCentsSchema,
   /** Valor estimado (recorrência de valor variável). */
   estimated: z.boolean(),
   date: dateOnlySchema,
-  accountId: z.uuid(),
+  /** Conta do lançamento; nas faturas, a conta de pagamento do cartão (pode não existir). */
+  accountId: z.uuid().nullable(),
   categoryId: z.uuid().nullable(),
   overdue: z.boolean(),
 });
@@ -53,15 +58,22 @@ export const dashboardSchema = z.object({
   totalBalanceCents: signedCentsSchema,
   /** Saldo das contas de investimento (não entram no "disponível"). */
   investmentsCents: signedCentsSchema,
-  /** Total geral das contas: líquidas + investimentos. */
+  /** Patrimônio: saldo das contas (líquidas + investimentos) − o que ainda se deve nos cartões. */
   netWorthCents: signedCentsSchema,
+  /** Passivo dos cartões: valor em aberto de TODAS as faturas (inclui parcelas futuras). */
+  cardLiabilitiesCents: signedCentsSchema,
   month: z.object({
     from: dateOnlySchema,
     to: dateOnlySchema,
     /** Receitas efetivadas no mês (transferências e investimentos não contam). */
     incomeCents: signedCentsSchema,
-    /** Despesas efetivadas no mês (transferências e pagamentos de fatura não contam). */
+    /**
+     * Despesas do mês: efetivadas em conta + parcelas de cartão das faturas que VENCEM no mês
+     * (transferências e pagamentos de fatura não contam — ADR 0005).
+     */
     expenseCents: signedCentsSchema,
+    /** Parte de `expenseCents` que vem de parcelas de cartão (informativo; não soma de novo). */
+    cardExpenseCents: signedCentsSchema,
   }),
   pendingBills: z.object({
     /** Despesas pendentes com data até o horizonte. */
