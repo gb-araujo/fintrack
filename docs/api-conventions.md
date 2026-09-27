@@ -64,12 +64,30 @@ Toda resposta de erro usa o mesmo envelope:
 | 401 | `UNAUTHORIZED` | token ausente/inválido/expirado |
 | 403 | `FORBIDDEN` | autenticado, mas sem permissão |
 | 404 | `NOT_FOUND` | rota ou recurso inexistente (inclusive recurso de outro usuário) |
-| 409 | `CONFLICT` | violação de unicidade/estado |
+| 409 | `CONFLICT` | violação de unicidade/estado (nome repetido, conta arquivada, editar cancelado) |
+| 422 | `BUSINESS_RULE_VIOLATION` | requisição válida que viola regra financeira (efetivar data futura, receita em conta de investimento, categoria do tipo errado) |
 | 429 | `RATE_LIMITED` | limite de requisições; `Retry-After` no cabeçalho |
 | 500 | `INTERNAL_ERROR` | erro inesperado (sem detalhes internos) |
 | 503 | — | `/health` com dependência fora (corpo = contrato de health) |
 
 Recurso de outro usuário responde **404** (não 403), para não revelar sua existência.
+
+## Livro-caixa (FASE 2)
+
+- **Contas** (`/accounts`): retornam `balanceCents` **calculado pelo backend**. `?includeArchived=true`
+  inclui arquivadas. Nome único entre contas ativas (sem diferenciar maiúsculas) → `409`.
+- **Lançamentos** (`/transactions`): `POST` cria só `income`/`expense`; transferências usam `/transfers`.
+  Sem `status`, a API decide pela data no fuso do usuário (até hoje = `completed`, futuro = `pending`).
+  `status: "completed"` com data futura → `422`. Listagem ordenada por data desc; filtros `accountId`,
+  `categoryId`, `type`, `status`, `from`, `to`, `q` (busca literal na descrição), `includeCancelled`;
+  paginação `limit` (máx. 100) + `cursor` opaco (cursor inválido → `400`).
+- **Efetivar** (`POST …/complete`): corpo opcional `{ "transactionDate": "AAAA-MM-DD" }` (até hoje).
+  Efetivar e cancelar são idempotentes; efetivar/editar um cancelado → `409`.
+- **Transferências**: `POST /transfers` cria cabeçalho + 2 pernas atomicamente. As pernas aparecem em
+  `GET /transactions` (`type = "transfer"`, campo `transfer`), mas só se alteram por `/transfers/:id`
+  (`PATCH /transactions/:id` numa perna → `409`).
+- Recurso de outro usuário (conta, categoria, lançamento, transferência), inclusive referenciado no
+  corpo, responde sempre `404`.
 
 ## Paginação
 

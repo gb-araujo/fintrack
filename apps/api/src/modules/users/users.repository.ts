@@ -1,6 +1,7 @@
 import { eq } from 'drizzle-orm';
 import type { DrizzleDb } from '../../db/client.js';
-import { users } from '../../db/schema/index.js';
+import { categories, users } from '../../db/schema/index.js';
+import { DEFAULT_CATEGORIES } from '../categories/default-categories.js';
 import { ConflictError } from '../../shared/errors/index.js';
 import { isUniqueViolation } from '../../shared/utils/db-errors.js';
 import type { CreateUserInput, UserRecord, UserWithPassword } from './users.types.js';
@@ -38,19 +39,37 @@ export class DrizzleUsersRepository implements UsersRepository {
     return row;
   }
 
+  /**
+   * Cria o usuário JUNTO com as categorias padrão, na mesma transação: ou o usuário nasce com
+   * todas as categorias ou não nasce (nunca um usuário sem categorias).
+   */
   async create(input: CreateUserInput): Promise<UserRecord> {
     try {
-      const [row] = await this.db
-        .insert(users)
-        .values({
-          email: input.email,
-          name: input.name,
-          passwordHash: input.passwordHash,
-          ...(input.timezone ? { timezone: input.timezone } : {}),
-        })
-        .returning(publicColumns);
-      if (!row) throw new Error('INSERT em users não retornou linha');
-      return row;
+      return await this.db.transaction(async (tx) => {
+        const [row] = await tx
+          .insert(users)
+          .values({
+            email: input.email,
+            name: input.name,
+            passwordHash: input.passwordHash,
+            ...(input.timezone ? { timezone: input.timezone } : {}),
+          })
+          .returning(publicColumns);
+        if (!row) throw new Error('INSERT em users não retornou linha');
+
+        // created_at cresce 1 ms por categoria: a lista mantém a ordem definida em DEFAULT_CATEGORIES.
+        const base = Date.now();
+        await tx.insert(categories).values(
+          DEFAULT_CATEGORIES.map((category, index) => ({
+            userId: row.id,
+            name: category.name,
+            kind: category.kind,
+            isDefault: true,
+            createdAt: new Date(base + index),
+          })),
+        );
+        return row;
+      });
     } catch (error) {
       if (isUniqueViolation(error, 'users_email_unique')) {
         throw new ConflictError('Este e-mail já está cadastrado.');

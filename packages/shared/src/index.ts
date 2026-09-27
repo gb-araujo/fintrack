@@ -3,3 +3,8 @@ export * from './enums/index.js';
 export * from './contracts/api-error.js';
 export * from './contracts/health.js';
 export * from './contracts/auth.js';
+export * from './dates/dates.js';
+export * from './contracts/accounts.js';
+export * from './contracts/categories.js';
+export * from './contracts/transactions.js';
+export * from './contracts/transfers.js';

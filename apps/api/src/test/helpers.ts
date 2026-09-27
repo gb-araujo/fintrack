@@ -39,3 +39,9 @@ export async function buildTestApp(
 export function uniqueEmail(prefix = 'user'): string {
   return `${prefix}-${randomUUID()}@teste.fintrack.dev`;
 }
+
+/** IP aleatório por requisição: os limites de taxa por IP não interferem entre testes. */
+export function randomIp(): string {
+  const octet = () => Math.floor(Math.random() * 254) + 1;
+  return `10.${octet()}.${octet()}.${octet()}`;
+}

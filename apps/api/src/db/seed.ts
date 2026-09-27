@@ -1,19 +1,128 @@
+import { addDaysToDate, todayInTimeZone, DEFAULT_TIMEZONE } from '@fintrack/shared';
+import { buildDomain } from '../composition.js';
 import { parseDatabaseEnv } from '../config/env.js';
 import { loadEnvFile } from '../config/load-env-file.js';
+import { hashPassword } from '../modules/auth/domain/password.js';
+import { createDatabase } from './client.js';
 
 /**
- * Seeds de DESENVOLVIMENTO (dados de exemplo). Nunca executar em produção.
- * FASE 1: o único dado de domínio é o usuário, criado pelo cadastro (POST /api/v1/auth/register).
- * Seeds de contas/transações de exemplo entram a partir da FASE 2 (ver database/seeds/README.md).
+ * Seed de DESENVOLVIMENTO: um usuário de demonstração com contas, categorias padrão e lançamentos
+ * de exemplo. Nunca roda em produção. Passa pelos mesmos services da API (mesmas regras de negócio).
+ * Idempotente: se o usuário demo já existe, não faz nada.
  */
-function main(): void {
+export const DEMO_EMAIL = 'demo@fintrack.dev';
+export const DEMO_PASSWORD = 'demo-fintrack-123';
+
+async function main(): Promise<void> {
   loadEnvFile();
-  const { NODE_ENV } = parseDatabaseEnv();
+  const { NODE_ENV, DATABASE_URL } = parseDatabaseEnv();
   if (NODE_ENV === 'production') {
     process.stderr.write('[seed] recusado: seeds não rodam em produção.\n');
     process.exit(1);
   }
-  process.stdout.write('[seed] nada a semear na FASE 1 (crie um usuário pelo cadastro).\n');
+
+  const database = createDatabase(DATABASE_URL, { maxConnections: 2 });
+  try {
+    const domain = buildDomain(database.db);
+    if (await domain.usersRepository.findByEmailWithPassword(DEMO_EMAIL)) {
+      process.stdout.write(`[seed] usuário ${DEMO_EMAIL} já existe — nada a fazer.\n`);
+      return;
+    }
+
+    const user = await domain.usersRepository.create({
+      email: DEMO_EMAIL,
+      name: 'Usuário Demo',
+      passwordHash: await hashPassword(DEMO_PASSWORD),
+      timezone: DEFAULT_TIMEZONE,
+    });
+    const userId = user.id;
+    const today = todayInTimeZone(DEFAULT_TIMEZONE);
+    const day = (offset: number) => addDaysToDate(today, offset);
+
+    const categories = await domain.categoriesService.list(userId, { includeArchived: false });
+    const category = (name: string, kind: 'income' | 'expense') => {
+      const found = categories.find((c) => c.name === name && c.kind === kind);
+      if (!found) throw new Error(`Categoria padrão ausente: ${name}`);
+      return found.id;
+    };
+
+    const inter = await domain.accountsService.create(userId, {
+      name: 'Banco Inter',
+      type: 'bank',
+      initialBalanceCents: 120_000,
+    });
+    const mercadoPago = await domain.accountsService.create(userId, {
+      name: 'Mercado Pago',
+      type: 'wallet',
+    });
+    const dinheiro = await domain.accountsService.create(userId, {
+      name: 'Dinheiro',
+      type: 'wallet',
+      initialBalanceCents: 15_000,
+    });
+    const investimentos = await domain.accountsService.create(userId, {
+      name: 'Tesouro Selic',
+      type: 'investment',
+    });
+
+    const add = (
+      accountId: string,
+      type: 'income' | 'expense',
+      amountCents: number,
+      description: string,
+      categoryName: string,
+      date: number,
+      status?: 'pending',
+    ) =>
+      domain.transactionsService.create(userId, {
+        accountId,
+        type,
+        amountCents,
+        description,
+        categoryId: category(categoryName, type),
+        transactionDate: day(date),
+        ...(status ? { status } : {}),
+      });
+
+    await add(inter.id, 'income', 500_000, 'Salário', 'Salário', -20);
+    await add(inter.id, 'income', 90_000, 'VR', 'VR', -18);
+    await add(inter.id, 'expense', 150_000, 'Aluguel', 'Moradia', -17);
+    await add(inter.id, 'expense', 9_099, 'Vivo Fibra', 'Internet', -15);
+    await add(inter.id, 'expense', 7_699, 'TIM', 'Celular', -15);
+    await add(inter.id, 'expense', 31_248, 'Supermercado', 'Alimentação', -9);
+    await add(mercadoPago.id, 'expense', 2_490, 'Uber', 'Transporte', -6);
+    await add(inter.id, 'expense', 5_590, 'Netflix', 'Assinaturas', -4);
+    await add(dinheiro.id, 'expense', 4_200, 'Padaria', 'Alimentação', -1);
+    // Contas a vencer (previsões): não alteram o saldo até serem marcadas como pagas.
+    await add(inter.id, 'expense', 18_735, 'Enel (estimativa)', 'Energia', 3, 'pending');
+    await add(inter.id, 'expense', 9_099, 'Vivo Fibra', 'Internet', 12, 'pending');
+
+    await domain.transfersService.create(userId, {
+      fromAccountId: inter.id,
+      toAccountId: mercadoPago.id,
+      amountCents: 30_000,
+      transferDate: day(-10),
+      description: 'Saldo para compras',
+    });
+    await domain.transfersService.create(userId, {
+      fromAccountId: inter.id,
+      toAccountId: investimentos.id,
+      amountCents: 50_000,
+      transferDate: day(-8),
+      description: 'Aplicação Tesouro Selic',
+    });
+
+    process.stdout.write(
+      `[seed] criado: ${DEMO_EMAIL} / ${DEMO_PASSWORD} (4 contas, 13 lançamentos, 2 transferências)\n`,
+    );
+  } finally {
+    await database.close();
+  }
 }
 
-main();
+main().catch((error: unknown) => {
+  process.stderr.write(
+    `[seed] falhou: ${error instanceof Error ? error.message : String(error)}\n`,
+  );
+  process.exit(1);
+});

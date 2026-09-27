@@ -21,3 +21,19 @@ export type TransactionStatus = z.infer<typeof transactionStatusSchema>;
 export const CATEGORY_KINDS = ['income', 'expense'] as const;
 export const categoryKindSchema = z.enum(CATEGORY_KINDS);
 export type CategoryKind = z.infer<typeof categoryKindSchema>;
+
+export const TRANSFER_DIRECTIONS = ['in', 'out'] as const;
+export const transferDirectionSchema = z.enum(TRANSFER_DIRECTIONS);
+export type TransferDirection = z.infer<typeof transferDirectionSchema>;
+
+/** Formas de pagamento de lançamentos em conta. Cartão de crédito tem tabelas próprias (FASE 5). */
+export const PAYMENT_METHODS = [
+  'pix',
+  'debit_card',
+  'cash',
+  'boleto',
+  'bank_transfer',
+  'other',
+] as const;
+export const paymentMethodSchema = z.enum(PAYMENT_METHODS);
+export type PaymentMethod = z.infer<typeof paymentMethodSchema>;

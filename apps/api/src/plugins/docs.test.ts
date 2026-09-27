@@ -9,7 +9,7 @@ describe('documentação OpenAPI', () => {
     await app.close();
   });
 
-  it('gera o contrato com as rotas de autenticação e usuários', async () => {
+  it('gera o contrato com todas as rotas', async () => {
     app = await buildTestApp({ env: { API_DOCS_ENABLED: 'true' } });
 
     const response = await app.inject({ method: 'GET', url: '/docs/json' });
@@ -24,6 +24,14 @@ describe('documentação OpenAPI', () => {
         '/api/v1/auth/refresh',
         '/api/v1/auth/logout',
         '/api/v1/users/me',
+        '/api/v1/accounts',
+        '/api/v1/accounts/{id}/archive',
+        '/api/v1/categories',
+        '/api/v1/transactions',
+        '/api/v1/transactions/{id}/complete',
+        '/api/v1/transactions/{id}/cancel',
+        '/api/v1/transfers',
+        '/api/v1/transfers/{id}/cancel',
       ]),
     );
     expect(spec.paths['/api/v1/users/me']?.get).toMatchObject({

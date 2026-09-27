@@ -13,7 +13,7 @@ investimentos, transferências e orçamento — sem contar nenhuma movimentaçã
 |---|---|---|
 | 0 | Arquitetura e setup | ✅ concluída |
 | 1 | Autenticação + banco + API básica | ✅ concluída |
-| 2 | Contas + categorias + transações | ⏳ próxima |
+| 2 | Contas + categorias + transações | ✅ concluída |
 | 3 | Dashboard + cálculo de dinheiro disponível | — |
 | 4 | Recorrências + orçamento | — |
 | 5 | Cartão + faturas + parcelas | — |
@@ -77,7 +77,7 @@ npm run db:seed
 npm run dev                    # ou: npm run dev:api / npm run dev:web
 ```
 
-- Web: <http://localhost:5173> → **Criar conta** (não há usuário pré-cadastrado).
+- Web: <http://localhost:5173> → entre com o usuário de demonstração criado pelo seed (`demo@fintrack.dev` / `demo-fintrack-123`) ou use **Criar conta**.
 - Status da API: <http://localhost:3333/health>
 - Documentação OpenAPI (dev): <http://localhost:3333/docs>
 - Em desenvolvimento a web chama a API pela mesma origem (proxy do Vite para `/api` e `/health`),
@@ -113,7 +113,7 @@ Em produção as migrations rodam automaticamente antes de cada deploy (Railway 
 
 ### Seeds
 
-`npm run db:seed` — dados de exemplo de desenvolvimento (a partir da FASE 2); recusa rodar em produção.
+`npm run db:seed` — cria o usuário `demo@fintrack.dev` (senha `demo-fintrack-123`) com 4 contas, categorias, lançamentos e transferências de exemplo, usando os mesmos services da API. Idempotente; recusa rodar em produção.
 Ver [database/seeds/README.md](database/seeds/README.md).
 
 ## Qualidade

@@ -100,6 +100,22 @@ Fluxo: arquivo → parser → normalização → detecção de duplicidade → s
 - Fingerprint = conta + data + valor + descrição normalizada; OFX usa `FITID` quando existir.
 - Possíveis duplicatas (janela de ± N dias) vão para revisão — **nunca** são descartadas silenciosamente.
 
+## 6b. Implementado na FASE 2 (contas, lançamentos, transferências)
+
+- **Saldo** = saldo inicial + Σ efeito dos lançamentos `completed` (`balanceEffect` em
+  `modules/accounts/domain/balance.ts`; o mesmo cálculo em SQL em `db/expressions.ts`, com teste de
+  propriedade comparando os dois). Saldo inicial pode ser negativo e não tem data.
+- **Regra do tempo:** `completed` exige data até hoje no fuso do usuário; futuro = `pending`.
+  Nada é efetivado automaticamente. ([ADR 0012](./adr/0012-lancamentos-cancelar-e-regra-do-tempo.md))
+- **Sem exclusão física:** lançamentos/transferências são cancelados (imutáveis depois); contas e
+  categorias são arquivadas.
+- **Conta de investimento:** só transferências (aplicação/resgate). Receita/despesa direta → `422`.
+- **Categoria** opcional; se informada, do mesmo tipo (receita/despesa) e ativa. Categorias padrão são
+  criadas por usuário no cadastro.
+- **Transferência** = cabeçalho + 2 pernas, garantido por constraint trigger no banco
+  ([ADR 0013](./adr/0013-integridade-de-transferencias-no-banco.md)); pernas não têm categoria e não
+  entram em receitas/despesas.
+
 ## 7. Pendências conhecidas
 
 - **Rendimentos de investimento** (FASE 8): decidir a representação preservando histórico,

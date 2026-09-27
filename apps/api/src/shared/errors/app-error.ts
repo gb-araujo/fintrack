@@ -45,3 +45,10 @@ export class ValidationError extends AppError {
     super(400, API_ERROR_CODES.VALIDATION_ERROR, message, details);
   }
 }
+
+/** Requisição válida, mas que viola uma regra financeira (HTTP 422). */
+export class BusinessRuleError extends AppError {
+  constructor(message: string, details?: unknown) {
+    super(422, API_ERROR_CODES.BUSINESS_RULE_VIOLATION, message, details);
+  }
+}

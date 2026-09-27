@@ -1,7 +1,7 @@
 # Arquitetura do FINTRACK
 
-> Status: **FASE 1 concluída** (autenticação + banco + API básica). Contas, categorias e transações
-> entram na FASE 2. Este documento é atualizado ao fim de cada fase.
+> Status: **FASE 2 concluída** (contas, categorias, lançamentos e transferências). Este documento é
+> atualizado ao fim de cada fase.
 
 ## 1. Visão geral
 
@@ -91,6 +91,17 @@ Endpoints existentes (FASE 1):
 | POST | `/api/v1/auth/refresh` | refresh token | Rotaciona o refresh token e emite novo access token. 30/min por IP. |
 | POST | `/api/v1/auth/logout` | refresh token | Revoga a sessão (família). Idempotente (`204`). |
 | GET | `/api/v1/users/me` | Bearer | Usuário autenticado. |
+| GET/POST | `/api/v1/accounts` | Bearer | Lista (com **saldo calculado**) e cria contas. |
+| GET/PATCH | `/api/v1/accounts/:id` | Bearer | Detalha/edita (nome, saldo inicial, "disponível"). O tipo não muda. |
+| POST | `/api/v1/accounts/:id/archive`, `/unarchive` | Bearer | Arquiva/reativa (nunca apaga). |
+| GET/POST | `/api/v1/categories` | Bearer | Lista (padrão + personalizadas) e cria. |
+| PATCH, POST | `/api/v1/categories/:id`, `/archive`, `/unarchive` | Bearer | Renomeia, arquiva, reativa. |
+| GET/POST | `/api/v1/transactions` | Bearer | Lista (filtros + cursor) e lança receita/despesa. |
+| GET/PATCH | `/api/v1/transactions/:id` | Bearer | Detalha/edita (não cancelado, não perna de transferência). |
+| POST | `/api/v1/transactions/:id/complete`, `/cancel` | Bearer | Efetiva pendente / cancela (idempotentes). |
+| POST | `/api/v1/transfers` | Bearer | Transfere entre contas (cabeçalho + 2 pernas na mesma transação). |
+| GET/PATCH | `/api/v1/transfers/:id` | Bearer | Detalha/edita (as duas pernas mudam juntas). |
+| POST | `/api/v1/transfers/:id/complete`, `/cancel` | Bearer | Efetiva / cancela a transferência inteira. |
 | GET | `/docs`, `/docs/json` | — | Swagger UI e OpenAPI (apenas fora de produção, ou com `API_DOCS_ENABLED=true`). |
 
 ## 4. Como Web e Android consomem a API
@@ -159,12 +170,17 @@ PostgreSQL 17, Drizzle ORM, migrations SQL versionadas em `database/migrations`.
 - `0001_auth_users_refresh_tokens` (FASE 1): `users` (e-mail `citext` UNIQUE, CHECKs de nome e
   moeda) e `refresh_tokens` (hash SHA-256 UNIQUE, família, expiração, revogação, substituto; FK com
   `ON DELETE CASCADE`).
+- `0002_ledger_accounts_categories_transactions` (FASE 2): `accounts`, `categories`, `transfers`,
+  `transactions` (+ enums, chaves estrangeiras compostas `(id, user_id)`, CHECKs, índices únicos
+  parciais por nome entre ativos) e backfill das categorias padrão para usuários da FASE 1.
+- `0003_transfer_integrity_trigger` (FASE 2): constraint trigger deferido que exige duas pernas
+  consistentes por transferência.
 - Schema aprovado (✅ = criado):
 
 | Tabela | Fase | Observações |
 |---|---|---|
 | `users` ✅, `refresh_tokens` ✅ | 1 | e-mail `citext` único; tokens só como hash |
-| `accounts`, `categories`, `transactions`, `transfers` | 2 | transferência = cabeçalho + 2 transações vinculadas |
+| `accounts` ✅, `categories` ✅, `transactions` ✅, `transfers` ✅ | 2 | transferência = cabeçalho + 2 transações vinculadas, verificado no banco ([ADR 0013](./adr/0013-integridade-de-transferencias-no-banco.md)) |
 | `recurring_transactions` | 4 | geram ocorrências **virtuais** até a confirmação |
 | `budgets` | 4 | `UNIQUE(user_id, category_id, month)` |
 | `credit_cards`, `credit_card_invoices`, `credit_card_transactions`, `credit_card_installments` | 5 | parcelas no período da fatura; pagamento = `card_payment` |

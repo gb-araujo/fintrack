@@ -17,6 +17,8 @@ export const API_ERROR_CODES = {
   FORBIDDEN: 'FORBIDDEN',
   NOT_FOUND: 'NOT_FOUND',
   CONFLICT: 'CONFLICT',
+  /** Requisição válida, mas viola uma regra financeira (ex.: efetivar lançamento futuro). */
+  BUSINESS_RULE_VIOLATION: 'BUSINESS_RULE_VIOLATION',
   RATE_LIMITED: 'RATE_LIMITED',
   SERVICE_UNAVAILABLE: 'SERVICE_UNAVAILABLE',
   INTERNAL_ERROR: 'INTERNAL_ERROR',

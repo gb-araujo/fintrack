@@ -90,3 +90,9 @@ export function parseBRLToCents(input: string): Cents {
 
   return negative ? -cents : cents;
 }
+
+/** Valor de uma movimentação: inteiro estritamente positivo (o sinal vem do tipo). */
+export const positiveCentsSchema = z.number().int().positive().max(MAX_CENTS);
+
+/** Valor que pode ser negativo, como o saldo de uma conta no cheque especial. */
+export const signedCentsSchema = z.number().int().min(-MAX_CENTS).max(MAX_CENTS);

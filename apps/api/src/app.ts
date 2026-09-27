@@ -6,14 +6,17 @@ import {
 } from 'fastify-type-provider-zod';
 import type { AppConfig } from './config/env.js';
 import type { DatabaseConnection } from './db/client.js';
+import { buildDomain } from './composition.js';
+import { accountsRoutes } from './modules/accounts/accounts.controller.js';
 import { authRoutes } from './modules/auth/auth.controller.js';
 import { AuthService } from './modules/auth/auth.service.js';
 import { DrizzleRefreshTokensRepository } from './modules/auth/refresh-tokens.repository.js';
+import { categoriesRoutes } from './modules/categories/categories.controller.js';
 import { healthRoutes } from './modules/health/health.controller.js';
 import { HealthService } from './modules/health/health.service.js';
+import { transactionsRoutes } from './modules/transactions/transactions.controller.js';
+import { transfersRoutes } from './modules/transfers/transfers.controller.js';
 import { usersRoutes } from './modules/users/users.controller.js';
-import { DrizzleUsersRepository } from './modules/users/users.repository.js';
-import { UsersService } from './modules/users/users.service.js';
 import { authPlugin } from './plugins/auth.js';
 import { docsPlugin } from './plugins/docs.js';
 import { errorHandlerPlugin } from './plugins/error-handler.js';
@@ -57,10 +60,10 @@ export async function buildApp({ config, database }: AppDependencies) {
   }
 
   // Composição: repositórios → services → rotas.
-  const usersRepository = new DrizzleUsersRepository(database.db);
+  const domain = buildDomain(database.db);
   const refreshTokensRepository = new DrizzleRefreshTokensRepository(database.db);
   const authService = new AuthService(
-    usersRepository,
+    domain.usersRepository,
     refreshTokensRepository,
     app.accessTokenSigner,
     {
@@ -75,7 +78,6 @@ export async function buildApp({ config, database }: AppDependencies) {
       },
     },
   );
-  const usersService = new UsersService(usersRepository);
 
   await app.register(healthRoutes, {
     healthService: new HealthService(database, { version: config.APP_VERSION }),
@@ -84,7 +86,11 @@ export async function buildApp({ config, database }: AppDependencies) {
   await app.register(
     async (api) => {
       await api.register(authRoutes, { authService, config });
-      await api.register(usersRoutes, { usersService });
+      await api.register(usersRoutes, { usersService: domain.usersService });
+      await api.register(accountsRoutes, { accountsService: domain.accountsService });
+      await api.register(categoriesRoutes, { categoriesService: domain.categoriesService });
+      await api.register(transactionsRoutes, { transactionsService: domain.transactionsService });
+      await api.register(transfersRoutes, { transfersService: domain.transfersService });
     },
     { prefix: '/api/v1' },
   );
