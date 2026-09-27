@@ -1,6 +1,7 @@
 # ADR 0008 — Recorrências como previsão até confirmação
 
-- **Status:** aceito (FASE 0); implementação na FASE 4
+- **Status:** aceito (FASE 0); implementado na FASE 4 — decisões de implementação no
+  [ADR 0016](./0016-recorrencias-implementacao.md)
 
 ## Decisão
 

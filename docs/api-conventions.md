@@ -97,6 +97,24 @@ components }`, `totalBalanceCents`, `investmentsCents`, `netWorthCents`, `month 
 `futureCommitments`. `until` anterior a hoje → `422`; data inválida → `400`. Novos componentes de fases
 futuras são acrescentados sem quebrar clientes (campos desconhecidos são ignorados).
 
+## Recorrências e orçamentos (FASE 4)
+
+- **Recorrências** (`/recurring`): `POST` cria a regra (mensal exige `dayOfMonth`; valor fixo exige
+  `amountCents`; `autoConfirm` só com valor fixo; conta de investimento → `422`). Regras não são
+  apagadas: `POST /recurring/:id/deactivate|activate`. `GET /recurring/occurrences[?until=]` lista as
+  **previsões** (atrasadas dos últimos 62 dias + próximas 60 dias por padrão), já sem as ocorrências
+  confirmadas/puladas.
+- **Confirmar** `POST /recurring/:id/occurrences/:date/confirm` (corpo opcional
+  `{ amountCents, transactionDate }`) devolve `201` com o lançamento efetivado (`recurringId`
+  preenchido); **pular** `POST …/skip` devolve `201` com o lançamento `cancelled`. Ocorrência
+  inexistente na regra → `404`; já confirmada/pulada (inclusive em corrida) → `409`; data futura sem
+  `transactionDate` até hoje → `422`.
+- Toda requisição `GET` autenticada materializa recorrências com `autoConfirm` já vencidas (ADR 0016).
+- **Orçamentos** (`/budgets`): `GET ?month=AAAA-MM` (padrão: mês atual no fuso do usuário) devolve
+  `items[]` com `limitCents`, `spentCents`, `pendingCents`, `remainingCents`, `percentUsed`, `status`
+  (`ok|warning|exceeded`), `totals` e `unbudgetedSpentCents`. `PUT /budgets` faz upsert por
+  `(categoryId, month)`; `DELETE /budgets/:id` → `204`. Categoria de receita → `422`.
+
 ## Paginação
 
 Listagens grandes usam cursor: `?limit=50&cursor=<opaco>` → `{ "items": [...], "nextCursor": "..." | null }`.

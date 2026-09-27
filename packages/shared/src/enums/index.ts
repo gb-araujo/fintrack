@@ -37,3 +37,7 @@ export const PAYMENT_METHODS = [
 ] as const;
 export const paymentMethodSchema = z.enum(PAYMENT_METHODS);
 export type PaymentMethod = z.infer<typeof paymentMethodSchema>;
+
+export const RECURRENCE_FREQUENCIES = ['weekly', 'monthly', 'yearly'] as const;
+export const recurrenceFrequencySchema = z.enum(RECURRENCE_FREQUENCIES);
+export type RecurrenceFrequency = z.infer<typeof recurrenceFrequencySchema>;

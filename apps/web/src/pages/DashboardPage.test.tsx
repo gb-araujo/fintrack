@@ -4,6 +4,7 @@ import { account, lastQuery, mockLedgerApi } from '../test/ledger-mocks';
 import { emptyDashboard, errorResponse, jsonResponse, renderRoute } from '../test/render';
 
 const inter = account({ name: 'Banco Inter' });
+const recurringId = crypto.randomUUID();
 
 const dashboard = {
   ...emptyDashboard,
@@ -12,7 +13,9 @@ const dashboard = {
     components: {
       liquidBalanceCents: 250_000,
       pendingIncomeCents: 20_000,
+      forecastIncomeCents: 30_000,
       pendingExpensesCents: 120_000,
+      forecastExpensesCents: 30_000,
       pendingTransfersInCents: 5_000,
       pendingTransfersOutCents: 25_000,
     },
@@ -29,6 +32,9 @@ const dashboard = {
     next: [
       {
         id: crypto.randomUUID(),
+        kind: 'transaction',
+        recurringId: null,
+        estimated: false,
         description: 'Vivo Fibra',
         amountCents: 9_099,
         date: '2026-09-25',
@@ -37,7 +43,10 @@ const dashboard = {
         overdue: true,
       },
       {
-        id: crypto.randomUUID(),
+        id: `${recurringId}|2026-09-29`,
+        kind: 'recurring',
+        recurringId,
+        estimated: true,
         description: 'Enel',
         amountCents: 18_735,
         date: '2026-09-29',
@@ -83,8 +92,10 @@ describe('Dashboard — "Quanto posso gastar?"', () => {
     expect(lines).toEqual([
       '+SaldodascontasdisponíveisR$2.500,00',
       '+ReceitaspendentesR$200,00',
+      '+Receitasprevistas(recorrências)R$300,00',
       '+Entradasagendadas(resgates)R$50,00',
       '−DespesaspendentesR$1.200,00',
+      '−Despesasprevistas(recorrências)R$300,00',
       '−Saídasagendadas(aplicações)R$250,00',
       '=DisponívelR$1.300,00',
     ]);
@@ -112,6 +123,9 @@ describe('Dashboard — "Quanto posso gastar?"', () => {
     expect(within(first).getByText('Vencida')).toBeInTheDocument();
     expect(second).toHaveTextContent('Enel');
     expect(within(second).queryByText('Vencida')).not.toBeInTheDocument();
+    // Ocorrência de recorrência (previsão): identificada e marcada como estimativa.
+    expect(within(second).getByText('Recorrente · estimado')).toBeInTheDocument();
+    expect(within(first).queryByText(/Recorrente/)).not.toBeInTheDocument();
     expect(within(second).getByText(/Banco Inter/)).toBeInTheDocument();
   });
 

@@ -5,7 +5,9 @@ import { AccountsPage } from '../features/accounts/AccountsPage';
 import { LoginPage } from '../features/auth/LoginPage';
 import { RegisterPage } from '../features/auth/RegisterPage';
 import { PublicOnly, RequireAuth } from '../features/auth/RouteGuards';
+import { BudgetsPage } from '../features/budgets/BudgetsPage';
 import { CategoriesPage } from '../features/categories/CategoriesPage';
+import { RecurringPage } from '../features/recurring/RecurringPage';
 import { TransactionsPage } from '../features/transactions/TransactionsPage';
 import { DashboardPage } from '../pages/DashboardPage';
 import { MorePage } from '../pages/MorePage';
@@ -13,7 +15,14 @@ import { NotFoundPage } from '../pages/NotFoundPage';
 import { PlaceholderPage } from '../pages/PlaceholderPage';
 
 /** Telas já implementadas; as demais mostram "em construção" até a fase correspondente. */
-const IMPLEMENTED = new Set(['/', '/transactions', '/accounts', '/categories']);
+const IMPLEMENTED = new Set([
+  '/',
+  '/transactions',
+  '/accounts',
+  '/categories',
+  '/budgets',
+  '/recurring',
+]);
 
 const placeholderRoutes: RouteObject[] = NAV_ITEMS.filter((item) => !IMPLEMENTED.has(item.to)).map(
   (item) => ({
@@ -41,6 +50,8 @@ export const routes: RouteObject[] = [
           { path: 'transactions', element: <TransactionsPage /> },
           { path: 'accounts', element: <AccountsPage /> },
           { path: 'categories', element: <CategoriesPage /> },
+          { path: 'budgets', element: <BudgetsPage /> },
+          { path: 'recurring', element: <RecurringPage /> },
           ...placeholderRoutes,
           { path: 'more', element: <MorePage /> },
           { path: '*', element: <NotFoundPage /> },

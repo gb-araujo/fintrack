@@ -55,7 +55,7 @@ export class TestClient {
     return new Date(Date.UTC(y, m - 1, d + offsetDays)).toISOString().slice(0, 10);
   }
 
-  request(method: 'GET' | 'POST' | 'PATCH', url: string, payload?: unknown) {
+  request(method: 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE', url: string, payload?: unknown) {
     return this.app.inject({
       method,
       url: `/api/v1${url}`,
@@ -68,6 +68,8 @@ export class TestClient {
   get = (url: string) => this.request('GET', url);
   post = (url: string, payload?: unknown) => this.request('POST', url, payload);
   patch = (url: string, payload: unknown) => this.request('PATCH', url, payload);
+  put = (url: string, payload: unknown) => this.request('PUT', url, payload);
+  delete = (url: string) => this.request('DELETE', url);
 
   /** Executa e exige o status esperado; devolve o corpo JSON. */
   async ok<T>(response: LightMyRequestResponse | Promise<LightMyRequestResponse>, status = 200) {

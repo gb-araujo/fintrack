@@ -77,7 +77,9 @@ export const emptyDashboard = {
     components: {
       liquidBalanceCents: 0,
       pendingIncomeCents: 0,
+      forecastIncomeCents: 0,
       pendingExpensesCents: 0,
+      forecastExpensesCents: 0,
       pendingTransfersInCents: 0,
       pendingTransfersOutCents: 0,
     },

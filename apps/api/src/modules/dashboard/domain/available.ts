@@ -7,11 +7,15 @@ import { BusinessRuleError } from '../../../shared/errors/index.js';
  * disponível = saldo das contas líquidas
  *            + receitas pendentes até o horizonte
  *            + transferências pendentes que ENTRAM na fronteira líquida
+ *            + receitas previstas por recorrências ainda não confirmadas (até o horizonte)
  *            − despesas pendentes até o horizonte (inclui atrasadas)
  *            − transferências pendentes que SAEM da fronteira líquida
+ *            − despesas previstas por recorrências ainda não confirmadas (inclui atrasadas)
  *
  * Evita dupla contagem por construção:
  * - o saldo só conta lançamentos efetivados; pendentes entram apenas nos termos próprios;
+ * - uma ocorrência de recorrência só é prevista enquanto NÃO há lançamento vinculado a ela (confirmado
+ *   ou pulado): ao confirmar, a previsão some e o lançamento passa a contar — sem dupla contagem;
  * - transferência entre duas contas líquidas tem efeito líquido zero (não entra em nenhum termo);
  * - investimentos e contas fora do disponível não entram no saldo;
  * - lançamentos cancelados nunca entram.
@@ -20,9 +24,11 @@ export function availableAmount(components: AvailableComponents): number {
   return (
     components.liquidBalanceCents +
     components.pendingIncomeCents +
-    components.pendingTransfersInCents -
+    components.pendingTransfersInCents +
+    components.forecastIncomeCents -
     components.pendingExpensesCents -
-    components.pendingTransfersOutCents
+    components.pendingTransfersOutCents -
+    components.forecastExpensesCents
   );
 }
 

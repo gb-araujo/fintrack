@@ -30,8 +30,14 @@ import com.fintrack.app.presentation.auth.SplashScreen
 import com.fintrack.app.presentation.auth.UnreachableScreen
 import com.fintrack.app.presentation.accounts.AccountsScreen
 import com.fintrack.app.presentation.accounts.AccountsViewModel
+import com.fintrack.app.presentation.budgets.BudgetsScreen
+import com.fintrack.app.presentation.budgets.BudgetsViewModel
 import com.fintrack.app.presentation.dashboard.DashboardScreen
 import com.fintrack.app.presentation.dashboard.DashboardViewModel
+import com.fintrack.app.presentation.more.MoreEntry
+import com.fintrack.app.presentation.more.MoreScreen
+import com.fintrack.app.presentation.recurring.RecurringScreen
+import com.fintrack.app.presentation.recurring.RecurringViewModel
 import com.fintrack.app.presentation.transactions.TransactionsScreen
 import com.fintrack.app.presentation.transactions.TransactionsViewModel
 import java.time.LocalDate
@@ -48,6 +54,12 @@ import kotlinx.serialization.Serializable
 @Serializable data object TransactionsRoute
 
 @Serializable data object AccountsRoute
+
+@Serializable data object MoreRoute
+
+@Serializable data object BudgetsRoute
+
+@Serializable data object RecurringRoute
 
 /**
  * Raiz da navegação: o estado da sessão decide o fluxo exibido. Login, logout e sessão expirada
@@ -97,7 +109,7 @@ private fun AuthNavHost(container: AppContainer) {
     }
 }
 
-private data class Tab(val route: Any, val label: String)
+private data class Tab(val route: Any, val label: String, val also: List<Any> = emptyList())
 
 @Composable
 private fun MainNavHost(container: AppContainer) {
@@ -106,6 +118,8 @@ private fun MainNavHost(container: AppContainer) {
         Tab(DashboardRoute, "Início"),
         Tab(TransactionsRoute, "Transações"),
         Tab(AccountsRoute, "Contas"),
+        // Telas secundárias ficam sob "Mais" (a barra inferior não passa de 4 itens).
+        Tab(MoreRoute, "Mais", also = listOf(BudgetsRoute, RecurringRoute)),
     )
     val backStack by navController.currentBackStackEntryAsState()
     val destination = backStack?.destination
@@ -115,7 +129,8 @@ private fun MainNavHost(container: AppContainer) {
             NavigationBar {
                 tabs.forEach { tab ->
                     NavigationBarItem(
-                        selected = destination?.hasRoute(tab.route::class) == true,
+                        selected = destination != null &&
+                            (listOf(tab.route) + tab.also).any { destination.hasRoute(it::class) },
                         onClick = {
                             // Sem saveState: cada visita cria a tela de novo e recarrega os saldos do servidor.
                             navController.navigate(tab.route) {
@@ -167,6 +182,41 @@ private fun MainNavHost(container: AppContainer) {
                     factory = AccountsViewModel.factory(container.listAccounts, container.createAccount),
                 )
                 AccountsScreen(viewModel = viewModel)
+            }
+            composable<MoreRoute> {
+                MoreScreen(
+                    entries = listOf(
+                        MoreEntry("Orçamentos", "Limite mensal por categoria de despesa") {
+                            navController.navigate(BudgetsRoute) { launchSingleTop = true }
+                        },
+                        MoreEntry("Recorrências", "Confirme ou pule as contas previstas") {
+                            navController.navigate(RecurringRoute) { launchSingleTop = true }
+                        },
+                    ),
+                )
+            }
+            composable<BudgetsRoute> {
+                val viewModel: BudgetsViewModel = viewModel(
+                    factory = BudgetsViewModel.factory(
+                        container.getBudgets,
+                        container.saveBudget,
+                        container.listCategories,
+                        today = { todayFor(container) },
+                    ),
+                )
+                BudgetsScreen(viewModel = viewModel, onBack = { navController.popBackStack() })
+            }
+            composable<RecurringRoute> {
+                val viewModel: RecurringViewModel = viewModel(
+                    factory = RecurringViewModel.factory(
+                        container.listOccurrences,
+                        container.listAccounts,
+                        container.confirmOccurrence,
+                        container.skipOccurrence,
+                        today = { todayFor(container) },
+                    ),
+                )
+                RecurringScreen(viewModel = viewModel, onBack = { navController.popBackStack() })
             }
         }
     }

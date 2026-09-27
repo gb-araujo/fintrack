@@ -55,11 +55,14 @@ export function useTransactions(filters: ledger.TransactionFilters) {
  * Qualquer alteração de lançamento pode mudar saldos e listas: invalida contas e lançamentos.
  * (O saldo vem sempre do backend — a web nunca recalcula por conta própria.)
  */
-function invalidateLedger(client: QueryClient) {
+export function invalidateLedger(client: QueryClient) {
   return Promise.all([
     client.invalidateQueries({ queryKey: ['accounts'] }),
     client.invalidateQueries({ queryKey: ['transactions'] }),
     client.invalidateQueries({ queryKey: ['dashboard'] }),
+    // Orçamento (gasto) e previsões de recorrências também dependem dos lançamentos.
+    client.invalidateQueries({ queryKey: ['budgets'] }),
+    client.invalidateQueries({ queryKey: ['recurring'] }),
   ]);
 }
 

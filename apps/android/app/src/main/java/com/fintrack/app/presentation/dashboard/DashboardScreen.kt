@@ -132,8 +132,10 @@ private fun AvailableCard(summary: DashboardSummary) {
 private fun ComponentLines(components: AvailableComponents, available: Long) {
     ComponentLine("+", "Saldo das contas disponíveis", components.liquidBalanceCents)
     ComponentLine("+", "Receitas pendentes", components.pendingIncomeCents)
+    ComponentLine("+", "Receitas previstas (recorrências)", components.forecastIncomeCents)
     ComponentLine("+", "Entradas agendadas (resgates)", components.pendingTransfersInCents)
     ComponentLine("−", "Despesas pendentes", components.pendingExpensesCents)
+    ComponentLine("−", "Despesas previstas (recorrências)", components.forecastExpensesCents)
     ComponentLine("−", "Saídas agendadas (aplicações)", components.pendingTransfersOutCents)
     ComponentLine("=", "Disponível", available)
 }
@@ -180,7 +182,10 @@ private fun PendingCard(summary: DashboardSummary) {
 @Composable
 private fun BillLine(bill: PendingBill) {
     val title = bill.description.ifBlank { "Despesa" }
-    val suffix = if (bill.overdue) " · vencida" else ""
+    val suffix = buildString {
+        if (bill.overdue) append(" · vencida")
+        if (bill.recurring) append(if (bill.estimated) " · recorrente (estimado)" else " · recorrente")
+    }
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
         Text(
             "$title · ${formatDate(bill.date)}$suffix",

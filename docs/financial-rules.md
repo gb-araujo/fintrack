@@ -90,7 +90,23 @@ A API retorna o valor **e a decomposição** de cada termo da fórmula.
 
 - Uma recorrência gera **previsões** (ocorrências virtuais), não transações.
 - A transação efetiva só é criada quando o usuário confirma — ou automaticamente se a recorrência
-  tiver `auto_confirm = true`. ([ADR 0008](./adr/0008-recorrencias-como-previsao.md))
+  tiver `auto_confirm = true` e valor fixo. ([ADR 0008](./adr/0008-recorrencias-como-previsao.md),
+  [ADR 0016](./adr/0016-recorrencias-implementacao.md))
+- **Confirmar** move a ocorrência da previsão para o saldo (o "posso gastar" não muda); **pular** grava
+  uma transação `cancelled` vinculada (some da previsão, sem efeito em nada); ambas são únicas por
+  `(recorrência, data)`. Ocorrência futura só é efetivada com data até hoje.
+- Ocorrências vencidas e não resolvidas (janela de 62 dias) são **atrasadas** e contam em "contas
+  pendentes" e no disponível; valor variável usa o último confirmado (ou a estimativa), marcado como
+  estimado.
+
+## 5b. Orçamentos — FASE 4
+
+- Limite mensal por categoria **de despesa**. Gasto = despesas `completed` da categoria no mês
+  (nunca transferências, investimentos, pagamentos de fatura, pendentes ou cancelados); restante e
+  percentual calculados no backend; `warning` a partir de 80% e `exceeded` acima do limite.
+- Pendentes e previsões de recorrência do mês aparecem à parte (`pendingCents`) e **não** contam como
+  gasto até serem efetivados. Gasto sem orçamento aparece em `unbudgetedSpentCents`.
+  ([ADR 0015](./adr/0015-orcamentos-mensais.md))
 
 ## 6. Importação — FASE 6
 
@@ -123,7 +139,9 @@ Fluxo: arquivo → parser → normalização → detecção de duplicidade → s
   líquida). Definição formal e decisões no [ADR 0014](./adr/0014-dinheiro-disponivel.md).
 - Conta líquida = banco/carteira, ativa e marcada como disponível; investimento **nunca** entra.
 - Horizonte padrão: fim do mês no fuso do usuário; `?until=` opcional (não anterior a hoje).
-- Termos de recorrências (FASE 4) e faturas (FASE 5) serão acrescentados ao mesmo cálculo.
+- FASE 4: previsões de recorrências (`includeInForecast`, conta líquida, até o horizonte) entram como
+  `forecastIncomeCents`/`forecastExpensesCents`; confirmar uma ocorrência não altera o resultado
+  (sai da previsão, entra no saldo). Faturas (FASE 5) serão acrescentadas ao mesmo cálculo.
 
 ## 7. Pendências conhecidas
 

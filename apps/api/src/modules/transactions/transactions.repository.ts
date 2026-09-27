@@ -6,6 +6,8 @@ import type {
 } from '@fintrack/shared';
 import { and, desc, eq, gte, ilike, lte, ne, sql, type SQL } from 'drizzle-orm';
 import type { DrizzleDb } from '../../db/client.js';
+import { ConflictError } from '../../shared/errors/index.js';
+import { isUniqueViolation } from '../../shared/utils/db-errors.js';
 import { transactions, transfers } from '../../db/schema/index.js';
 import type {
   NewTransaction,
@@ -48,6 +50,7 @@ const columns = {
   paymentMethod: transactions.paymentMethod,
   status: transactions.status,
   transferId: transactions.transferId,
+  recurringId: transactions.recurringTransactionId,
   transferDirection: transactions.transferDirection,
   fromAccountId: transfers.fromAccountId,
   toAccountId: transfers.toAccountId,
@@ -66,6 +69,7 @@ interface Row {
   paymentMethod: PaymentMethod | null;
   status: TransactionStatus;
   transferId: string | null;
+  recurringId: string | null;
   transferDirection: TransferDirection | null;
   /** Vêm do LEFT JOIN com transfers: nulos quando o lançamento não é perna de transferência. */
   fromAccountId: string | null;
@@ -85,6 +89,7 @@ function toRecord(row: Row): TransactionRecord {
     transactionDate: row.transactionDate,
     paymentMethod: row.paymentMethod,
     status: row.status,
+    recurringId: row.recurringId,
     transfer:
       row.transferId && row.transferDirection && row.fromAccountId && row.toAccountId
         ? {
@@ -171,10 +176,26 @@ export class DrizzleTransactionsRepository implements TransactionsRepository {
   }
 
   async create(userId: string, input: NewTransaction) {
-    const [created] = await this.db
-      .insert(transactions)
-      .values({ userId, ...input })
-      .returning({ id: transactions.id });
+    const { recurring, ...values } = input;
+    let created: { id: string } | undefined;
+    try {
+      [created] = await this.db
+        .insert(transactions)
+        .values({
+          userId,
+          ...values,
+          ...(recurring
+            ? { recurringTransactionId: recurring.id, occurrenceDate: recurring.occurrenceDate }
+            : {}),
+        })
+        .returning({ id: transactions.id });
+    } catch (error) {
+      // UNIQUE (recurring_transaction_id, occurrence_date): cada ocorrência vira no máximo um lançamento.
+      if (isUniqueViolation(error, 'transactions_recurring_occurrence_unique')) {
+        throw new ConflictError('Esta ocorrência já foi confirmada ou pulada.');
+      }
+      throw error;
+    }
     if (!created) throw new Error('INSERT em transactions não retornou linha');
     const record = await this.findById(userId, created.id);
     if (!record) throw new Error('Lançamento recém-criado não encontrado');

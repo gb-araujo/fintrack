@@ -18,7 +18,7 @@ import java.time.format.DateTimeParseException
 /** Erros de validação por campo (chaves: "name", "amount", "account", "toAccount", "date"). */
 class FormValidationException(val errors: Map<String, String>) : Exception("Dados inválidos: ${errors.keys}")
 
-private fun validDate(text: String): Boolean =
+internal fun validDate(text: String): Boolean =
     try {
         LocalDate.parse(text)
         true
@@ -27,7 +27,7 @@ private fun validDate(text: String): Boolean =
     }
 
 /** Valor de uma movimentação: inteiro positivo em centavos. */
-private fun amountError(text: String): Pair<Long?, String?> {
+internal fun amountError(text: String): Pair<Long?, String?> {
     if (text.isBlank()) return null to "Informe o valor."
     val cents = parseMoneyToCents(text) ?: return null to "Valor inválido. Use o formato 1.234,56."
     if (cents <= 0) return null to "O valor deve ser maior que zero."

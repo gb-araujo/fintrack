@@ -15,6 +15,7 @@ export interface TransactionRecord {
   transactionDate: string;
   paymentMethod: PaymentMethod | null;
   status: TransactionStatus;
+  recurringId: string | null;
   transfer: {
     id: string;
     direction: TransferDirection;
@@ -33,7 +34,10 @@ export interface NewTransaction {
   description: string;
   transactionDate: string;
   paymentMethod: PaymentMethod | null;
-  status: 'pending' | 'completed';
+  /** 'cancelled' só para marcar uma ocorrência de recorrência como pulada. */
+  status: 'pending' | 'completed' | 'cancelled';
+  /** Ocorrência de recorrência que originou este lançamento (confirmação ou "pular"). */
+  recurring?: { id: string; occurrenceDate: string };
 }
 
 export interface TransactionPatch {

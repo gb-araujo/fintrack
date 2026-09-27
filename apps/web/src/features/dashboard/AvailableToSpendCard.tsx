@@ -76,11 +76,21 @@ export function AvailableToSpendCard({
           />
           <Line label="Receitas pendentes" cents={components.pendingIncomeCents} sign="+" />
           <Line
+            label="Receitas previstas (recorrências)"
+            cents={components.forecastIncomeCents}
+            sign="+"
+          />
+          <Line
             label="Entradas agendadas (resgates)"
             cents={components.pendingTransfersInCents}
             sign="+"
           />
           <Line label="Despesas pendentes" cents={components.pendingExpensesCents} sign="−" />
+          <Line
+            label="Despesas previstas (recorrências)"
+            cents={components.forecastExpensesCents}
+            sign="−"
+          />
           <Line
             label="Saídas agendadas (aplicações)"
             cents={components.pendingTransfersOutCents}
