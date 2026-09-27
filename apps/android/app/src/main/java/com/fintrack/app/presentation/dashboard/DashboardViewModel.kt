@@ -5,7 +5,10 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import com.fintrack.app.domain.models.SessionState
 import com.fintrack.app.domain.usecases.CheckApiHealthUseCase
+import com.fintrack.app.domain.usecases.LogoutUseCase
+import com.fintrack.app.domain.usecases.ObserveSessionUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -20,18 +23,28 @@ sealed interface ApiStatus {
 }
 
 data class DashboardUiState(
+    val userName: String? = null,
     val apiStatus: ApiStatus = ApiStatus.Checking,
     val isRefreshing: Boolean = false,
+    val isLoggingOut: Boolean = false,
 )
 
 class DashboardViewModel(
     private val checkApiHealth: CheckApiHealthUseCase,
+    private val observeSession: ObserveSessionUseCase,
+    private val logout: LogoutUseCase,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(DashboardUiState())
     val uiState: StateFlow<DashboardUiState> = _uiState.asStateFlow()
 
     init {
+        viewModelScope.launch {
+            observeSession().collect { session ->
+                val name = (session as? SessionState.Authenticated)?.user?.name
+                _uiState.update { it.copy(userName = name) }
+            }
+        }
         refresh()
     }
 
@@ -52,8 +65,20 @@ class DashboardViewModel(
         }
     }
 
+    /** A navegação volta ao login sozinha quando a sessão vira Unauthenticated. */
+    fun logout() {
+        if (_uiState.value.isLoggingOut) return
+        _uiState.update { it.copy(isLoggingOut = true) }
+        viewModelScope.launch { logout.invoke() }
+    }
+
     companion object {
-        fun factory(checkApiHealth: CheckApiHealthUseCase): ViewModelProvider.Factory =
-            viewModelFactory { initializer { DashboardViewModel(checkApiHealth) } }
+        fun factory(
+            checkApiHealth: CheckApiHealthUseCase,
+            observeSession: ObserveSessionUseCase,
+            logout: LogoutUseCase,
+        ): ViewModelProvider.Factory = viewModelFactory {
+            initializer { DashboardViewModel(checkApiHealth, observeSession, logout) }
+        }
     }
 }

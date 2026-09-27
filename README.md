@@ -12,8 +12,8 @@ investimentos, transferências e orçamento — sem contar nenhuma movimentaçã
 | Fase | Escopo | Status |
 |---|---|---|
 | 0 | Arquitetura e setup | ✅ concluída |
-| 1 | Autenticação + banco + API básica | ⏳ próxima |
-| 2 | Contas + categorias + transações | — |
+| 1 | Autenticação + banco + API básica | ✅ concluída |
+| 2 | Contas + categorias + transações | ⏳ próxima |
 | 3 | Dashboard + cálculo de dinheiro disponível | — |
 | 4 | Recorrências + orçamento | — |
 | 5 | Cartão + faturas + parcelas | — |
@@ -26,7 +26,7 @@ investimentos, transferências e orçamento — sem contar nenhuma movimentaçã
 
 - [Arquitetura](docs/architecture.md) — camadas, monorepo, segurança, schema planejado, deploy
 - [Regras financeiras](docs/financial-rules.md) — o que entra (e o que não entra) em cada cálculo
-- [Convenções da API](docs/api-conventions.md) — formatos, erros, paginação
+- [Convenções da API](docs/api-conventions.md) — formatos, erros, paginação, autenticação
 - [ADRs](docs/adr/README.md) — decisões arquiteturais registradas
 
 ## Stack
@@ -63,6 +63,8 @@ npm install
 
 # 2. Variáveis de ambiente (credenciais locais de desenvolvimento apenas)
 cp .env.example .env
+#    Recomendado: preencha JWT_SECRET no .env (sem ele, as sessões caem a cada restart da API)
+node -e "console.log(require('node:crypto').randomBytes(48).toString('base64url'))"
 
 # 3. PostgreSQL local (cria também o banco fintrack_test)
 npm run db:up                  # = docker compose up -d db
@@ -75,9 +77,11 @@ npm run db:seed
 npm run dev                    # ou: npm run dev:api / npm run dev:web
 ```
 
+- Web: <http://localhost:5173> → **Criar conta** (não há usuário pré-cadastrado).
 - Status da API: <http://localhost:3333/health>
 - Documentação OpenAPI (dev): <http://localhost:3333/docs>
-- Em desenvolvimento a web chama a API pela mesma origem (proxy do Vite para `/api` e `/health`).
+- Em desenvolvimento a web chama a API pela mesma origem (proxy do Vite para `/api` e `/health`),
+  então o cookie de sessão funciona sem configuração de CORS.
 
 O sistema funciona inteiramente local, sem Railway.
 
@@ -109,7 +113,7 @@ Em produção as migrations rodam automaticamente antes de cada deploy (Railway 
 
 ### Seeds
 
-`npm run db:seed` — dados de exemplo de desenvolvimento; recusa rodar em produção.
+`npm run db:seed` — dados de exemplo de desenvolvimento (a partir da FASE 2); recusa rodar em produção.
 Ver [database/seeds/README.md](database/seeds/README.md).
 
 ## Qualidade
@@ -153,6 +157,7 @@ a IPs de rede local exige uma permissão de runtime — ver [ADR 0009](docs/adr/
 Teste de ponta a ponta contra a API real:
 
 ```bash
+# health + fluxo completo de autenticação (cadastro, /me, rotação, logout, login) contra a API real
 FINTRACK_LIVE_API_URL=http://localhost:3333/ ./gradlew testDebugUnitTest --tests "*HealthLiveApiTest*"
 ```
 
@@ -161,7 +166,7 @@ FINTRACK_LIVE_API_URL=http://localhost:3333/ ./gradlew testDebugUnitTest --tests
 ```bash
 docker build -f apps/api/Dockerfile -t fintrack-api .                                   # API (produção)
 docker build -f apps/web/Dockerfile --build-arg VITE_API_URL=https://api.exemplo -t fintrack-web .
-docker compose --profile full up -d --build                                             # PostgreSQL + API em container
+docker compose --profile full up -d --build   # PostgreSQL + API (imagem de produção; exige JWT_SECRET no .env)
 ```
 
 Ambos os Dockerfiles usam a **raiz do monorepo** como contexto.
@@ -181,7 +186,7 @@ Ambos os Dockerfiles usam a **raiz do monorepo** como contexto.
      | `CORS_ORIGINS` | `https://app.<dominio>` (domínio próprio da web) |
      | `TRUST_PROXY` | `true` |
      | `APP_VERSION` | opcional (ex.: SHA do commit) |
-     | `JWT_SECRET` | a partir da FASE 1 — 48+ bytes aleatórios |
+     | `JWT_SECRET` | **obrigatório** — 48 bytes aleatórios (comando acima); a API não sobe sem ele |
 
 4. **Serviço `web`**:
    - *Config-as-code*: `apps/web/railway.json` (usa `apps/web/Dockerfile`).

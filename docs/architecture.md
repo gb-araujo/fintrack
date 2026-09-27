@@ -1,7 +1,7 @@
 # Arquitetura do FINTRACK
 
-> Status: **FASE 0 concluída** (arquitetura e setup). Tabelas de domínio, autenticação e regras
-> financeiras entram a partir da FASE 1. Este documento é atualizado ao fim de cada fase.
+> Status: **FASE 1 concluída** (autenticação + banco + API básica). Contas, categorias e transações
+> entram na FASE 2. Este documento é atualizado ao fim de cada fase.
 
 ## 1. Visão geral
 
@@ -81,12 +81,17 @@ Ver [api-conventions.md](./api-conventions.md). Resumo: REST/JSON em `/api/v1`, 
 em **centavos inteiros** (`amountCents`), datas ISO, erros no envelope
 `{ "error": { "code", "message", "details?" } }`, OpenAPI em `/docs` (desligado em produção).
 
-Endpoints existentes (FASE 0):
+Endpoints existentes (FASE 1):
 
-| Método | Rota | Descrição |
-|---|---|---|
-| GET | `/health` | Status da API e do banco. `200` ok · `503` degradado (mesmo corpo). Sem rate limit. |
-| GET | `/docs`, `/docs/json` | Swagger UI e OpenAPI (apenas fora de produção, ou com `API_DOCS_ENABLED=true`). |
+| Método | Rota | Auth | Descrição |
+|---|---|---|---|
+| GET | `/health` | — | Status da API e do banco. `200` ok · `503` degradado (mesmo corpo). Sem rate limit. |
+| POST | `/api/v1/auth/register` | — | Cria a conta e inicia a sessão (`201`). 5/min por IP. |
+| POST | `/api/v1/auth/login` | — | Login. 20/min por IP + 5/min por IP+e-mail. Erro sempre genérico. |
+| POST | `/api/v1/auth/refresh` | refresh token | Rotaciona o refresh token e emite novo access token. 30/min por IP. |
+| POST | `/api/v1/auth/logout` | refresh token | Revoga a sessão (família). Idempotente (`204`). |
+| GET | `/api/v1/users/me` | Bearer | Usuário autenticado. |
+| GET | `/docs`, `/docs/json` | — | Swagger UI e OpenAPI (apenas fora de produção, ou com `API_DOCS_ENABLED=true`). |
 
 ## 4. Como Web e Android consomem a API
 
@@ -96,9 +101,14 @@ Endpoints existentes (FASE 0):
 - **Android**: Retrofit + OkHttp + kotlinx.serialization. `BASE_URL` por build type (`BuildConfig`):
   - debug: `http://localhost:3333/` com `adb reverse tcp:3333 tcp:3333` (ver ADR 0009);
   - release: `fintrack.apiBaseUrl` (HTTPS obrigatório — tráfego em claro é bloqueado).
-  - A partir da FASE 1: `AuthInterceptor` (Bearer) + `TokenAuthenticator` (refresh em 401 com mutex).
+  - Dois clientes OkHttp sobre o mesmo pool: **público** (health/auth) e **autenticado**
+    (`AuthInterceptor` com Bearer + `TokenAuthenticator` que renova em 401). O autenticado tem
+    `Dispatcher` próprio: com um dispatcher compartilhado, 5+ requisições simultâneas recebendo 401
+    ocupariam todas as vagas por host e o refresh nunca executaria (deadlock encontrado e coberto
+    por teste na FASE 1).
+  - Todas as requisições enviam `X-Client: android` (refresh token no corpo, não em cookie).
 
-## 5. Autenticação (planejada — FASE 1)
+## 5. Autenticação (implementada na FASE 1)
 
 Ver [ADR 0007](./adr/0007-autenticacao-jwt-refresh-rotativo.md).
 
@@ -110,8 +120,22 @@ Ver [ADR 0007](./adr/0007-autenticacao-jwt-refresh-rotativo.md).
   o que permite `SameSite=Lax`. Os domínios `*.up.railway.app` não são usados pelos clientes.
 - Android: refresh no corpo da resposta, guardado criptografado (DataStore + Android Keystore).
 - Rate limit mais rígido em `/auth/login` e `/auth/register`.
+- **Janela de concorrência (30 s):** reapresentar um refresh token recém-rotacionado (duas abas, duas
+  requisições simultâneas) responde `401` com `details.reason = "concurrent_rotation"` **sem**
+  revogar a sessão; o cliente tenta de novo com o token atual. Após a janela, é tratado como roubo
+  e a família inteira é revogada.
+- `userId` vem **somente** do token: o hook `app.authenticate` preenche `request.userId` (JWT HS256
+  com `iss`/`aud` verificados e algoritmo fixo — `none` e tokens de outro segredo são rejeitados).
 
-## 6. Segurança (implementado na FASE 0)
+| Cliente | Access token | Refresh token | Renovação |
+|---|---|---|---|
+| Web | memória (`lib/session.ts`) | cookie `fintrack_refresh` httpOnly (inacessível a JS) | `apiRequest` renova 1x em 401; `refreshSession` single-flight; recarregar a página restaura via cookie |
+| Android | memória (`SessionManager`) | DataStore cifrado com AES-256-GCM (chave no Android Keystore), excluído de backup | `TokenAuthenticator` + `Mutex`: N requisições com 401 → 1 refresh |
+
+A navegação dos dois clientes é guiada pelo estado da sessão: sem sessão → login; sessão expirada em
+qualquer requisição → volta ao login automaticamente.
+
+## 6. Segurança
 
 | Item | Implementação |
 |---|---|
@@ -124,17 +148,22 @@ Ver [ADR 0007](./adr/0007-autenticacao-jwt-refresh-rotativo.md).
 | Segredos | Somente variáveis de ambiente; `.env` no `.gitignore`; mensagens de erro de env não exibem valores. |
 | Container | Imagem multi-stage, só dependências de produção, usuário `node` (não-root), HEALTHCHECK. |
 | Android | Release só HTTPS (network security config); log HTTP só em debug e sem corpo. |
+| Senhas | argon2id (m=19 MiB, t=2, p=1); 8–128 caracteres; verificação "dummy" quando o e-mail não existe (tempo de resposta não revela cadastro). |
+| CSRF | Refresh/logout via cookie exigem `Origin` presente em `CORS_ORIGINS` (além de `SameSite=Lax`). |
 
 ## 7. Banco de dados
 
 PostgreSQL 17, Drizzle ORM, migrations SQL versionadas em `database/migrations`.
 
-- FASE 0: migration `0000_init_extensions` (extensão `citext`). **Nenhuma tabela de domínio.**
-- Schema proposto (aprovado) para as próximas fases:
+- `0000_init_extensions` (FASE 0): extensão `citext`.
+- `0001_auth_users_refresh_tokens` (FASE 1): `users` (e-mail `citext` UNIQUE, CHECKs de nome e
+  moeda) e `refresh_tokens` (hash SHA-256 UNIQUE, família, expiração, revogação, substituto; FK com
+  `ON DELETE CASCADE`).
+- Schema aprovado (✅ = criado):
 
 | Tabela | Fase | Observações |
 |---|---|---|
-| `users`, `refresh_tokens` | 1 | e-mail `citext` único; tokens só como hash |
+| `users` ✅, `refresh_tokens` ✅ | 1 | e-mail `citext` único; tokens só como hash |
 | `accounts`, `categories`, `transactions`, `transfers` | 2 | transferência = cabeçalho + 2 transações vinculadas |
 | `recurring_transactions` | 4 | geram ocorrências **virtuais** até a confirmação |
 | `budgets` | 4 | `UNIQUE(user_id, category_id, month)` |
@@ -174,3 +203,5 @@ Passo a passo no [README](../README.md#deploy-no-railway).
 | Kotlin / AGP / Gradle | 2.4.20 / 9.4.1 / 9.8.0 |
 | Android compileSdk / targetSdk / minSdk | 37 / 37 / 26 |
 | Compose BOM / Retrofit / OkHttp | 2026.09.00 / 3.0.0 / 5.5.0 |
+| Autenticação (API) | @fastify/jwt 10.2 · @fastify/cookie 11.1 · @node-rs/argon2 2.2 |
+| Autenticação (Android) | DataStore Preferences 1.2.1 · Android Keystore (AES-256-GCM) |

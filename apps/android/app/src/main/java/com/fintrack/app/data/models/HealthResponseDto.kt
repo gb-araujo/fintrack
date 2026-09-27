@@ -2,6 +2,7 @@ package com.fintrack.app.data.models
 
 import com.fintrack.app.domain.models.ApiHealth
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonElement
 
 /** Espelho de `healthResponseSchema` (packages/shared/src/contracts/health.ts). */
 @Serializable
@@ -18,11 +19,12 @@ data class HealthChecksDto(
     val database: String,
 )
 
+/** Envelope padrão de erro da API: `{ "error": { "code", "message", "details"? } }`. */
 @Serializable
 data class ApiErrorEnvelopeDto(val error: ApiErrorDto)
 
 @Serializable
-data class ApiErrorDto(val code: String, val message: String)
+data class ApiErrorDto(val code: String, val message: String, val details: JsonElement? = null)
 
 fun HealthResponseDto.toDomain(): ApiHealth =
     ApiHealth(

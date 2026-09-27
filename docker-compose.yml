@@ -34,6 +34,8 @@ services:
       DATABASE_URL: postgres://${POSTGRES_USER:-fintrack}:${POSTGRES_PASSWORD:-fintrack}@db:5432/${POSTGRES_DB:-fintrack}
       CORS_ORIGINS: http://localhost:5173
       API_DOCS_ENABLED: 'true'
+      # Obrigatório em produção — lido do .env da raiz (nunca versionado).
+      JWT_SECRET: ${JWT_SECRET:?defina JWT_SECRET no .env (veja .env.example)}
     # Replica o fluxo do Railway: migrations antes de subir o servidor.
     command: ['sh', '-c', 'node dist/db/migrate.js && node dist/server.js']
     ports:

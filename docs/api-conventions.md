@@ -5,8 +5,40 @@
 - REST sobre HTTPS, JSON (`application/json; charset=utf-8`).
 - Rotas de negócio em `/api/v1/...`. `/health` fica na raiz (healthcheck do Railway).
 - Nomes de campos em **camelCase**; recursos no plural (`/api/v1/accounts`).
-- Autenticação (a partir da FASE 1): `Authorization: Bearer <access token>`.
+- Autenticação: `Authorization: Bearer <access token>` (JWT de 15 min).
 - O `userId` **nunca** é aceito do cliente; vem do token.
+
+## Autenticação
+
+| Rota | Corpo | Resposta |
+|---|---|---|
+| `POST /api/v1/auth/register` | `{ name, email, password, timezone? }` | `201` + sessão |
+| `POST /api/v1/auth/login` | `{ email, password }` | `200` + sessão |
+| `POST /api/v1/auth/refresh` | Android: `{ refreshToken }` · Web: vazio (cookie) | `200` + nova sessão |
+| `POST /api/v1/auth/logout` | Android: `{ refreshToken }` · Web: vazio (cookie) | `204` |
+| `GET /api/v1/users/me` | — | `200` + usuário |
+
+Sessão (`authResponseSchema`):
+
+```json
+{
+  "user": { "id": "…", "name": "…", "email": "…", "timezone": "America/Sao_Paulo", "currency": "BRL", "createdAt": "…" },
+  "accessToken": "eyJ…",
+  "accessTokenExpiresAt": "2026-09-26T12:15:00.000Z",
+  "refreshToken": "… (somente com X-Client: android)",
+  "refreshTokenExpiresAt": "… (somente com X-Client: android)"
+}
+```
+
+- **Web:** o refresh token vai no cookie `fintrack_refresh` (`HttpOnly; Secure; SameSite=Lax;
+  Path=/api/v1/auth`). Chamadas com credenciais (`credentials: 'include'`) e cabeçalho `Origin`
+  autorizado; sem `Origin` válido, refresh/logout por cookie respondem `403`.
+- **Android:** envia `X-Client: android` e recebe/envia o refresh token no corpo.
+- O refresh token é **rotacionado a cada uso**. Um `401` com `details.reason = "concurrent_rotation"`
+  significa que outra requisição acabou de rotacionar o mesmo token: o cliente pode tentar de novo
+  com o token atual. Qualquer outro `401` no refresh significa "faça login".
+- Senha: 8–128 caracteres. E-mail é normalizado (espaços e maiúsculas) e comparado sem diferenciar
+  maiúsculas. Login inválido responde sempre `401 "E-mail ou senha inválidos."`.
 
 ## Tipos
 
@@ -46,7 +78,8 @@ Listagens grandes usam cursor: `?limit=50&cursor=<opaco>` → `{ "items": [...],
 ## Cabeçalhos
 
 - `X-Request-Id` em toda resposta (correlação com os logs).
-- `X-Client: android` identifica o app (a partir da FASE 1, define a entrega do refresh token).
+- `X-Client: android` identifica o app e define a entrega do refresh token (corpo em vez de cookie).
+- `Cache-Control: no-store` nas respostas que contêm tokens.
 
 ## Contrato
 

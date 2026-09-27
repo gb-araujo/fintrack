@@ -49,10 +49,47 @@ describe('parseEnv', () => {
     expect(() => parseEnv({ ...base, CORS_ORIGINS: 'not a url' })).toThrow(/CORS_ORIGINS/);
   });
 
+  it('JWT_SECRET é obrigatório em produção', () => {
+    expect(() => parseEnv({ ...base, NODE_ENV: 'production' })).toThrow(/JWT_SECRET/);
+  });
+
+  it('variáveis vazias no .env contam como ausentes (usam o padrão)', () => {
+    const config = parseEnv({ ...base, JWT_SECRET: '', PORT: '', API_DOCS_ENABLED: ' ' });
+    expect(config.JWT_SECRET_EPHEMERAL).toBe(true);
+    expect(config.PORT).toBe(3333);
+    expect(config.API_DOCS_ENABLED).toBe(true);
+    expect(() => parseEnv({ DATABASE_URL: '' })).toThrow(/DATABASE_URL/);
+  });
+
+  it('rejeita JWT_SECRET curto', () => {
+    expect(() => parseEnv({ ...base, JWT_SECRET: 'curto' })).toThrow(/JWT_SECRET/);
+  });
+
+  it('fora de produção, sem JWT_SECRET, gera um segredo temporário aleatório', () => {
+    const first = parseEnv(base);
+    const second = parseEnv(base);
+    expect(first.JWT_SECRET_EPHEMERAL).toBe(true);
+    expect(first.JWT_SECRET.length).toBeGreaterThanOrEqual(32);
+    expect(first.JWT_SECRET).not.toBe(second.JWT_SECRET);
+  });
+
+  it('cookie Secure ligado por padrão só em produção', () => {
+    const secret = { JWT_SECRET: 'x'.repeat(32) };
+    expect(parseEnv({ ...base, ...secret }).AUTH_COOKIE_SECURE).toBe(false);
+    expect(parseEnv({ ...base, ...secret, NODE_ENV: 'production' }).AUTH_COOKIE_SECURE).toBe(true);
+  });
+
   it('desliga a documentação por padrão em produção', () => {
-    expect(parseEnv({ ...base, NODE_ENV: 'production' }).API_DOCS_ENABLED).toBe(false);
     expect(
-      parseEnv({ ...base, NODE_ENV: 'production', API_DOCS_ENABLED: 'true' }).API_DOCS_ENABLED,
+      parseEnv({ ...base, NODE_ENV: 'production', JWT_SECRET: 'x'.repeat(32) }).API_DOCS_ENABLED,
+    ).toBe(false);
+    expect(
+      parseEnv({
+        ...base,
+        NODE_ENV: 'production',
+        API_DOCS_ENABLED: 'true',
+        JWT_SECRET: 'x'.repeat(32),
+      }).API_DOCS_ENABLED,
     ).toBe(true);
   });
 });

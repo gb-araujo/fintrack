@@ -16,6 +16,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -30,11 +31,11 @@ import com.fintrack.app.core.theme.StatusColors
 @Composable
 fun DashboardScreen(viewModel: DashboardViewModel) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    DashboardContent(uiState = uiState, onRefresh = viewModel::refresh)
+    DashboardContent(uiState = uiState, onRefresh = viewModel::refresh, onLogout = viewModel::logout)
 }
 
 @Composable
-fun DashboardContent(uiState: DashboardUiState, onRefresh: () -> Unit) {
+fun DashboardContent(uiState: DashboardUiState, onRefresh: () -> Unit, onLogout: () -> Unit) {
     Scaffold { padding ->
         Column(
             modifier = Modifier
@@ -43,7 +44,15 @@ fun DashboardContent(uiState: DashboardUiState, onRefresh: () -> Unit) {
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            Text("FINTRACK", style = MaterialTheme.typography.headlineSmall)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Column(Modifier.weight(1f)) {
+                    Text("FINTRACK", style = MaterialTheme.typography.headlineSmall)
+                    uiState.userName?.let { name ->
+                        Text("Olá, ${name.substringBefore(' ')}!", style = MaterialTheme.typography.bodyMedium)
+                    }
+                }
+                TextButton(onClick = onLogout, enabled = !uiState.isLoggingOut) { Text("Sair") }
+            }
 
             Card(modifier = Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(16.dp)) {
@@ -56,7 +65,11 @@ fun DashboardContent(uiState: DashboardUiState, onRefresh: () -> Unit) {
                 }
             }
 
-            ApiStatusCard(status = uiState.apiStatus, isRefreshing = uiState.isRefreshing, onRefresh = onRefresh)
+            ApiStatusCard(
+                status = uiState.apiStatus,
+                isRefreshing = uiState.isRefreshing,
+                onRefresh = onRefresh,
+            )
         }
     }
 }
@@ -108,6 +121,10 @@ private fun StatusDot(color: Color) {
 @Composable
 private fun DashboardPreview() {
     FinTrackTheme {
-        DashboardContent(DashboardUiState(apiStatus = ApiStatus.Online("0.0.0")), onRefresh = {})
+        DashboardContent(
+            DashboardUiState(userName = "Gabriel Araujo", apiStatus = ApiStatus.Online("0.0.0")),
+            onRefresh = {},
+            onLogout = {},
+        )
     }
 }

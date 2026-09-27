@@ -1,6 +1,7 @@
 import { apiErrorSchema } from '@fintrack/shared';
 import type { z } from 'zod';
 import { env } from '../lib/env';
+import { session } from '../lib/session';
 
 export class ApiError extends Error {
   constructor(
@@ -21,31 +22,40 @@ export interface RequestOptions<TSchema extends z.ZodType> extends Omit<RequestI
   baseUrl?: string;
   /** Status HTTP não-2xx cujo corpo segue o schema de sucesso (ex.: 503 do /health degradado). */
   acceptStatuses?: readonly number[];
+  /** Envia o access token e renova a sessão em 401. Padrão: true. */
+  auth?: boolean;
 }
 
-/**
- * Cliente HTTP da web. Todas as chamadas à API passam por aqui.
- * A partir da FASE 1 recebe o access token e o refresh automático em 401.
- */
-export async function apiRequest<TSchema extends z.ZodType>(
+/** Renovação de sessão registrada pelo módulo de auth (evita dependência circular). */
+type RefreshHandler = () => Promise<boolean>;
+let refreshHandler: RefreshHandler | undefined;
+
+export function setRefreshHandler(handler: RefreshHandler | undefined): void {
+  refreshHandler = handler;
+}
+
+/** Resposta 204/sem conteúdo. */
+export const noContent = undefined;
+
+async function send(
   path: string,
   {
-    schema,
     body,
     baseUrl = env.VITE_API_URL,
-    acceptStatuses = [],
     headers,
+    auth,
     ...init
-  }: RequestOptions<TSchema>,
-): Promise<z.infer<TSchema>> {
-  let response: Response;
+  }: Omit<RequestOptions<z.ZodType>, 'schema' | 'acceptStatuses'>,
+): Promise<Response> {
+  const token = auth ? session.getAccessToken() : null;
   try {
-    response = await fetch(`${baseUrl}${path}`, {
+    return await fetch(`${baseUrl}${path}`, {
       ...init,
       credentials: 'include',
       headers: {
         Accept: 'application/json',
         ...(body !== undefined ? { 'Content-Type': 'application/json' } : {}),
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...headers,
       },
       body: body !== undefined ? JSON.stringify(body) : undefined,
@@ -53,6 +63,28 @@ export async function apiRequest<TSchema extends z.ZodType>(
   } catch (cause) {
     throw new ApiError(0, 'NETWORK_ERROR', 'Não foi possível conectar à API.', cause);
   }
+}
+
+/**
+ * Cliente HTTP da web. Todas as chamadas à API passam por aqui.
+ * Em 401 de uma rota autenticada, renova a sessão uma única vez e repete a requisição.
+ */
+export async function apiRequest<TSchema extends z.ZodType>(
+  path: string,
+  { schema, acceptStatuses = [], auth = true, ...options }: RequestOptions<TSchema>,
+): Promise<z.infer<TSchema>> {
+  let response = await send(path, { ...options, auth });
+
+  if (response.status === 401 && auth && refreshHandler) {
+    const renewed = await refreshHandler();
+    if (renewed) {
+      response = await send(path, { ...options, auth });
+    } else {
+      session.expire();
+    }
+  }
+
+  if (response.status === 204) return schema.parse(noContent);
 
   const payload: unknown = await response.json().catch(() => undefined);
 

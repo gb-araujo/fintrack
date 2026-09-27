@@ -1,10 +1,11 @@
 import { NavLink } from 'react-router';
 import { Icon } from '../icons';
 import { NAV_ITEMS } from './navigation';
+import { UserMenu } from './UserMenu';
 
 export function Sidebar() {
   return (
-    <aside className="hidden w-64 shrink-0 flex-col border-r border-slate-200 bg-white md:flex">
+    <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col border-r border-slate-200 bg-white md:flex">
       <div className="flex h-16 items-center gap-2 px-6">
         <span className="grid size-8 place-items-center rounded-lg bg-brand-700 text-sm font-bold text-white">
           F
@@ -31,6 +32,9 @@ export function Sidebar() {
           </NavLink>
         ))}
       </nav>
+      <div className="border-t border-slate-200 px-4 py-4">
+        <UserMenu />
+      </div>
     </aside>
   );
 }

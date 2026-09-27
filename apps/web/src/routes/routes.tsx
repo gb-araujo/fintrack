@@ -1,6 +1,9 @@
 import type { RouteObject } from 'react-router';
 import { AppLayout } from '../components/layout/AppLayout';
 import { NAV_ITEMS } from '../components/layout/navigation';
+import { LoginPage } from '../features/auth/LoginPage';
+import { RegisterPage } from '../features/auth/RegisterPage';
+import { PublicOnly, RequireAuth } from '../features/auth/RouteGuards';
 import { DashboardPage } from '../pages/DashboardPage';
 import { MorePage } from '../pages/MorePage';
 import { NotFoundPage } from '../pages/NotFoundPage';
@@ -15,13 +18,25 @@ const placeholderRoutes: RouteObject[] = NAV_ITEMS.filter((item) => item.to !== 
 
 export const routes: RouteObject[] = [
   {
-    path: '/',
-    element: <AppLayout />,
+    element: <PublicOnly />,
     children: [
-      { index: true, element: <DashboardPage /> },
-      ...placeholderRoutes,
-      { path: 'more', element: <MorePage /> },
-      { path: '*', element: <NotFoundPage /> },
+      { path: '/login', element: <LoginPage /> },
+      { path: '/register', element: <RegisterPage /> },
+    ],
+  },
+  {
+    element: <RequireAuth />,
+    children: [
+      {
+        path: '/',
+        element: <AppLayout />,
+        children: [
+          { index: true, element: <DashboardPage /> },
+          ...placeholderRoutes,
+          { path: 'more', element: <MorePage /> },
+          { path: '*', element: <NotFoundPage /> },
+        ],
+      },
     ],
   },
 ];

@@ -6,8 +6,15 @@ import {
 } from 'fastify-type-provider-zod';
 import type { AppConfig } from './config/env.js';
 import type { DatabaseConnection } from './db/client.js';
+import { authRoutes } from './modules/auth/auth.controller.js';
+import { AuthService } from './modules/auth/auth.service.js';
+import { DrizzleRefreshTokensRepository } from './modules/auth/refresh-tokens.repository.js';
 import { healthRoutes } from './modules/health/health.controller.js';
 import { HealthService } from './modules/health/health.service.js';
+import { usersRoutes } from './modules/users/users.controller.js';
+import { DrizzleUsersRepository } from './modules/users/users.repository.js';
+import { UsersService } from './modules/users/users.service.js';
+import { authPlugin } from './plugins/auth.js';
 import { docsPlugin } from './plugins/docs.js';
 import { errorHandlerPlugin } from './plugins/error-handler.js';
 import { buildLoggerOptions } from './plugins/logger.js';
@@ -38,17 +45,46 @@ export async function buildApp({ config, database }: AppDependencies) {
 
   await app.register(errorHandlerPlugin);
   await app.register(securityPlugin, { config });
+  await app.register(authPlugin, { config });
   if (config.API_DOCS_ENABLED) {
     await app.register(docsPlugin, { version: config.APP_VERSION });
   }
+
+  if (config.JWT_SECRET_EPHEMERAL) {
+    app.log.warn(
+      'JWT_SECRET não definido: usando segredo temporário (sessões caem a cada restart).',
+    );
+  }
+
+  // Composição: repositórios → services → rotas.
+  const usersRepository = new DrizzleUsersRepository(database.db);
+  const refreshTokensRepository = new DrizzleRefreshTokensRepository(database.db);
+  const authService = new AuthService(
+    usersRepository,
+    refreshTokensRepository,
+    app.accessTokenSigner,
+    {
+      refreshTokenTtlDays: config.REFRESH_TOKEN_TTL_DAYS,
+      onSecurityEvent: (event) => {
+        if (event.type === 'refresh_token_reuse') {
+          app.log.warn(
+            { userId: event.userId, familyId: event.familyId },
+            'reuso de refresh token detectado: sessão revogada',
+          );
+        }
+      },
+    },
+  );
+  const usersService = new UsersService(usersRepository);
 
   await app.register(healthRoutes, {
     healthService: new HealthService(database, { version: config.APP_VERSION }),
   });
 
   await app.register(
-    async (_api) => {
-      // Módulos de domínio são registrados aqui a partir da FASE 1 (auth, accounts, …).
+    async (api) => {
+      await api.register(authRoutes, { authService, config });
+      await api.register(usersRoutes, { usersService });
     },
     { prefix: '/api/v1' },
   );
