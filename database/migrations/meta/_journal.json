@@ -64,6 +64,13 @@
       "when": 1790483398063,
       "tag": "0008_imports_and_merchant_rules",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1790520140736,
+      "tag": "0009_investment_valuations",
+      "breakpoints": true
     }
   ]
 }

@@ -1,6 +1,6 @@
 # ADR 0006 — Investimentos como movimentação entre contas
 
-- **Status:** aceito (FASE 0); **representação de rendimentos pendente (FASE 8)**
+- **Status:** aceito (FASE 0); **representação de rendimentos resolvida na ADR 0020 (FASE 8)**
 
 ## Contexto
 
@@ -13,11 +13,11 @@ operações como despesa/receita distorce relatórios e cria patrimônio artific
 - **Aplicação** = transferência (ADR 0003) de uma conta líquida para a conta de investimento.
 - **Resgate** = transferência da conta de investimento para uma conta líquida. Não é receita operacional.
 - Contas `investment` não entram no "Quanto posso gastar?", mas entram no patrimônio.
-- A tabela `investments` registra a posição (instituição, produto, conta).
+- A tabela `investment_details` registra instituição/produto da posição (FASE 8, ADR 0020).
 
-## Pendente (FASE 8)
+## Rendimentos (resolvido — ver ADR 0020)
 
-Como representar **rendimentos**. Apenas atualizar o valor da posição, sem histórico, dificulta o
-cálculo de rentabilidade e da evolução do patrimônio ao longo do tempo. Opções a avaliar: tabela de
-movimentos de investimento (aporte, resgate, rendimento, taxa/IR) e/ou snapshots periódicos de
-valor de mercado.
+Apenas atualizar o valor da posição, sem histórico, dificultava o cálculo de rentabilidade e da
+evolução do patrimônio ao longo do tempo. Resolvido na FASE 8 com uma tabela de **avaliações**
+(`investment_valuations` — snapshots periódicos de valor de mercado, nunca sobrescritos) e
+rendimento sempre **derivado** dessas avaliações, nunca armazenado — detalhes na ADR 0020.

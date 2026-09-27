@@ -37,7 +37,7 @@ Status: `pending` (prevista/agendada), `completed` (efetivada — única que afe
 | Pagamento da fatura (`card_payment`) | − conta pagadora | nada | 0 |
 | Aplicação em investimento | transferência para conta `investment` | nada | 0 |
 | Resgate de investimento | transferência para conta líquida | nada (**não** é receita operacional) | 0 |
-| Rendimento de investimento | **a definir na FASE 8** | não é receita operacional | + |
+| Rendimento de investimento | não altera saldo direto; é o que **sobra** do saldo depois de descontar aportes/resgates (derivado, nunca gravado — ADR 0020) | não é receita operacional | + |
 | Recorrência prevista (não confirmada) | nada | nada (apenas previsão) | nada |
 | Recorrência confirmada | vira transação vinculada `(recurring_id, occurrence_date)` | como a transação | como a transação |
 
@@ -131,8 +131,22 @@ A API retorna o valor **e a decomposição** de cada termo da fórmula.
   pagamento de fatura e resgate nunca são despesa/receita). ([ADR 0019](./adr/0019-relatorios.md))
 - Nove relatórios: despesas por categoria, receitas × despesas, evolução mensal, despesas por
   conta, despesas por cartão (parcelas reconhecidas + valor comprado, informativo), fluxo de
-  caixa, orçamento ao longo dos meses, patrimônio e investimentos (aplicado/resgatado; rendimento
-  fica para a FASE 8). Só leitura — nenhuma tabela nova.
+  caixa, orçamento ao longo dos meses, patrimônio e investimentos (aplicado/resgatado e, desde a
+  FASE 8, rendimento — `null` quando a conta não tem avaliação registrada). Só leitura.
+
+## 5c. Rendimento de investimento — FASE 8
+
+- **Nunca é um número armazenado.** É sempre derivado de duas avaliações (snapshots do valor da
+  posição, informados pelo usuário e nunca sobrescritos — histórico completo preservado):
+  `rendimento(A → B) = saldo(B) − saldo(A) − aportes líquidos entre A e B`. Corrigir uma avaliação
+  antiga recalcula automaticamente o rendimento das avaliações seguintes.
+  ([ADR 0020](./adr/0020-rendimento-investimentos.md))
+- Conta de investimento **sem** avaliação nenhuma: saldo = só a soma de aportes/resgates (como
+  antes da FASE 8); rendimento `null` (desconhecido, nunca `0`). Com avaliação: saldo = avaliação
+  mais recente + efeito dos lançamentos completados depois dela.
+- `PUT /api/v1/investments/:accountId/valuations` rejeita conta que não é `investment`, arquivada,
+  ou avaliação com data futura. `GET /api/v1/investments` resume por conta (saldo, aportado líquido
+  desde a criação, rendimento total desde a primeira avaliação).
 
 ## 6. Importação — FASE 6
 
@@ -183,5 +197,5 @@ Fluxo: arquivo → parser → normalização → detecção de duplicidade → s
 
 ## 7. Pendências conhecidas
 
-- **Rendimentos de investimento** (FASE 8): decidir a representação preservando histórico,
-  rentabilidade e evolução do patrimônio. Apenas atualizar o valor da posição **não** é suficiente.
+- Nenhuma pendência financeira aberta. Rendimento de investimento (FASE 8) resolvido — ver §5c e
+  [ADR 0020](./adr/0020-rendimento-investimentos.md).

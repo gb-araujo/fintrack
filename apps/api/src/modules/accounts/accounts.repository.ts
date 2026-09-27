@@ -1,10 +1,11 @@
-import { and, asc, eq, isNull, type SQL } from 'drizzle-orm';
+import { sql, type SQL } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import type { DrizzleDb } from '../../db/client.js';
-import { completedEffectSql } from '../../db/expressions.js';
-import { accounts, transactions } from '../../db/schema/index.js';
+import { accounts } from '../../db/schema/index.js';
 import { ConflictError } from '../../shared/errors/index.js';
 import { isUniqueViolation } from '../../shared/utils/db-errors.js';
 import type { AccountRecord, CreateAccountInput, UpdateAccountInput } from './accounts.types.js';
+import type { AccountType } from '@fintrack/shared';
 
 /**
  * Toda consulta recebe `userId` e o aplica em TODOS os filtros: não existe método
@@ -20,47 +21,74 @@ export interface AccountsRepository {
 
 const NAME_TAKEN = 'Já existe uma conta ativa com esse nome.';
 
+type AccountRow = {
+  id: string;
+  name: string;
+  type: AccountType;
+  initial_balance_cents: string;
+  include_in_available: boolean;
+  // db.execute() não decodifica colunas como o query builder: timestamptz vem como string bruta.
+  archived_at: string | null;
+  created_at: string;
+  balance_cents: string;
+};
+
 export class DrizzleAccountsRepository implements AccountsRepository {
   constructor(private readonly db: DrizzleDb) {}
 
-  /** Contas com saldo calculado em uma única consulta (saldo inicial + efetivados). */
-  private async select(where: SQL | undefined): Promise<AccountRecord[]> {
-    const rows = await this.db
-      .select({
-        id: accounts.id,
-        name: accounts.name,
-        type: accounts.type,
-        initialBalanceCents: accounts.initialBalanceCents,
-        includeInAvailable: accounts.includeInAvailable,
-        archivedAt: accounts.archivedAt,
-        createdAt: accounts.createdAt,
-        effectCents: completedEffectSql,
-      })
-      .from(accounts)
-      .leftJoin(
-        transactions,
-        and(eq(transactions.accountId, accounts.id), eq(transactions.userId, accounts.userId)),
-      )
-      .where(where)
-      .groupBy(accounts.id)
-      .orderBy(asc(accounts.archivedAt), asc(accounts.createdAt), asc(accounts.id));
+  /**
+   * Contas com saldo calculado em uma única consulta. Regra (ADR 0002, ADR 0020):
+   * - conta comum: saldo inicial + Σ efeito dos lançamentos efetivados (igual a `balanceEffect`);
+   * - conta de investimento COM avaliação: a avaliação mais recente + Σ efeito dos lançamentos
+   *   efetivados com data DEPOIS dela (aplicações/resgates registrados desde então). Sem avaliação
+   *   nenhuma, cai na mesma regra das contas comuns (saldo = aportes, rendimento ainda não medido).
+   */
+  private async select(userId: string, extra?: SQL): Promise<AccountRecord[]> {
+    const rows = await this.db.execute<AccountRow>(sql`
+      select a.id, a.name, a.type, a.initial_balance_cents, a.include_in_available,
+             a.archived_at, a.created_at,
+             coalesce(v.balance_cents, a.initial_balance_cents) + coalesce(e.effect, 0) as balance_cents
+      from accounts a
+      left join lateral (
+        select balance_cents, date
+        from investment_valuations
+        where account_id = a.id and user_id = a.user_id
+        order by date desc
+        limit 1
+      ) v on a.type = 'investment'
+      left join lateral (
+        select sum(
+          case
+            when t.type = 'income' then t.amount_cents
+            when t.type = 'transfer' and t.transfer_direction = 'in' then t.amount_cents
+            else -t.amount_cents
+          end
+        ) as effect
+        from transactions t
+        where t.account_id = a.id and t.user_id = a.user_id and t.status = 'completed'
+          and (v.date is null or t.transaction_date > v.date)
+      ) e on true
+      where a.user_id = ${userId} ${extra ? sql`and ${extra}` : sql``}
+      order by a.archived_at asc, a.created_at asc, a.id asc`);
 
-    return rows.map(({ effectCents, ...account }) => ({
-      ...account,
-      balanceCents: account.initialBalanceCents + effectCents,
+    return rows.map((row) => ({
+      id: row.id,
+      name: row.name,
+      type: row.type,
+      initialBalanceCents: Number(row.initial_balance_cents),
+      includeInAvailable: row.include_in_available,
+      archivedAt: row.archived_at ? new Date(row.archived_at) : null,
+      createdAt: new Date(row.created_at),
+      balanceCents: Number(row.balance_cents),
     }));
   }
 
   list(userId: string, { includeArchived }: { includeArchived: boolean }) {
-    return this.select(
-      includeArchived
-        ? eq(accounts.userId, userId)
-        : and(eq(accounts.userId, userId), isNull(accounts.archivedAt)),
-    );
+    return this.select(userId, includeArchived ? undefined : sql`a.archived_at is null`);
   }
 
   async findById(userId: string, id: string) {
-    const [row] = await this.select(and(eq(accounts.userId, userId), eq(accounts.id, id)));
+    const [row] = await this.select(userId, sql`a.id = ${id}`);
     return row;
   }
 

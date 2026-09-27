@@ -183,6 +183,8 @@ PostgreSQL 17, Drizzle ORM, migrations SQL versionadas em `database/migrations`.
   exige N parcelas somando o total da compra e ajuste do CHECK de vencimento (≥ fechamento).
 - `0008` (FASE 6): `imports`, `imported_transactions`, `merchant_rules` e `UNIQUE(id, user_id)` em
   `transactions` (chave composta das linhas importadas).
+- `0009_investment_valuations` (FASE 8): `investment_valuations` (`UNIQUE(account_id, date)`, CHECK
+  saldo ≥ 0) e `investment_details` (instituição/produto).
 - Schema aprovado (✅ = criado):
 
 | Tabela | Fase | Observações |
@@ -194,7 +196,7 @@ PostgreSQL 17, Drizzle ORM, migrations SQL versionadas em `database/migrations`.
 | `credit_cards` ✅, `credit_card_invoices` ✅, `credit_card_transactions` ✅, `credit_card_installments` ✅ | 5 | parcelas no período da fatura; pagamento = `card_payment` (`transactions.credit_card_invoice_id`); status da fatura derivado ([ADR 0017](./adr/0017-cartao-faturas-e-parcelas.md)) |
 | `imports` ✅, `imported_transactions` ✅, `merchant_rules` ✅ | 6 | linhas em revisão com fingerprint, duplicidade e sugestões; só `contains`/`starts_with` ([ADR 0018](./adr/0018-importacao-de-extratos.md)) |
 | — | 7 | Relatórios são só leitura: nenhuma tabela nova ([ADR 0019](./adr/0019-relatorios.md)) |
-| `investments` | 8 | representação de rendimentos a decidir na FASE 8 |
+| `investment_valuations` ✅, `investment_details` ✅ | 8 | avaliações nunca sobrescritas (`UNIQUE(account_id, date)`); rendimento sempre derivado, nunca gravado ([ADR 0020](./adr/0020-rendimento-investimentos.md)) |
 
 Convenções: `id uuid` (`gen_random_uuid()`), `created_at`/`updated_at timestamptz`, dinheiro em
 `*_cents bigint CHECK (>= 0)`, datas de movimentação em `date`, `archived_at` em cadastros (nunca

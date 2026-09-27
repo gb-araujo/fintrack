@@ -14,3 +14,4 @@ export * from './contracts/budgets.js';
 export * from './contracts/credit-cards.js';
 export * from './contracts/imports.js';
 export * from './contracts/reports.js';
+export * from './contracts/investments.js';

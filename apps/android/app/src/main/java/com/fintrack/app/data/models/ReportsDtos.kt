@@ -120,6 +120,7 @@ data class InvestmentAccountDto(
     val appliedCents: Long,
     val redeemedCents: Long,
     val netContributedCents: Long,
+    val yieldCents: Long? = null,
 )
 
 @Serializable
@@ -128,6 +129,7 @@ data class InvestmentsDto(
     val totalBalanceCents: Long,
     val appliedCents: Long,
     val redeemedCents: Long,
+    val yieldCents: Long? = null,
     val items: List<InvestmentAccountDto>,
 )
 
@@ -169,5 +171,11 @@ fun InvestmentsDto.toDomain() = InvestmentsReport(
     totalBalanceCents = totalBalanceCents,
     appliedCents = appliedCents,
     redeemedCents = redeemedCents,
-    items = items.map { InvestmentAccountReport(it.accountId, it.accountName, it.balanceCents, it.appliedCents, it.redeemedCents, it.netContributedCents) },
+    yieldCents = yieldCents,
+    items = items.map {
+        InvestmentAccountReport(
+            it.accountId, it.accountName, it.balanceCents, it.appliedCents, it.redeemedCents,
+            it.netContributedCents, it.yieldCents,
+        )
+    },
 )

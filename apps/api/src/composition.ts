@@ -15,6 +15,8 @@ import {
 } from './modules/imports/imports.repository.js';
 import { ImportsService, type ImportsUnit } from './modules/imports/imports.service.js';
 import { MerchantRulesService } from './modules/imports/merchant-rules.service.js';
+import { DrizzleInvestmentsRepository } from './modules/investments/investments.repository.js';
+import { InvestmentsService } from './modules/investments/investments.service.js';
 import { ReportsRepository } from './modules/reports/reports.repository.js';
 import { ReportsService } from './modules/reports/reports.service.js';
 import { DrizzleRecurringRepository } from './modules/recurring/recurring.repository.js';
@@ -45,6 +47,7 @@ function buildCore(db: DrizzleDb, options: Options) {
   const importsRepository = new DrizzleImportsRepository(db);
   const reportsRepository = new ReportsRepository(db);
   const merchantRulesRepository = new DrizzleMerchantRulesRepository(db);
+  const investmentsRepository = new DrizzleInvestmentsRepository(db);
   const now = options.now ? { now: options.now } : {};
 
   const recurringService = new RecurringService({
@@ -110,6 +113,12 @@ function buildCore(db: DrizzleDb, options: Options) {
     }),
     transfersService: new TransfersService({
       transfers: transfersRepository,
+      accounts: accountsRepository,
+      users: usersRepository,
+      ...now,
+    }),
+    investmentsService: new InvestmentsService({
+      investments: investmentsRepository,
       accounts: accountsRepository,
       users: usersRepository,
       ...now,

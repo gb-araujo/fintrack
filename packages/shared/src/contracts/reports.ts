@@ -182,6 +182,11 @@ export const investmentsReportSchema = z.object({
   appliedCents: cents,
   /** Resgates (transferências da conta de investimento) no período — não são receita. */
   redeemedCents: cents,
+  /**
+   * Soma dos rendimentos do período (só das contas com avaliação cobrindo o período — ADR 0020);
+   * `null` quando nenhuma conta tem avaliação suficiente para calcular.
+   */
+  yieldCents: cents.nullable(),
   items: z.array(
     z.object({
       accountId: z.uuid(),
@@ -189,8 +194,10 @@ export const investmentsReportSchema = z.object({
       balanceCents: cents,
       appliedCents: cents,
       redeemedCents: cents,
-      /** Total aplicado − total resgatado desde o início (base para medir rendimento — FASE 8). */
+      /** Total aplicado − total resgatado desde o início (não é rendimento). */
       netContributedCents: cents,
+      /** Rendimento no período (avaliação final − inicial − aportes no meio); null sem avaliação. */
+      yieldCents: cents.nullable(),
     }),
   ),
 });
