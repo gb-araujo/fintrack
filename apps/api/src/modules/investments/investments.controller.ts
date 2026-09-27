@@ -30,7 +30,8 @@ export const investmentsRoutes: FastifyPluginCallbackZod<InvestmentsRoutesOption
     {
       schema: {
         tags: ['investments'],
-        summary: 'Lista as contas de investimento com saldo e rendimento desde a primeira avaliação',
+        summary:
+          'Lista as contas de investimento com saldo e rendimento desde a primeira avaliação',
         security,
         response: { 200: investmentListResponseSchema },
       },
@@ -59,7 +60,8 @@ export const investmentsRoutes: FastifyPluginCallbackZod<InvestmentsRoutesOption
     {
       schema: {
         tags: ['investments'],
-        summary: 'Histórico de avaliações (nunca sobrescrito) com rendimento derivado entre cada par',
+        summary:
+          'Histórico de avaliações (nunca sobrescrito) com rendimento derivado entre cada par',
         security,
         params: accountParams,
         response: { 200: valuationListResponseSchema },

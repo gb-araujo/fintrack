@@ -32,7 +32,10 @@ export function InvestmentDetailPage() {
         ← Investimentos
       </Link>
       <div className="mt-2">
-        <PageHeader title={data.accountName} description={subtitle || 'Instituição e produto não informados'} />
+        <PageHeader
+          title={data.accountName}
+          description={subtitle || 'Instituição e produto não informados'}
+        />
       </div>
 
       <section
@@ -77,10 +80,7 @@ export function InvestmentDetailPage() {
         </div>
       </section>
 
-      <ValuationsSection
-        accountId={accountId}
-        onEdit={setEditingValuation}
-      />
+      <ValuationsSection accountId={accountId} onEdit={setEditingValuation} />
 
       {addingValuation ? (
         <ValuationFormModal accountId={accountId} onClose={() => setAddingValuation(false)} />
@@ -146,7 +146,10 @@ function ValuationsSection({
       ) : (
         <ul className="divide-y divide-slate-100" aria-label="Avaliações">
           {[...valuations.data].reverse().map((valuation) => (
-            <li key={valuation.id} className="flex flex-wrap items-center justify-between gap-2 py-2">
+            <li
+              key={valuation.id}
+              className="flex flex-wrap items-center justify-between gap-2 py-2"
+            >
               <div className="min-w-0">
                 <p className="text-sm font-medium text-slate-900">{formatDate(valuation.date)}</p>
                 <p className="text-xs text-slate-500">

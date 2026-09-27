@@ -139,7 +139,10 @@ export class DrizzleInvestmentsRepository implements InvestmentsRepository {
         target: [investmentDetails.accountId],
         set: { institution: input.institution, product: input.product },
       })
-      .returning({ institution: investmentDetails.institution, product: investmentDetails.product });
+      .returning({
+        institution: investmentDetails.institution,
+        product: investmentDetails.product,
+      });
     if (!row) throw new Error('UPSERT em investment_details não retornou linha');
     return row;
   }

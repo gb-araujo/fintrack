@@ -38,8 +38,10 @@ function invalidateInvestments(client: QueryClient, accountId: string) {
 export function useUpsertValuation() {
   const client = useQueryClient();
   return useMutation({
-    mutationFn: (variables: { accountId: string; input: Parameters<typeof investments.upsertValuation>[1] }) =>
-      investments.upsertValuation(variables.accountId, variables.input),
+    mutationFn: (variables: {
+      accountId: string;
+      input: Parameters<typeof investments.upsertValuation>[1];
+    }) => investments.upsertValuation(variables.accountId, variables.input),
     onSuccess: (_data, variables) => invalidateInvestments(client, variables.accountId),
   });
 }
@@ -56,8 +58,10 @@ export function useDeleteValuation() {
 export function useUpdateInvestmentDetails() {
   const client = useQueryClient();
   return useMutation({
-    mutationFn: (variables: { accountId: string; input: Parameters<typeof investments.updateDetails>[1] }) =>
-      investments.updateDetails(variables.accountId, variables.input),
+    mutationFn: (variables: {
+      accountId: string;
+      input: Parameters<typeof investments.updateDetails>[1];
+    }) => investments.updateDetails(variables.accountId, variables.input),
     onSuccess: (_data, variables) => invalidateInvestments(client, variables.accountId),
   });
 }

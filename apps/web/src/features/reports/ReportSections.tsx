@@ -437,7 +437,12 @@ export function InvestmentsSection() {
                 <p className="mt-1 text-sm text-slate-400">Sem avaliação registrada</p>
               </section>
             ) : (
-              <StatCard title="Rendimento no período" cents={report.data.yieldCents} signed tone="auto" />
+              <StatCard
+                title="Rendimento no período"
+                cents={report.data.yieldCents}
+                signed
+                tone="auto"
+              />
             )}
           </div>
           {report.data.items.length === 0 ? (

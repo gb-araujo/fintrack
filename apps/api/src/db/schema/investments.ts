@@ -1,5 +1,14 @@
 import { sql } from 'drizzle-orm';
-import { bigint, check, date, foreignKey, pgTable, unique, uuid, varchar } from 'drizzle-orm/pg-core';
+import {
+  bigint,
+  check,
+  date,
+  foreignKey,
+  pgTable,
+  unique,
+  uuid,
+  varchar,
+} from 'drizzle-orm/pg-core';
 import { accounts } from './accounts.js';
 import { createdAt, primaryId } from './columns.js';
 import { users } from './users.js';

@@ -37,7 +37,10 @@ export class InvestmentsService {
     return todayInTimeZone(user.timezone, this.now());
   }
 
-  private async requireInvestmentAccount(userId: string, accountId: string): Promise<AccountRecord> {
+  private async requireInvestmentAccount(
+    userId: string,
+    accountId: string,
+  ): Promise<AccountRecord> {
     const account = await this.deps.accounts.findById(userId, accountId);
     if (!account) throw new NotFoundError('Conta não encontrada.');
     if (account.type !== 'investment') {
@@ -65,10 +68,18 @@ export class InvestmentsService {
     let totalYieldCents: number | null = null;
     let totalYieldPercent: number | null = null;
     if (first) {
-      const netContributedSinceFirst = await this.deps.investments.netContributed(userId, account.id, {
-        after: first.date,
-      });
-      const result = computeYield(first.balanceCents, account.balanceCents, netContributedSinceFirst);
+      const netContributedSinceFirst = await this.deps.investments.netContributed(
+        userId,
+        account.id,
+        {
+          after: first.date,
+        },
+      );
+      const result = computeYield(
+        first.balanceCents,
+        account.balanceCents,
+        netContributedSinceFirst,
+      );
       totalYieldCents = result.yieldCents;
       totalYieldPercent = result.yieldPercent;
     }
@@ -160,8 +171,9 @@ export class InvestmentsService {
     const account = await this.requireInvestmentAccount(userId, accountId);
     const current = await this.deps.investments.getDetails(userId, accountId);
     await this.deps.investments.upsertDetails(userId, accountId, {
-      institution: input.institution !== undefined ? input.institution : current?.institution ?? null,
-      product: input.product !== undefined ? input.product : current?.product ?? null,
+      institution:
+        input.institution !== undefined ? input.institution : (current?.institution ?? null),
+      product: input.product !== undefined ? input.product : (current?.product ?? null),
     });
     return this.toSummary(userId, account);
   }

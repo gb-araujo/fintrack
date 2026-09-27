@@ -27,7 +27,11 @@ describe.skipIf(!databaseUrl)('investimentos (integração)', () => {
   describe('sem avaliação', () => {
     it('saldo = aportes; rendimento desconhecido (null)', async () => {
       const { user, inter, invest } = await setup();
-      await user.transfer({ fromAccountId: inter.id, toAccountId: invest.id, amountCents: 100_000 });
+      await user.transfer({
+        fromAccountId: inter.id,
+        toAccountId: invest.id,
+        amountCents: 100_000,
+      });
 
       const { items } = await user.investments();
       expect(items).toEqual([
@@ -58,7 +62,11 @@ describe.skipIf(!databaseUrl)('investimentos (integração)', () => {
   describe('avaliações preservam histórico e derivam o rendimento', () => {
     it('primeira avaliação: sem rendimento (não há avaliação anterior)', async () => {
       const { user, inter, invest } = await setup();
-      await user.transfer({ fromAccountId: inter.id, toAccountId: invest.id, amountCents: 100_000 });
+      await user.transfer({
+        fromAccountId: inter.id,
+        toAccountId: invest.id,
+        amountCents: 100_000,
+      });
 
       const valuation = await user.upsertValuation(invest.id, { balanceCents: 105_000 });
 
@@ -140,7 +148,11 @@ describe.skipIf(!databaseUrl)('investimentos (integração)', () => {
 
     it('remove uma avaliação do histórico', async () => {
       const { user, inter, invest } = await setup();
-      await user.transfer({ fromAccountId: inter.id, toAccountId: invest.id, amountCents: 100_000 });
+      await user.transfer({
+        fromAccountId: inter.id,
+        toAccountId: invest.id,
+        amountCents: 100_000,
+      });
       const valuation = await user.upsertValuation(invest.id, { balanceCents: 100_000 });
 
       expect(
@@ -157,7 +169,10 @@ describe.skipIf(!databaseUrl)('investimentos (integração)', () => {
       const { user, invest } = await setup();
 
       const summary = await user.ok(
-        user.patch(`/investments/${invest.id}`, { institution: 'Banco X', product: 'CDB 120% CDI' }),
+        user.patch(`/investments/${invest.id}`, {
+          institution: 'Banco X',
+          product: 'CDB 120% CDI',
+        }),
       );
 
       expect(summary).toMatchObject({ institution: 'Banco X', product: 'CDB 120% CDI' });
@@ -173,7 +188,10 @@ describe.skipIf(!databaseUrl)('investimentos (integração)', () => {
     it('conta que não é investimento → 422', async () => {
       const { user, inter } = await setup();
       await user.ok(
-        user.put(`/investments/${inter.id}/valuations`, { date: user.today(), balanceCents: 1_000 }),
+        user.put(`/investments/${inter.id}/valuations`, {
+          date: user.today(),
+          balanceCents: 1_000,
+        }),
         422,
       );
     });

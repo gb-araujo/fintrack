@@ -286,10 +286,9 @@ describe('ReportsPage', () => {
     );
     expect(screen.getByLabelText('Rendimento no período')).toHaveTextContent(/\+R\$\s50,00/);
     expect(screen.getByText('CDB')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /gerencie as avaliações em Investimentos/ })).toHaveAttribute(
-      'href',
-      '/investments',
-    );
+    expect(
+      screen.getByRole('link', { name: /gerencie as avaliações em Investimentos/ }),
+    ).toHaveAttribute('href', '/investments');
   });
 
   it('mostra o estado de carregamento e depois o conteúdo', async () => {

@@ -67,7 +67,11 @@ describe('InvestmentDetailPage', () => {
     const fetchMock = mockDetail([], {
       [`PUT /api/v1/investments/${investment.accountId}/valuations`]: () =>
         jsonResponse(
-          investmentValuation({ accountId: investment.accountId, date: '2026-09-27', balanceCents: 200_000 }),
+          investmentValuation({
+            accountId: investment.accountId,
+            date: '2026-09-27',
+            balanceCents: 200_000,
+          }),
         ),
     });
     renderRoute(`/investments/${investment.accountId}`);
@@ -78,7 +82,11 @@ describe('InvestmentDetailPage', () => {
     await userEvent.click(within(dialog).getByRole('button', { name: 'Salvar' }));
 
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
-    const call = callsTo(fetchMock, 'PUT', `/api/v1/investments/${investment.accountId}/valuations`)[0];
+    const call = callsTo(
+      fetchMock,
+      'PUT',
+      `/api/v1/investments/${investment.accountId}/valuations`,
+    )[0];
     expect(call?.body).toMatchObject({ balanceCents: 200_000 });
   });
 
@@ -152,9 +160,9 @@ describe('InvestmentDetailPage', () => {
     await userEvent.click(within(dialog).getByRole('button', { name: 'Salvar' }));
 
     await screen.findByRole('heading', { name: 'CDB Banco X' });
-    expect(callsTo(fetchMock, 'PATCH', `/api/v1/investments/${investment.accountId}`)[0]?.body).toEqual(
-      { institution: 'Banco X', product: 'CDB 120% CDI' },
-    );
+    expect(
+      callsTo(fetchMock, 'PATCH', `/api/v1/investments/${investment.accountId}`)[0]?.body,
+    ).toEqual({ institution: 'Banco X', product: 'CDB 120% CDI' });
   });
 
   it('erro da API ao registrar avaliação aparece no formulário', async () => {
