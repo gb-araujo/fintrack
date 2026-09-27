@@ -7,6 +7,8 @@ import type {
   ImportDetail,
   ImportRow,
   ImportSummary,
+  InvestmentSummary,
+  InvestmentValuation,
   InvoiceDetail,
   InvoiceSummary,
   MerchantRule,
@@ -229,6 +231,38 @@ export function importDetail(overrides: Partial<ImportDetail> = {}): ImportDetai
     ignoredRows: [],
     ignoredRowsCount: 0,
     rows: [],
+    ...overrides,
+  };
+}
+
+export function investmentSummary(overrides: Partial<InvestmentSummary> = {}): InvestmentSummary {
+  return {
+    accountId: randomUUID(),
+    accountName: 'CDB Banco X',
+    institution: null,
+    product: null,
+    balanceCents: 100_000,
+    netContributedCents: 100_000,
+    latestValuationDate: null,
+    totalYieldCents: null,
+    totalYieldPercent: null,
+    ...overrides,
+  };
+}
+
+export function investmentValuation(
+  overrides: Partial<InvestmentValuation> = {},
+): InvestmentValuation {
+  return {
+    id: randomUUID(),
+    accountId: randomUUID(),
+    date: '2026-09-20',
+    balanceCents: 100_000,
+    note: null,
+    yieldCents: null,
+    yieldPercent: null,
+    contributedCents: 100_000,
+    createdAt: NOW,
     ...overrides,
   };
 }

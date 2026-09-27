@@ -1,8 +1,9 @@
 import { formatBRL } from '@fintrack/shared';
 import { useState } from 'react';
+import { Link } from 'react-router';
 import { Badge, EmptyState, QueryError, Spinner } from '../../components/ui/Feedback';
 import type { MonthsParams, PeriodParams } from '../../services/reports';
-import { formatDate, formatMonth } from '../ledger/labels';
+import { formatDate, formatMonth, formatSigned } from '../ledger/labels';
 import { StatCard } from '../dashboard/AvailableToSpendCard';
 import { BarList, type BarListItem } from './BarList';
 import { SERIES_COLORS } from './colors';
@@ -422,7 +423,7 @@ export function InvestmentsSection() {
         <QueryError error={report.error} onRetry={() => void report.refetch()} />
       ) : (
         <>
-          <div className="mb-4 grid gap-3 sm:grid-cols-3">
+          <div className="mb-4 grid gap-3 sm:grid-cols-4">
             <StatCard title="Saldo em investimentos" cents={report.data.totalBalanceCents} />
             <StatCard title="Aplicado no período" cents={report.data.appliedCents} />
             <StatCard
@@ -430,6 +431,14 @@ export function InvestmentsSection() {
               cents={report.data.redeemedCents}
               hint="Resgate não é receita"
             />
+            {report.data.yieldCents === null ? (
+              <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                <h2 className="text-sm font-medium text-slate-500">Rendimento no período</h2>
+                <p className="mt-1 text-sm text-slate-400">Sem avaliação registrada</p>
+              </section>
+            ) : (
+              <StatCard title="Rendimento no período" cents={report.data.yieldCents} signed tone="auto" />
+            )}
           </div>
           {report.data.items.length === 0 ? (
             <EmptyState title="Nenhuma conta de investimento" />
@@ -438,7 +447,7 @@ export function InvestmentsSection() {
               {report.data.items.map((item) => (
                 <li key={item.accountId} className="rounded-lg border border-slate-200 p-3">
                   <p className="font-medium text-slate-900">{item.accountName}</p>
-                  <dl className="mt-1 grid grid-cols-2 gap-2 text-sm sm:grid-cols-4">
+                  <dl className="mt-1 grid grid-cols-2 gap-2 text-sm sm:grid-cols-5">
                     <div>
                       <dt className="text-xs text-slate-500">Saldo</dt>
                       <dd className="tabular-nums">{formatBRL(item.balanceCents)}</dd>
@@ -455,14 +464,23 @@ export function InvestmentsSection() {
                       <dt className="text-xs text-slate-500">Aportado (líquido)</dt>
                       <dd className="tabular-nums">{formatBRL(item.netContributedCents)}</dd>
                     </div>
+                    <div>
+                      <dt className="text-xs text-slate-500">Rendimento</dt>
+                      <dd className={item.yieldCents === null ? 'text-slate-400' : 'tabular-nums'}>
+                        {item.yieldCents === null ? 'Sem avaliação' : formatSigned(item.yieldCents)}
+                      </dd>
+                    </div>
                   </dl>
                 </li>
               ))}
             </ul>
           )}
           <p className="mt-3 text-xs text-slate-500">
-            Rendimentos ainda não são calculados aqui — a representação (preservando histórico) fica
-            para a FASE 8.
+            Rendimento é derivado das avaliações registradas em cada conta —{' '}
+            <Link to="/investments" className="text-brand-700 hover:underline">
+              gerencie as avaliações em Investimentos
+            </Link>
+            .
           </p>
         </>
       )}

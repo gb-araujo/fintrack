@@ -132,6 +132,7 @@ function mockReports(extra: Parameters<typeof mockAuthenticatedApi>[0] = {}) {
         totalBalanceCents: 150_000,
         appliedCents: 200_000,
         redeemedCents: 50_000,
+        yieldCents: 5_000,
         items: [
           {
             accountId: ids.investment,
@@ -140,6 +141,7 @@ function mockReports(extra: Parameters<typeof mockAuthenticatedApi>[0] = {}) {
             appliedCents: 200_000,
             redeemedCents: 50_000,
             netContributedCents: 150_000,
+            yieldCents: 5_000,
           },
         ],
       }),
@@ -271,7 +273,7 @@ describe('ReportsPage', () => {
     expect(within(table).getByText(/R\$\s5\.800,00/)).toBeInTheDocument();
   });
 
-  it('investimentos: totais e contas, com o aviso sobre rendimentos (FASE 8)', async () => {
+  it('investimentos: totais, contas e rendimento derivado das avaliações', async () => {
     mockReports();
     renderRoute('/reports');
     await openTab('Investimentos');
@@ -282,8 +284,12 @@ describe('ReportsPage', () => {
     expect(screen.getByText('Resgatado no período').closest('section')).toHaveTextContent(
       'Resgate não é receita',
     );
+    expect(screen.getByLabelText('Rendimento no período')).toHaveTextContent(/\+R\$\s50,00/);
     expect(screen.getByText('CDB')).toBeInTheDocument();
-    expect(screen.getByText(/Rendimentos ainda não são calculados/)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /gerencie as avaliações em Investimentos/ })).toHaveAttribute(
+      'href',
+      '/investments',
+    );
   });
 
   it('mostra o estado de carregamento e depois o conteúdo', async () => {

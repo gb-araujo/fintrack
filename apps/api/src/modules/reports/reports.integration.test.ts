@@ -571,6 +571,7 @@ describe.skipIf(!databaseUrl)('relatórios (integração)', () => {
         totalBalanceCents: 150_000,
         appliedCents: 200_000,
         redeemedCents: 50_000,
+        yieldCents: null, // nenhuma conta tem avaliação registrada ainda
       });
       expect(report.items).toEqual([
         {
@@ -580,6 +581,7 @@ describe.skipIf(!databaseUrl)('relatórios (integração)', () => {
           appliedCents: 200_000,
           redeemedCents: 50_000,
           netContributedCents: 150_000,
+          yieldCents: null,
         },
       ]);
       const income = await incomeVsExpenses(user);

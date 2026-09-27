@@ -48,6 +48,8 @@ export interface InvestmentRow {
   appliedCents: number;
   redeemedCents: number;
   netContributedCents: number;
+  /** Rendimento no período; null quando a conta não tem NENHUMA avaliação registrada (ADR 0020). */
+  yieldCents: number | null;
 }
 
 /**
@@ -268,14 +270,22 @@ export class ReportsRepository {
     );
     const balances = await this.db.execute<{ day: string; type: string; balance: string }>(sql`
       select d.day::text as day, a.type::text as type,
-             sum(a.initial_balance_cents + coalesce(e.effect, 0)) as balance
+             sum(coalesce(v.balance_cents, a.initial_balance_cents) + coalesce(e.effect, 0)) as balance
       from unnest(array[${list}]) as d(day)
       cross join accounts a
+      left join lateral (
+        select balance_cents, date
+        from investment_valuations
+        where account_id = a.id and user_id = a.user_id and a.type = 'investment' and date <= d.day
+        order by date desc
+        limit 1
+      ) v on true
       left join lateral (
         select sum(${effectSql}) as effect
         from transactions t
         where t.user_id = a.user_id and t.account_id = a.id and t.status = 'completed'
           and t.transaction_date <= d.day
+          and (v.date is null or t.transaction_date > v.date)
       ) e on true
       where a.user_id = ${userId} and a.archived_at is null
       group by d.day, a.type`);
@@ -325,6 +335,27 @@ export class ReportsRepository {
         and t.type = 'transfer' and t.transfer_direction = ${direction}
         ${bounded ? sql`and t.transaction_date between ${from}::date and ${to}::date` : sql``}
     ), 0)`;
+    /**
+     * "Saldo como se fosse no dia `dateExpr`" (mesma regra de `balancesAt`/`AccountsRepository`):
+     * a avaliação mais recente até aquela data (ou o saldo inicial, sem avaliação) + o efeito dos
+     * lançamentos efetivados depois dela até a mesma data.
+     */
+    const balanceAsOf = (dateExpr: SQL) => sql`(
+      coalesce((
+        select balance_cents from investment_valuations
+        where account_id = a.id and user_id = a.user_id and date <= ${dateExpr}
+        order by date desc limit 1
+      ), a.initial_balance_cents) + coalesce((
+        select sum(${effectSql}) from transactions t
+        where t.account_id = a.id and t.user_id = a.user_id and t.status = 'completed'
+          and t.transaction_date <= ${dateExpr}
+          and t.transaction_date > coalesce((
+            select date from investment_valuations
+            where account_id = a.id and user_id = a.user_id and date <= ${dateExpr}
+            order by date desc limit 1
+          ), '-infinity'::date)
+      ), 0)
+    )`;
     const rows = await this.db.execute<{
       id: string;
       name: string;
@@ -333,25 +364,40 @@ export class ReportsRepository {
       redeemed: string;
       total_applied: string;
       total_redeemed: string;
+      has_valuation: boolean;
+      start_balance: string;
+      end_balance: string;
     }>(sql`
       select a.id, a.name,
-        a.initial_balance_cents + coalesce((
-          select sum(${effectSql}) from transactions t
-          where t.account_id = a.id and t.user_id = a.user_id and t.status = 'completed'), 0) as balance,
+        ${balanceAsOf(sql`current_date`)} as balance,
         ${flow(sql`'in'`, true)} as applied,
         ${flow(sql`'out'`, true)} as redeemed,
         ${flow(sql`'in'`, false)} as total_applied,
-        ${flow(sql`'out'`, false)} as total_redeemed
+        ${flow(sql`'out'`, false)} as total_redeemed,
+        exists(
+          select 1 from investment_valuations where account_id = a.id and user_id = a.user_id
+        ) as has_valuation,
+        ${balanceAsOf(sql`${from}::date - 1`)} as start_balance,
+        ${balanceAsOf(sql`${to}::date`)} as end_balance
       from accounts a
       where a.user_id = ${userId} and a.type = 'investment' and a.archived_at is null
       order by a.created_at asc, a.id asc`);
-    return rows.map((row) => ({
-      accountId: row.id,
-      accountName: row.name,
-      balanceCents: num(row.balance),
-      appliedCents: num(row.applied),
-      redeemedCents: num(row.redeemed),
-      netContributedCents: num(row.total_applied) - num(row.total_redeemed),
-    }));
+    return rows.map((row) => {
+      const applied = num(row.applied);
+      const redeemed = num(row.redeemed);
+      return {
+        accountId: row.id,
+        accountName: row.name,
+        balanceCents: num(row.balance),
+        appliedCents: applied,
+        redeemedCents: redeemed,
+        netContributedCents: num(row.total_applied) - num(row.total_redeemed),
+        // Sem NENHUMA avaliação, o "rendimento" seria sempre 0 (nada além de aportes) — mais
+        // honesto dizer "desconhecido" do que sugerir que a posição não rendeu nada (ADR 0020).
+        yieldCents: row.has_valuation
+          ? num(row.end_balance) - num(row.start_balance) - (applied - redeemed)
+          : null,
+      };
+    });
   }
 }

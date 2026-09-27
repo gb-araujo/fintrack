@@ -28,14 +28,14 @@ describe('AppLayout (usuário autenticado)', () => {
 
   it('marca o item ativo com aria-current', async () => {
     mockAuthenticatedApi();
-    renderRoute('/investments');
+    renderRoute('/accounts');
 
     const sidebar = await screen.findByRole('navigation', { name: 'Navegação principal' });
-    expect(within(sidebar).getByRole('link', { name: 'Investimentos' })).toHaveAttribute(
+    expect(within(sidebar).getByRole('link', { name: 'Contas' })).toHaveAttribute(
       'aria-current',
       'page',
     );
-    expect(screen.getByText(/disponível na FASE 8/i)).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Contas' })).toBeInTheDocument();
   });
 
   it('mostra página 404 para rotas desconhecidas', async () => {

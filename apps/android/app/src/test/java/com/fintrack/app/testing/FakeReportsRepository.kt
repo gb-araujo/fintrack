@@ -34,7 +34,8 @@ class FakeReportsRepository : ReportsRepository {
     var budgetHistoryResult = BudgetHistoryReport(listOf(BudgetMonth("2026-09", 2, 70_000, 80_000, -10_000, 1)))
     var netWorthResult = NetWorthReport(listOf(NetWorthPoint("2026-09-27", 500_000, 100_000, 20_000, 580_000)))
     var investmentsResult = InvestmentsReport(
-        150_000, 200_000, 50_000, listOf(InvestmentAccountReport("inv-1", "CDB", 150_000, 200_000, 50_000, 150_000)),
+        150_000, 200_000, 50_000, 5_000,
+        listOf(InvestmentAccountReport("inv-1", "CDB", 150_000, 200_000, 50_000, 150_000, 5_000)),
     )
     var failure: Throwable? = null
 

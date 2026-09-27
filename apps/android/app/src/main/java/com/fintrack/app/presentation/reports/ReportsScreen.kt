@@ -140,9 +140,18 @@ private fun ReportBody(state: ReportsUiState) {
                 StatRow("Saldo em investimentos", formatBRL(report.totalBalanceCents), "Aplicado", formatBRL(report.appliedCents))
                 Figure("Resgatado no período", formatBRL(report.redeemedCents))
                 Text("Resgate não é receita", style = MaterialTheme.typography.bodySmall)
+                if (report.yieldCents == null) {
+                    Text("Rendimento: sem avaliação registrada", style = MaterialTheme.typography.bodySmall)
+                } else {
+                    Figure(
+                        "Rendimento no período",
+                        formatBRL(report.yieldCents),
+                        if (report.yieldCents < 0) StatusColors.Error else StatusColors.Ok,
+                    )
+                }
                 report.items.forEach { InvestmentRow(it) }
                 Text(
-                    "Rendimentos ainda não são calculados aqui — a representação (preservando histórico) fica para a FASE 8.",
+                    "Rendimento é derivado das avaliações registradas em cada conta — gerencie em Investimentos.",
                     style = MaterialTheme.typography.bodySmall,
                 )
             }
@@ -255,6 +264,11 @@ private fun InvestmentRow(item: com.fintrack.app.domain.models.InvestmentAccount
                 Figure("Saldo", formatBRL(item.balanceCents))
                 Figure("Aplicado", formatBRL(item.appliedCents))
                 Figure("Resgatado", formatBRL(item.redeemedCents))
+                Figure(
+                    "Rendimento",
+                    item.yieldCents?.let(::formatBRL) ?: "—",
+                    item.yieldCents?.let { if (it < 0) StatusColors.Error else StatusColors.Ok },
+                )
             }
         }
     }

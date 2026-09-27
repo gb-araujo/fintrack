@@ -3,6 +3,8 @@ import {
   todayInTimeZone,
   type Account,
   type Category,
+  type InvestmentSummary,
+  type InvestmentValuation,
   type Transaction,
   type Transfer,
 } from '@fintrack/shared';
@@ -131,6 +133,25 @@ export class TestClient {
       this.get('/accounts?includeArchived=true'),
     );
     return items.reduce((sum, account) => sum + account.balanceCents, 0);
+  }
+
+  investments() {
+    return this.ok<{ items: InvestmentSummary[] }>(this.get('/investments'));
+  }
+
+  valuations(accountId: string) {
+    return this.ok<{ items: InvestmentValuation[] }>(
+      this.get(`/investments/${accountId}/valuations`),
+    );
+  }
+
+  upsertValuation(
+    accountId: string,
+    input: { date?: string; balanceCents: number; note?: string | null },
+  ) {
+    return this.ok<InvestmentValuation>(
+      this.put(`/investments/${accountId}/valuations`, { date: this.today(), ...input }),
+    );
   }
 
   async listAll(query = ''): Promise<Transaction[]> {

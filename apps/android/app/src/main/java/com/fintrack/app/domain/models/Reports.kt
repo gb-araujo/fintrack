@@ -92,12 +92,16 @@ data class InvestmentAccountReport(
     val appliedCents: Long,
     val redeemedCents: Long,
     val netContributedCents: Long,
+    /** null = conta sem avaliação registrada (rendimento desconhecido — FASE 8, ADR 0020). */
+    val yieldCents: Long?,
 )
 
 data class InvestmentsReport(
     val totalBalanceCents: Long,
     val appliedCents: Long,
     val redeemedCents: Long,
+    /** null = nenhuma conta tem avaliação suficiente para calcular. */
+    val yieldCents: Long?,
     val items: List<InvestmentAccountReport>,
 )
 

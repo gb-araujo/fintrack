@@ -156,6 +156,19 @@ futuras são acrescentados sem quebrar clientes (campos desconhecidos são ignor
   meses (1–36, padrão 12) terminando em `until` (AAAA-MM; padrão: mês corrente).
 - Todos calculados no backend com as mesmas definições do painel/orçamento/faturas; só leitura.
 
+## Investimentos (FASE 8)
+
+- `GET /investments` — resumo por conta: saldo, aportado líquido desde a criação, rendimento total
+  desde a primeira avaliação (`null` sem avaliação).
+- `GET /investments/:accountId/valuations` — histórico de avaliações (nunca paginado/descartado),
+  com rendimento entre cada par consecutivo.
+- `PUT /investments/:accountId/valuations` `{ date, balanceCents, note? }` — cria ou corrige a
+  avaliação daquela data (nunca duplica). Conta que não é `investment` → `422`; arquivada → `409`;
+  data futura → `422`; conta de outro usuário → `404`.
+- `DELETE /investments/:accountId/valuations/:id` → `204`.
+- `PATCH /investments/:accountId` `{ institution?, product? }` — metadado; não afeta saldo/rendimento.
+- Rendimento é sempre **derivado**, nunca armazenado — ver [ADR 0020](./adr/0020-rendimento-investimentos.md).
+
 ## Paginação
 
 Listagens grandes usam cursor: `?limit=50&cursor=<opaco>` → `{ "items": [...], "nextCursor": "..." | null }`.

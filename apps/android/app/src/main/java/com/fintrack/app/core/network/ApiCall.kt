@@ -17,6 +17,12 @@ suspend fun <T : Any> apiCall(block: suspend () -> Response<T>): T {
     throw response.toApiException()
 }
 
+/** Igual a [apiCall], para respostas sem corpo (204 — ex.: DELETE). */
+suspend fun apiCallUnit(block: suspend () -> Response<Unit>) {
+    val response = block()
+    if (!response.isSuccessful) throw response.toApiException()
+}
+
 fun Response<*>.toApiException(): ApiException {
     val raw = errorBody()?.string().orEmpty()
     val envelope = try {

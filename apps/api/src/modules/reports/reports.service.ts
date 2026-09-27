@@ -247,11 +247,15 @@ export class ReportsService {
   async investments(userId: string, query: ReportPeriodQuery): Promise<InvestmentsReport> {
     const period = await this.resolvePeriod(userId, query);
     const items = await this.deps.reports.investmentAccounts(userId, period.from, period.to);
+    const known = items.filter((item) => item.yieldCents !== null);
     return {
       period,
       totalBalanceCents: items.reduce((total, item) => total + item.balanceCents, 0),
       appliedCents: items.reduce((total, item) => total + item.appliedCents, 0),
       redeemedCents: items.reduce((total, item) => total + item.redeemedCents, 0),
+      // null só quando NENHUMA conta tem avaliação; contas sem avaliação simplesmente não entram na soma.
+      yieldCents:
+        known.length > 0 ? known.reduce((total, item) => total + (item.yieldCents ?? 0), 0) : null,
       items,
     };
   }

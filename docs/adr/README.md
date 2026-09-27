@@ -10,7 +10,7 @@ Um ADR aceito só muda por meio de um novo ADR que o substitua.
 | [0003](./0003-transferencias-vinculadas.md) | Transferências com origem/destino vinculados | Aceito |
 | [0004](./0004-card-payment-e-faturas.md) | Tipo `card_payment` e tabela de faturas | Aceito |
 | [0005](./0005-parcelas-no-periodo-da-fatura.md) | Parcelas reconhecidas no período da fatura | Aceito |
-| [0006](./0006-investimentos-como-movimentacao-entre-contas.md) | Investimentos como movimentação entre contas | Aceito (rendimentos: pendente FASE 8) |
+| [0006](./0006-investimentos-como-movimentacao-entre-contas.md) | Investimentos como movimentação entre contas | Aceito (rendimentos: ver ADR 0020) |
 | [0007](./0007-autenticacao-jwt-refresh-rotativo.md) | JWT de curta duração + refresh token rotativo | Implementado (FASE 1) |
 | [0008](./0008-recorrencias-como-previsao.md) | Recorrências como previsão até confirmação | Aceito |
 | [0009](./0009-android-dev-adb-reverse.md) | Android em desenvolvimento via `adb reverse` | Aceito |
@@ -24,3 +24,4 @@ Um ADR aceito só muda por meio de um novo ADR que o substitua.
 | [0017](./0017-cartao-faturas-e-parcelas.md) | Cartão de crédito: faturas, parcelas e pagamento | Aceito (FASE 5) |
 | [0018](./0018-importacao-de-extratos.md) | Importação de extratos (CSV): revisão, duplicidade e sugestões | Aceito (FASE 6) |
 | [0019](./0019-relatorios.md) | Relatórios: mesmas definições do painel, do orçamento e das faturas | Aceito (FASE 7) |
+| [0020](./0020-rendimento-investimentos.md) | Rendimento de investimento: derivado de avaliações, nunca um número solto | Aceito (FASE 8) |

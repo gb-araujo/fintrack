@@ -41,6 +41,10 @@ import com.fintrack.app.presentation.dashboard.DashboardScreen
 import com.fintrack.app.presentation.dashboard.DashboardViewModel
 import com.fintrack.app.presentation.imports.ImportScreen
 import com.fintrack.app.presentation.imports.ImportViewModel
+import com.fintrack.app.presentation.investments.InvestmentDetailScreen
+import com.fintrack.app.presentation.investments.InvestmentDetailViewModel
+import com.fintrack.app.presentation.investments.InvestmentsScreen
+import com.fintrack.app.presentation.investments.InvestmentsViewModel
 import com.fintrack.app.presentation.more.MoreEntry
 import com.fintrack.app.presentation.more.MoreScreen
 import com.fintrack.app.presentation.reports.ReportsScreen
@@ -77,6 +81,10 @@ import kotlinx.serialization.Serializable
 @Serializable data object ReportsRoute
 
 @Serializable data object RecurringRoute
+
+@Serializable data object InvestmentsRoute
+
+@Serializable data class InvestmentDetailRoute(val accountId: String)
 
 /**
  * Raiz da navegação: o estado da sessão decide o fluxo exibido. Login, logout e sessão expirada
@@ -142,7 +150,14 @@ private fun MainNavHost(container: AppContainer) {
         Tab(AccountsRoute, "Contas"),
         Tab(CardsRoute, "Cartões", also = listOf(CardDetailRoute::class)),
         // Telas secundárias ficam sob "Mais" (a barra inferior não passa de 4 itens).
-        Tab(MoreRoute, "Mais", also = listOf(BudgetsRoute::class, RecurringRoute::class, ImportRoute::class, ReportsRoute::class)),
+        Tab(
+            MoreRoute,
+            "Mais",
+            also = listOf(
+                BudgetsRoute::class, RecurringRoute::class, ImportRoute::class, ReportsRoute::class,
+                InvestmentsRoute::class, InvestmentDetailRoute::class,
+            ),
+        ),
     )
     val backStack by navController.currentBackStackEntryAsState()
     val destination = backStack?.destination
@@ -249,6 +264,9 @@ private fun MainNavHost(container: AppContainer) {
                         MoreEntry("Relatórios", "Despesas, receitas, fluxo de caixa e patrimônio") {
                             navController.navigate(ReportsRoute) { launchSingleTop = true }
                         },
+                        MoreEntry("Investimentos", "Saldo, aportes e rendimento de cada conta") {
+                            navController.navigate(InvestmentsRoute) { launchSingleTop = true }
+                        },
                     ),
                 )
             }
@@ -303,6 +321,30 @@ private fun MainNavHost(container: AppContainer) {
                     ),
                 )
                 RecurringScreen(viewModel = viewModel, onBack = { navController.popBackStack() })
+            }
+            composable<InvestmentsRoute> {
+                val viewModel: InvestmentsViewModel = viewModel(
+                    factory = InvestmentsViewModel.factory(container.listInvestments),
+                )
+                InvestmentsScreen(
+                    viewModel = viewModel,
+                    onOpenInvestment = { id -> navController.navigate(InvestmentDetailRoute(id)) { launchSingleTop = true } },
+                )
+            }
+            composable<InvestmentDetailRoute> { entry ->
+                val route = entry.toRoute<InvestmentDetailRoute>()
+                val viewModel: InvestmentDetailViewModel = viewModel(
+                    factory = InvestmentDetailViewModel.factory(
+                        route.accountId,
+                        container.listInvestments,
+                        container.listValuations,
+                        container.upsertValuation,
+                        container.deleteValuation,
+                        container.updateInvestmentDetails,
+                        today = { todayFor(container) },
+                    ),
+                )
+                InvestmentDetailScreen(viewModel = viewModel, onBack = { navController.popBackStack() })
             }
         }
     }
