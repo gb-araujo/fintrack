@@ -1,4 +1,10 @@
-import type { AccountType, PaymentMethod, TransactionStatus } from '@fintrack/shared';
+import type {
+  AccountType,
+  PaymentMethod,
+  RecurrenceFrequency,
+  Recurring,
+  TransactionStatus,
+} from '@fintrack/shared';
 import { formatBRL } from '@fintrack/shared';
 
 export const ACCOUNT_TYPE_LABEL: Record<AccountType, string> = {
@@ -39,4 +45,42 @@ export function formatSigned(cents: number): string {
 export function formatDate(date: string): string {
   const [year, month, day] = date.split('-');
   return `${day}/${month}/${year}`;
+}
+
+export const FREQUENCY_LABEL: Record<RecurrenceFrequency, string> = {
+  weekly: 'Semanal',
+  monthly: 'Mensal',
+  yearly: 'Anual',
+};
+
+const FREQUENCY_UNIT: Record<RecurrenceFrequency, [string, string]> = {
+  weekly: ['semana', 'semanas'],
+  monthly: ['mês', 'meses'],
+  yearly: ['ano', 'anos'],
+};
+
+/** "Todo mês, dia 10" / "A cada 2 semanas" — descrição curta da regra. */
+export function describeRecurrence(rule: Pick<Recurring, 'frequency' | 'interval' | 'dayOfMonth'>) {
+  const [singular, plural] = FREQUENCY_UNIT[rule.frequency];
+  const every = rule.interval === 1 ? `Todo ${singular}` : `A cada ${rule.interval} ${plural}`;
+  return rule.frequency === 'monthly' && rule.dayOfMonth
+    ? `${every}, dia ${rule.dayOfMonth}`
+    : every;
+}
+
+/** "2026-09" → "setembro de 2026". */
+export function formatMonth(month: string): string {
+  const [year, monthNumber] = month.split('-').map(Number) as [number, number];
+  const name = new Date(Date.UTC(year, monthNumber - 1, 1)).toLocaleDateString('pt-BR', {
+    month: 'long',
+    timeZone: 'UTC',
+  });
+  return `${name} de ${year}`;
+}
+
+/** Soma `delta` meses a "AAAA-MM" (aritmética de calendário, sem fuso). */
+export function shiftMonth(month: string, delta: number): string {
+  const [year, monthNumber] = month.split('-').map(Number) as [number, number];
+  const date = new Date(Date.UTC(year, monthNumber - 1 + delta, 1));
+  return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}`;
 }

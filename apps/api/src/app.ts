@@ -11,10 +11,12 @@ import { accountsRoutes } from './modules/accounts/accounts.controller.js';
 import { authRoutes } from './modules/auth/auth.controller.js';
 import { AuthService } from './modules/auth/auth.service.js';
 import { DrizzleRefreshTokensRepository } from './modules/auth/refresh-tokens.repository.js';
+import { budgetsRoutes } from './modules/budgets/budgets.controller.js';
 import { categoriesRoutes } from './modules/categories/categories.controller.js';
 import { dashboardRoutes } from './modules/dashboard/dashboard.controller.js';
 import { healthRoutes } from './modules/health/health.controller.js';
 import { HealthService } from './modules/health/health.service.js';
+import { recurringRoutes } from './modules/recurring/recurring.controller.js';
 import { transactionsRoutes } from './modules/transactions/transactions.controller.js';
 import { transfersRoutes } from './modules/transfers/transfers.controller.js';
 import { usersRoutes } from './modules/users/users.controller.js';
@@ -86,12 +88,25 @@ export async function buildApp({ config, database }: AppDependencies) {
 
   await app.register(
     async (api) => {
+      // Recorrências com auto-confirmação viram lançamentos efetivados quando o usuário consulta seus
+      // dados (nada roda em segundo plano — ADR 0008). Falha aqui nunca derruba a leitura.
+      api.addHook('preHandler', async (request) => {
+        if (request.method !== 'GET' || !request.userId) return;
+        try {
+          await domain.recurringService.materializeAutoConfirmed(request.userId);
+        } catch (error) {
+          request.log.error({ err: error }, 'falha ao materializar recorrências auto-confirmadas');
+        }
+      });
+
       await api.register(authRoutes, { authService, config });
       await api.register(usersRoutes, { usersService: domain.usersService });
       await api.register(accountsRoutes, { accountsService: domain.accountsService });
       await api.register(categoriesRoutes, { categoriesService: domain.categoriesService });
       await api.register(transactionsRoutes, { transactionsService: domain.transactionsService });
       await api.register(transfersRoutes, { transfersService: domain.transfersService });
+      await api.register(recurringRoutes, { recurringService: domain.recurringService });
+      await api.register(budgetsRoutes, { budgetsService: domain.budgetsService });
       await api.register(dashboardRoutes, { dashboardService: domain.dashboardService });
     },
     { prefix: '/api/v1' },

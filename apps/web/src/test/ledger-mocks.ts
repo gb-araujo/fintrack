@@ -1,5 +1,12 @@
 import { randomUUID } from 'node:crypto';
-import type { Account, Category, Transaction } from '@fintrack/shared';
+import type {
+  Account,
+  Budget,
+  Category,
+  Occurrence,
+  Recurring,
+  Transaction,
+} from '@fintrack/shared';
 import { authResponse, emptyDashboard, healthyResponse, jsonResponse, mockApi } from './render';
 
 type Handler = Parameters<typeof mockApi>[0][string];
@@ -44,8 +51,63 @@ export function transaction(overrides: Partial<Transaction> = {}): Transaction {
     paymentMethod: null,
     status: 'completed',
     transfer: null,
+    recurringId: null,
     createdAt: NOW,
     updatedAt: NOW,
+    ...overrides,
+  };
+}
+
+export function recurring(overrides: Partial<Recurring> = {}): Recurring {
+  return {
+    id: randomUUID(),
+    name: 'Aluguel',
+    type: 'expense',
+    amountCents: 150_000,
+    isVariableAmount: false,
+    accountId: randomUUID(),
+    categoryId: null,
+    frequency: 'monthly',
+    interval: 1,
+    dayOfMonth: 5,
+    startDate: '2026-01-05',
+    endDate: null,
+    autoConfirm: false,
+    includeInForecast: true,
+    active: true,
+    nextDate: '2026-10-05',
+    createdAt: NOW,
+    ...overrides,
+  };
+}
+
+export function occurrence(overrides: Partial<Occurrence> = {}): Occurrence {
+  return {
+    recurringId: randomUUID(),
+    name: 'Aluguel',
+    type: 'expense',
+    date: '2026-10-05',
+    amountCents: 150_000,
+    estimated: false,
+    accountId: randomUUID(),
+    categoryId: null,
+    overdue: false,
+    ...overrides,
+  };
+}
+
+export function budget(overrides: Partial<Budget> = {}): Budget {
+  return {
+    id: randomUUID(),
+    categoryId: randomUUID(),
+    categoryName: 'Alimentação',
+    month: '2026-09',
+    limitCents: 80_000,
+    spentCents: 20_000,
+    pendingCents: 0,
+    remainingCents: 60_000,
+    percentUsed: 25,
+    status: 'ok',
     ...overrides,
   };
 }

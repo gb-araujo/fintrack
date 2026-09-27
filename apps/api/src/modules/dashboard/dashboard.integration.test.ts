@@ -70,6 +70,8 @@ describe.skipIf(!databaseUrl)('painel e "Quanto posso gastar?" (integração)', 
       pendingExpensesCents: 120_000,
       pendingTransfersInCents: 0,
       pendingTransfersOutCents: 0,
+      forecastIncomeCents: 0,
+      forecastExpensesCents: 0,
     });
   });
 
@@ -191,6 +193,8 @@ describe.skipIf(!databaseUrl)('painel e "Quanto posso gastar?" (integração)', 
       expect(d.availableToSpend.components).toMatchObject({
         pendingTransfersInCents: 0,
         pendingTransfersOutCents: 0,
+        forecastIncomeCents: 0,
+        forecastExpensesCents: 0,
       });
     });
 
@@ -213,6 +217,8 @@ describe.skipIf(!databaseUrl)('painel e "Quanto posso gastar?" (integração)', 
 
       expect(d.availableToSpend.components).toMatchObject({
         pendingTransfersOutCents: 40_000,
+        forecastIncomeCents: 0,
+        forecastExpensesCents: 0,
         pendingTransfersInCents: 5_000,
       });
       expect(d.availableToSpend.amountCents).toBe(110_000 - 40_000 + 5_000);
@@ -234,6 +240,8 @@ describe.skipIf(!databaseUrl)('painel e "Quanto posso gastar?" (integração)', 
         pendingExpensesCents: 0,
         pendingTransfersInCents: 0,
         pendingTransfersOutCents: 0,
+        forecastIncomeCents: 0,
+        forecastExpensesCents: 0,
       });
       expect(d.investmentsCents).toBe(240_000);
     });

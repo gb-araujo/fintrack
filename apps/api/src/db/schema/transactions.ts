@@ -6,6 +6,7 @@ import {
   foreignKey,
   index,
   pgTable,
+  uniqueIndex,
   uuid,
   varchar,
 } from 'drizzle-orm/pg-core';
@@ -18,6 +19,7 @@ import {
   transactionTypeEnum,
   transferDirectionEnum,
 } from './enums.js';
+import { recurringTransactions } from './recurring.js';
 import { transfers } from './transfers.js';
 import { users } from './users.js';
 
@@ -44,6 +46,9 @@ export const transactions = pgTable(
     status: transactionStatusEnum().notNull().default('completed'),
     transferId: uuid(),
     transferDirection: transferDirectionEnum(),
+    /** Ocorrência de recorrência que originou (ou pulou) este lançamento — FASE 4. */
+    recurringTransactionId: uuid(),
+    occurrenceDate: date({ mode: 'string' }),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
@@ -63,6 +68,21 @@ export const transactions = pgTable(
       columns: [table.transferId, table.userId],
       foreignColumns: [transfers.id, transfers.userId],
     }),
+    foreignKey({
+      name: 'transactions_recurring_fk',
+      columns: [table.recurringTransactionId, table.userId],
+      foreignColumns: [recurringTransactions.id, recurringTransactions.userId],
+    }),
+    // recurring_transaction_id e occurrence_date andam juntos, e só em receita/despesa.
+    check(
+      'transactions_recurring_shape',
+      sql`(${table.recurringTransactionId} is null and ${table.occurrenceDate} is null)
+        or (${table.recurringTransactionId} is not null and ${table.occurrenceDate} is not null and ${table.type} in ('income', 'expense'))`,
+    ),
+    // Cada ocorrência vira no máximo UM lançamento (confirmado ou pulado): sem confirmação em dobro.
+    uniqueIndex('transactions_recurring_occurrence_unique')
+      .on(table.recurringTransactionId, table.occurrenceDate)
+      .where(sql`${table.recurringTransactionId} is not null`),
     check('transactions_amount_positive', sql`${table.amountCents} > 0`),
     // Transferência ⇔ tem transfer_id e direção, e não tem categoria (não é receita nem despesa).
     check(

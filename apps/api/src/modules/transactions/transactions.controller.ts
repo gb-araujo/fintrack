@@ -30,6 +30,7 @@ export function toTransactionResponse(record: TransactionRecord): Transaction {
     transactionDate: record.transactionDate,
     paymentMethod: record.paymentMethod,
     status: record.status,
+    recurringId: record.recurringId,
     transfer: record.transfer,
     createdAt: record.createdAt.toISOString(),
     updatedAt: record.updatedAt.toISOString(),

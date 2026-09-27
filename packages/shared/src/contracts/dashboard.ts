@@ -17,13 +17,23 @@ export const availableComponentsSchema = z.object({
   pendingTransfersInCents: signedCentsSchema,
   /** − transferências pendentes que SAEM da fronteira líquida (ex.: aplicação agendada). */
   pendingTransfersOutCents: signedCentsSchema,
+  /** + receitas previstas por recorrências ainda não confirmadas (até o horizonte). */
+  forecastIncomeCents: signedCentsSchema,
+  /** − despesas previstas por recorrências ainda não confirmadas (até o horizonte, inclui atrasadas). */
+  forecastExpensesCents: signedCentsSchema,
 });
 export type AvailableComponents = z.infer<typeof availableComponentsSchema>;
 
 export const pendingBillSchema = z.object({
-  id: z.uuid(),
+  /** Id do lançamento pendente, ou "recurring:<id>:<data>" para previsões de recorrências. */
+  id: z.string(),
+  kind: z.enum(['transaction', 'recurring']),
+  /** Preenchido quando kind = "recurring" (para confirmar/pular a ocorrência). */
+  recurringId: z.uuid().nullable(),
   description: z.string(),
   amountCents: signedCentsSchema,
+  /** Valor estimado (recorrência de valor variável). */
+  estimated: z.boolean(),
   date: dateOnlySchema,
   accountId: z.uuid(),
   categoryId: z.uuid().nullable(),

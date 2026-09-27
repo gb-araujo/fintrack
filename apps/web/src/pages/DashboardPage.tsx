@@ -68,12 +68,20 @@ export function DashboardPage() {
               <h2 id="pending-title" className="text-sm font-medium text-slate-500">
                 Contas pendentes
               </h2>
-              <Link
-                to="/transactions"
-                className="text-xs font-medium text-brand-700 hover:underline"
-              >
-                Ver transações
-              </Link>
+              <span className="flex gap-3">
+                <Link
+                  to="/recurring"
+                  className="text-xs font-medium text-brand-700 hover:underline"
+                >
+                  Recorrências
+                </Link>
+                <Link
+                  to="/transactions"
+                  className="text-xs font-medium text-brand-700 hover:underline"
+                >
+                  Ver transações
+                </Link>
+              </span>
             </div>
             <p
               className="mt-1 text-xl font-semibold tabular-nums"
@@ -107,6 +115,13 @@ export function DashboardPage() {
                       {bill.overdue ? (
                         <span className="ml-2">
                           <Badge tone="rose">Vencida</Badge>
+                        </span>
+                      ) : null}
+                      {bill.kind === 'recurring' ? (
+                        <span className="ml-2">
+                          <Badge tone={bill.estimated ? 'amber' : 'sky'}>
+                            {bill.estimated ? 'Recorrente · estimado' : 'Recorrente'}
+                          </Badge>
                         </span>
                       ) : null}
                     </span>

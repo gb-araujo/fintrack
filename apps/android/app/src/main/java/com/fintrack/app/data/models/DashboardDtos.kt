@@ -28,6 +28,9 @@ data class ComponentsDto(
     val pendingExpensesCents: Long,
     val pendingTransfersInCents: Long,
     val pendingTransfersOutCents: Long,
+    /** Previsões de recorrências ainda não confirmadas (FASE 4). */
+    val forecastIncomeCents: Long = 0,
+    val forecastExpensesCents: Long = 0,
 )
 
 @Serializable
@@ -36,8 +39,11 @@ data class MonthDto(val incomeCents: Long, val expenseCents: Long)
 @Serializable
 data class PendingBillDto(
     val id: String,
+    /** "transaction" (lançamento pendente) ou "recurring" (ocorrência prevista de uma recorrência). */
+    val kind: String = "transaction",
     val description: String,
     val amountCents: Long,
+    val estimated: Boolean = false,
     val date: String,
     val overdue: Boolean,
 )
@@ -64,6 +70,8 @@ fun DashboardDto.toDomain() = DashboardSummary(
             it.pendingExpensesCents,
             it.pendingTransfersInCents,
             it.pendingTransfersOutCents,
+            it.forecastIncomeCents,
+            it.forecastExpensesCents,
         )
     },
     totalBalanceCents = totalBalanceCents,
@@ -73,7 +81,17 @@ fun DashboardDto.toDomain() = DashboardSummary(
     pendingCount = pendingBills.count,
     pendingTotalCents = pendingBills.totalCents,
     overdueCount = pendingBills.overdueCount,
-    nextBills = pendingBills.next.map { PendingBill(it.id, it.description, it.amountCents, it.date, it.overdue) },
+    nextBills = pendingBills.next.map {
+        PendingBill(
+            id = it.id,
+            description = it.description,
+            amountCents = it.amountCents,
+            date = it.date,
+            overdue = it.overdue,
+            recurring = it.kind == "recurring",
+            estimated = it.estimated,
+        )
+    },
     futureCount = futureCommitments.count,
     futureTotalCents = futureCommitments.totalCents,
 )

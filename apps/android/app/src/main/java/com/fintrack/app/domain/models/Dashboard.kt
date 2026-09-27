@@ -7,6 +7,8 @@ data class AvailableComponents(
     val pendingExpensesCents: Long,
     val pendingTransfersInCents: Long,
     val pendingTransfersOutCents: Long,
+    val forecastIncomeCents: Long = 0,
+    val forecastExpensesCents: Long = 0,
 )
 
 data class PendingBill(
@@ -15,6 +17,10 @@ data class PendingBill(
     val amountCents: Long,
     val date: String,
     val overdue: Boolean,
+    /** Ocorrência prevista de uma recorrência (ainda não é lançamento). */
+    val recurring: Boolean = false,
+    /** Valor estimado (recorrência de valor variável). */
+    val estimated: Boolean = false,
 )
 
 data class DashboardSummary(

@@ -19,3 +19,5 @@ Um ADR aceito só muda por meio de um novo ADR que o substitua.
 | [0012](./0012-lancamentos-cancelar-e-regra-do-tempo.md) | Lançamentos: cancelar em vez de apagar; regra do tempo | Aceito |
 | [0013](./0013-integridade-de-transferencias-no-banco.md) | Integridade de transferências garantida no banco | Aceito |
 | [0014](./0014-dinheiro-disponivel.md) | Definição do "dinheiro disponível" | Aceito |
+| [0015](./0015-orcamentos-mensais.md) | Orçamentos mensais por categoria | Aceito (FASE 4) |
+| [0016](./0016-recorrencias-implementacao.md) | Recorrências: decisões de implementação | Aceito (FASE 4) |

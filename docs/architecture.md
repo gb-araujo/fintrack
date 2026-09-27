@@ -176,14 +176,16 @@ PostgreSQL 17, Drizzle ORM, migrations SQL versionadas em `database/migrations`.
   parciais por nome entre ativos) e backfill das categorias padrão para usuários da FASE 1.
 - `0003_transfer_integrity_trigger` (FASE 2): constraint trigger deferido que exige duas pernas
   consistentes por transferência.
+- `0004_recurring_and_budgets` (FASE 4): `recurring_transactions`, `budgets`, colunas de vínculo em
+  `transactions` (índice único parcial por ocorrência) e CHECKs de consistência da regra.
 - Schema aprovado (✅ = criado):
 
 | Tabela | Fase | Observações |
 |---|---|---|
 | `users` ✅, `refresh_tokens` ✅ | 1 | e-mail `citext` único; tokens só como hash |
 | `accounts` ✅, `categories` ✅, `transactions` ✅, `transfers` ✅ | 2 | transferência = cabeçalho + 2 transações vinculadas, verificado no banco ([ADR 0013](./adr/0013-integridade-de-transferencias-no-banco.md)) |
-| `recurring_transactions` | 4 | geram ocorrências **virtuais** até a confirmação |
-| `budgets` | 4 | `UNIQUE(user_id, category_id, month)` |
+| `recurring_transactions` ✅ | 4 | geram ocorrências **virtuais** até a confirmação; `transactions` ganhou `recurring_transaction_id` + `occurrence_date` (`UNIQUE`) ([ADR 0016](./adr/0016-recorrencias-implementacao.md)) |
+| `budgets` ✅ | 4 | `UNIQUE(user_id, category_id, month)`; gasto calculado, nunca gravado ([ADR 0015](./adr/0015-orcamentos-mensais.md)) |
 | `credit_cards`, `credit_card_invoices`, `credit_card_transactions`, `credit_card_installments` | 5 | parcelas no período da fatura; pagamento = `card_payment` |
 | `imports`, `imported_transactions`, `merchant_rules` | 6 | fingerprint para duplicidade |
 | `investments` | 8 | representação de rendimentos a decidir na FASE 8 |

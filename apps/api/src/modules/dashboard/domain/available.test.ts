@@ -8,6 +8,8 @@ const zero = {
   pendingExpensesCents: 0,
   pendingTransfersInCents: 0,
   pendingTransfersOutCents: 0,
+  forecastIncomeCents: 0,
+  forecastExpensesCents: 0,
 };
 
 describe('availableAmount', () => {
@@ -25,8 +27,22 @@ describe('availableAmount', () => {
         pendingExpensesCents: 30_000,
         pendingTransfersInCents: 10_000,
         pendingTransfersOutCents: 25_000,
+        forecastIncomeCents: 0,
+        forecastExpensesCents: 0,
       }),
     ).toBe(100_000 + 50_000 + 10_000 - 30_000 - 25_000);
+  });
+
+  it('previsões de recorrências: receitas somam e despesas subtraem, além dos pendentes', () => {
+    expect(
+      availableAmount({
+        ...zero,
+        liquidBalanceCents: 100_000,
+        pendingExpensesCents: 10_000,
+        forecastIncomeCents: 30_000,
+        forecastExpensesCents: 16_798,
+      }),
+    ).toBe(100_000 - 10_000 + 30_000 - 16_798);
   });
 
   it('pode ficar negativo (comprometido acima do saldo)', () => {

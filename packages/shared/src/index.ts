@@ -9,3 +9,5 @@ export * from './contracts/categories.js';
 export * from './contracts/transactions.js';
 export * from './contracts/transfers.js';
 export * from './contracts/dashboard.js';
+export * from './contracts/recurring.js';
+export * from './contracts/budgets.js';

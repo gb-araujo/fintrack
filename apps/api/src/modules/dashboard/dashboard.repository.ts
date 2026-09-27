@@ -130,6 +130,9 @@ export class DrizzleDashboardRepository implements DashboardRepository {
       overdueCents: num(totals?.overdue_total),
       next: rows.map((row) => ({
         id: row.id,
+        kind: 'transaction' as const,
+        recurringId: null,
+        estimated: false,
         description: row.description,
         amountCents: num(row.amount_cents),
         date: row.transaction_date,

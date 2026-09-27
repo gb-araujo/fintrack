@@ -93,9 +93,58 @@ async function main(): Promise<void> {
     await add(mercadoPago.id, 'expense', 2_490, 'Uber', 'Transporte', -6);
     await add(inter.id, 'expense', 5_590, 'Netflix', 'Assinaturas', -4);
     await add(dinheiro.id, 'expense', 4_200, 'Padaria', 'Alimentação', -1);
-    // Contas a vencer (previsões): não alteram o saldo até serem marcadas como pagas.
-    await add(inter.id, 'expense', 18_735, 'Enel (estimativa)', 'Energia', 3, 'pending');
+    // Conta a vencer (lançamento pendente): não altera o saldo até ser marcada como paga.
     await add(inter.id, 'expense', 9_099, 'Vivo Fibra', 'Internet', 12, 'pending');
+
+    // Recorrências: geram PREVISÕES (nada vira lançamento até confirmar). As datas de início ficam
+    // logo após os lançamentos acima, para o seed não criar ocorrências "atrasadas" artificiais.
+    const dayOfMonth = (offset: number) => Number(day(offset).slice(8, 10));
+    await domain.recurringService.create(userId, {
+      name: 'Aluguel',
+      type: 'expense',
+      amountCents: 150_000,
+      accountId: inter.id,
+      categoryId: category('Moradia', 'expense'),
+      frequency: 'monthly',
+      dayOfMonth: dayOfMonth(-17),
+      startDate: day(-16),
+    });
+    await domain.recurringService.create(userId, {
+      name: 'Salário',
+      type: 'income',
+      amountCents: 500_000,
+      accountId: inter.id,
+      categoryId: category('Salário', 'income'),
+      frequency: 'monthly',
+      dayOfMonth: dayOfMonth(-20),
+      startDate: day(-19),
+    });
+    await domain.recurringService.create(userId, {
+      name: 'Enel',
+      type: 'expense',
+      isVariableAmount: true,
+      amountCents: 18_735,
+      accountId: inter.id,
+      categoryId: category('Energia', 'expense'),
+      frequency: 'monthly',
+      dayOfMonth: dayOfMonth(3),
+      startDate: day(1),
+    });
+
+    // Orçamentos do mês corrente.
+    const month = today.slice(0, 7);
+    for (const [name, limitCents] of [
+      ['Alimentação', 80_000],
+      ['Transporte', 20_000],
+      ['Assinaturas', 10_000],
+      ['Lazer', 30_000],
+    ] as const) {
+      await domain.budgetsService.upsert(userId, {
+        categoryId: category(name, 'expense'),
+        month,
+        limitCents,
+      });
+    }
 
     await domain.transfersService.create(userId, {
       fromAccountId: inter.id,
@@ -113,7 +162,7 @@ async function main(): Promise<void> {
     });
 
     process.stdout.write(
-      `[seed] criado: ${DEMO_EMAIL} / ${DEMO_PASSWORD} (4 contas, 13 lançamentos, 2 transferências)\n`,
+      `[seed] criado: ${DEMO_EMAIL} / ${DEMO_PASSWORD} (4 contas, 12 lançamentos, 2 transferências, 3 recorrências, 4 orçamentos)\n`,
     );
   } finally {
     await database.close();

@@ -5,20 +5,28 @@ import com.fintrack.app.data.api.AuthApi
 import com.fintrack.app.data.api.DashboardApi
 import com.fintrack.app.data.api.HealthApi
 import com.fintrack.app.data.api.LedgerApi
+import com.fintrack.app.data.api.PlanningApi
 import com.fintrack.app.data.api.UsersApi
 import com.fintrack.app.data.local.TokenStorage
 import com.fintrack.app.data.repositories.AuthRepositoryImpl
 import com.fintrack.app.data.repositories.DashboardRepositoryImpl
 import com.fintrack.app.data.repositories.HealthRepositoryImpl
 import com.fintrack.app.data.repositories.LedgerRepositoryImpl
+import com.fintrack.app.data.repositories.PlanningRepositoryImpl
 import com.fintrack.app.data.session.SessionManager
 import com.fintrack.app.domain.repositories.AuthRepository
 import com.fintrack.app.domain.repositories.DashboardRepository
 import com.fintrack.app.domain.repositories.HealthRepository
 import com.fintrack.app.domain.repositories.LedgerRepository
+import com.fintrack.app.domain.repositories.PlanningRepository
 import com.fintrack.app.domain.usecases.CancelEntryUseCase
 import com.fintrack.app.domain.usecases.CompleteEntryUseCase
+import com.fintrack.app.domain.usecases.ConfirmOccurrenceUseCase
 import com.fintrack.app.domain.usecases.CreateAccountUseCase
+import com.fintrack.app.domain.usecases.GetBudgetsUseCase
+import com.fintrack.app.domain.usecases.ListOccurrencesUseCase
+import com.fintrack.app.domain.usecases.SaveBudgetUseCase
+import com.fintrack.app.domain.usecases.SkipOccurrenceUseCase
 import com.fintrack.app.domain.usecases.GetDashboardUseCase
 import com.fintrack.app.domain.usecases.CreateTransactionUseCase
 import com.fintrack.app.domain.usecases.CreateTransferUseCase
@@ -66,6 +74,10 @@ class AppContainer(
         LedgerRepositoryImpl(authenticatedRetrofit.create(LedgerApi::class.java))
     }
 
+    val planningRepository: PlanningRepository by lazy {
+        PlanningRepositoryImpl(authenticatedRetrofit.create(PlanningApi::class.java))
+    }
+
     val dashboardRepository: DashboardRepository by lazy {
         DashboardRepositoryImpl(authenticatedRetrofit.create(DashboardApi::class.java))
     }
@@ -79,6 +91,11 @@ class AppContainer(
     val createTransfer by lazy { CreateTransferUseCase(ledgerRepository) }
     val completeEntry by lazy { CompleteEntryUseCase(ledgerRepository) }
     val cancelEntry by lazy { CancelEntryUseCase(ledgerRepository) }
+    val getBudgets by lazy { GetBudgetsUseCase(planningRepository) }
+    val saveBudget by lazy { SaveBudgetUseCase(planningRepository) }
+    val listOccurrences by lazy { ListOccurrencesUseCase(planningRepository) }
+    val confirmOccurrence by lazy { ConfirmOccurrenceUseCase(planningRepository) }
+    val skipOccurrence by lazy { SkipOccurrenceUseCase(planningRepository) }
 
     val checkApiHealth by lazy { CheckApiHealthUseCase(healthRepository) }
     val login by lazy { LoginUseCase(authRepository) }

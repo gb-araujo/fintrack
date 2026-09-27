@@ -11,4 +11,6 @@ export * from './refresh-tokens.js';
 export * from './accounts.js';
 export * from './categories.js';
 export * from './transfers.js';
+export * from './recurring.js';
 export * from './transactions.js';
+export * from './budgets.js';
