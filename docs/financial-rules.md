@@ -124,6 +124,16 @@ A API retorna o valor **e a decomposição** de cada termo da fórmula.
   gasto até serem efetivados. Gasto sem orçamento aparece em `unbudgetedSpentCents`.
   ([ADR 0015](./adr/0015-orcamentos-mensais.md))
 
+## 5b. Relatórios — FASE 7
+
+- Nenhuma definição nova: cada relatório reaproveita, em SQL, as mesmas regras do painel, do
+  orçamento e das faturas (despesa = conta + parcela no mês do vencimento; transferência,
+  pagamento de fatura e resgate nunca são despesa/receita). ([ADR 0019](./adr/0019-relatorios.md))
+- Nove relatórios: despesas por categoria, receitas × despesas, evolução mensal, despesas por
+  conta, despesas por cartão (parcelas reconhecidas + valor comprado, informativo), fluxo de
+  caixa, orçamento ao longo dos meses, patrimônio e investimentos (aplicado/resgatado; rendimento
+  fica para a FASE 8). Só leitura — nenhuma tabela nova.
+
 ## 6. Importação — FASE 6
 
 Fluxo: arquivo → parser → normalização → detecção de duplicidade → sugestão de categoria/tipo

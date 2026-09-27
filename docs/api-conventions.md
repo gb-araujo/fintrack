@@ -147,6 +147,15 @@ futuras são acrescentados sem quebrar clientes (campos desconhecidos são ignor
   conta" (texto normalizado; `POST` repetido atualiza, não duplica).
 - `GET /invoices/payable`: faturas com valor a pagar de todos os cartões (para ligar um pagamento).
 
+## Relatórios (FASE 7)
+
+- `GET /reports/{expenses-by-category,income-vs-expenses,expenses-by-account,expenses-by-card,
+  cash-flow,investments}?from=&to=` — período (padrão: mês corrente no fuso do usuário; `from` >
+  `to` → `400`; período maior que ~5 anos → `422`).
+- `GET /reports/{monthly-evolution,budget-history,net-worth}?months=&until=` — últimos `months`
+  meses (1–36, padrão 12) terminando em `until` (AAAA-MM; padrão: mês corrente).
+- Todos calculados no backend com as mesmas definições do painel/orçamento/faturas; só leitura.
+
 ## Paginação
 
 Listagens grandes usam cursor: `?limit=50&cursor=<opaco>` → `{ "items": [...], "nextCursor": "..." | null }`.

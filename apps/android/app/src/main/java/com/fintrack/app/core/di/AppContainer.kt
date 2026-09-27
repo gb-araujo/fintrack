@@ -6,6 +6,7 @@ import com.fintrack.app.data.api.CardsApi
 import com.fintrack.app.data.api.DashboardApi
 import com.fintrack.app.data.api.HealthApi
 import com.fintrack.app.data.api.ImportsApi
+import com.fintrack.app.data.api.ReportsApi
 import com.fintrack.app.data.api.LedgerApi
 import com.fintrack.app.data.api.PlanningApi
 import com.fintrack.app.data.api.UsersApi
@@ -15,6 +16,7 @@ import com.fintrack.app.data.repositories.CardsRepositoryImpl
 import com.fintrack.app.data.repositories.DashboardRepositoryImpl
 import com.fintrack.app.data.repositories.HealthRepositoryImpl
 import com.fintrack.app.data.repositories.ImportsRepositoryImpl
+import com.fintrack.app.data.repositories.ReportsRepositoryImpl
 import com.fintrack.app.data.repositories.LedgerRepositoryImpl
 import com.fintrack.app.data.repositories.PlanningRepositoryImpl
 import com.fintrack.app.data.session.SessionManager
@@ -23,12 +25,22 @@ import com.fintrack.app.domain.repositories.CardsRepository
 import com.fintrack.app.domain.repositories.DashboardRepository
 import com.fintrack.app.domain.repositories.HealthRepository
 import com.fintrack.app.domain.repositories.ImportsRepository
+import com.fintrack.app.domain.repositories.ReportsRepository
 import com.fintrack.app.domain.repositories.LedgerRepository
 import com.fintrack.app.domain.repositories.PlanningRepository
 import com.fintrack.app.domain.usecases.CancelEntryUseCase
 import com.fintrack.app.domain.usecases.CancelImportUseCase
 import com.fintrack.app.domain.usecases.ConfirmImportUseCase
 import com.fintrack.app.domain.usecases.CreateImportUseCase
+import com.fintrack.app.domain.usecases.GetBudgetHistoryUseCase
+import com.fintrack.app.domain.usecases.GetCashFlowUseCase
+import com.fintrack.app.domain.usecases.GetExpensesByAccountUseCase
+import com.fintrack.app.domain.usecases.GetExpensesByCardUseCase
+import com.fintrack.app.domain.usecases.GetExpensesByCategoryUseCase
+import com.fintrack.app.domain.usecases.GetIncomeVsExpensesUseCase
+import com.fintrack.app.domain.usecases.GetInvestmentsReportUseCase
+import com.fintrack.app.domain.usecases.GetMonthlyEvolutionUseCase
+import com.fintrack.app.domain.usecases.GetNetWorthUseCase
 import com.fintrack.app.domain.usecases.ListPayableInvoicesUseCase
 import com.fintrack.app.domain.usecases.CancelPurchaseUseCase
 import com.fintrack.app.domain.usecases.CreateCardUseCase
@@ -105,6 +117,10 @@ class AppContainer(
         ImportsRepositoryImpl(authenticatedRetrofit.create(ImportsApi::class.java))
     }
 
+    val reportsRepository: ReportsRepository by lazy {
+        ReportsRepositoryImpl(authenticatedRetrofit.create(ReportsApi::class.java))
+    }
+
     val dashboardRepository: DashboardRepository by lazy {
         DashboardRepositoryImpl(authenticatedRetrofit.create(DashboardApi::class.java))
     }
@@ -131,6 +147,15 @@ class AppContainer(
     val confirmImport by lazy { ConfirmImportUseCase(importsRepository) }
     val cancelImport by lazy { CancelImportUseCase(importsRepository) }
     val listPayableInvoices by lazy { ListPayableInvoicesUseCase(importsRepository) }
+    val getExpensesByCategory by lazy { GetExpensesByCategoryUseCase(reportsRepository) }
+    val getIncomeVsExpenses by lazy { GetIncomeVsExpensesUseCase(reportsRepository) }
+    val getMonthlyEvolution by lazy { GetMonthlyEvolutionUseCase(reportsRepository) }
+    val getExpensesByAccount by lazy { GetExpensesByAccountUseCase(reportsRepository) }
+    val getExpensesByCard by lazy { GetExpensesByCardUseCase(reportsRepository) }
+    val getCashFlow by lazy { GetCashFlowUseCase(reportsRepository) }
+    val getBudgetHistory by lazy { GetBudgetHistoryUseCase(reportsRepository) }
+    val getNetWorth by lazy { GetNetWorthUseCase(reportsRepository) }
+    val getInvestmentsReport by lazy { GetInvestmentsReportUseCase(reportsRepository) }
     val getBudgets by lazy { GetBudgetsUseCase(planningRepository) }
     val saveBudget by lazy { SaveBudgetUseCase(planningRepository) }
     val listOccurrences by lazy { ListOccurrencesUseCase(planningRepository) }

@@ -193,6 +193,7 @@ PostgreSQL 17, Drizzle ORM, migrations SQL versionadas em `database/migrations`.
 | `budgets` ✅ | 4 | `UNIQUE(user_id, category_id, month)`; gasto calculado, nunca gravado ([ADR 0015](./adr/0015-orcamentos-mensais.md)) |
 | `credit_cards` ✅, `credit_card_invoices` ✅, `credit_card_transactions` ✅, `credit_card_installments` ✅ | 5 | parcelas no período da fatura; pagamento = `card_payment` (`transactions.credit_card_invoice_id`); status da fatura derivado ([ADR 0017](./adr/0017-cartao-faturas-e-parcelas.md)) |
 | `imports` ✅, `imported_transactions` ✅, `merchant_rules` ✅ | 6 | linhas em revisão com fingerprint, duplicidade e sugestões; só `contains`/`starts_with` ([ADR 0018](./adr/0018-importacao-de-extratos.md)) |
+| — | 7 | Relatórios são só leitura: nenhuma tabela nova ([ADR 0019](./adr/0019-relatorios.md)) |
 | `investments` | 8 | representação de rendimentos a decidir na FASE 8 |
 
 Convenções: `id uuid` (`gen_random_uuid()`), `created_at`/`updated_at timestamptz`, dinheiro em

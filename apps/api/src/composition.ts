@@ -15,6 +15,8 @@ import {
 } from './modules/imports/imports.repository.js';
 import { ImportsService, type ImportsUnit } from './modules/imports/imports.service.js';
 import { MerchantRulesService } from './modules/imports/merchant-rules.service.js';
+import { ReportsRepository } from './modules/reports/reports.repository.js';
+import { ReportsService } from './modules/reports/reports.service.js';
 import { DrizzleRecurringRepository } from './modules/recurring/recurring.repository.js';
 import { RecurringService } from './modules/recurring/recurring.service.js';
 import { DrizzleTransactionsRepository } from './modules/transactions/transactions.repository.js';
@@ -41,6 +43,7 @@ function buildCore(db: DrizzleDb, options: Options) {
   const creditCardsRepository = new DrizzleCreditCardsRepository(db);
   const recurringRepository = new DrizzleRecurringRepository(db);
   const importsRepository = new DrizzleImportsRepository(db);
+  const reportsRepository = new ReportsRepository(db);
   const merchantRulesRepository = new DrizzleMerchantRulesRepository(db);
   const now = options.now ? { now: options.now } : {};
 
@@ -79,6 +82,13 @@ function buildCore(db: DrizzleDb, options: Options) {
     }),
     recurringService,
     creditCardsService,
+    reportsService: new ReportsService({
+      reports: reportsRepository,
+      categories: categoriesRepository,
+      budgets: budgetsRepository,
+      users: usersRepository,
+      ...now,
+    }),
     merchantRulesService: new MerchantRulesService({
       rules: merchantRulesRepository,
       accounts: accountsRepository,
