@@ -197,6 +197,10 @@ Ambos os Dockerfiles usam a **raiz do monorepo** como contexto.
    `VITE_API_URL=https://api.<dominio>` na web. Web e API no mesmo site permitem o cookie de sessão
    com `SameSite=Lax` ([ADR 0007](docs/adr/0007-autenticacao-jwt-refresh-rotativo.md)).
 
+> O Railway não aceita mais apontar *Config-as-code* (`railway.json`) em serviços novos. Os valores de
+> `apps/*/railway.json` (Dockerfile, pre-deploy, healthcheck, restart) foram aplicados direto nas
+> configurações de cada serviço; os arquivos ficam como referência desses valores.
+
 **Sem domínio próprio:** gere o domínio `*.up.railway.app` só no `web` e deixe `VITE_API_URL`
 vazio. O Caddy da web repassa `/api/*` e `/health` para a API pela rede privada, na mesma origem
 (o cookie `SameSite=Lax` continua funcionando). Variáveis extras:
