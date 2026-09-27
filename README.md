@@ -197,6 +197,17 @@ Ambos os Dockerfiles usam a **raiz do monorepo** como contexto.
    `VITE_API_URL=https://api.<dominio>` na web. Web e API no mesmo site permitem o cookie de sessão
    com `SameSite=Lax` ([ADR 0007](docs/adr/0007-autenticacao-jwt-refresh-rotativo.md)).
 
+**Sem domínio próprio:** gere o domínio `*.up.railway.app` só no `web` e deixe `VITE_API_URL`
+vazio. O Caddy da web repassa `/api/*` e `/health` para a API pela rede privada, na mesma origem
+(o cookie `SameSite=Lax` continua funcionando). Variáveis extras:
+
+| Serviço | Variável | Valor |
+|---|---|---|
+| `web` | `API_UPSTREAM` | `http://${{api.RAILWAY_PRIVATE_DOMAIN}}:${{api.PORT}}` |
+| `api` | `HOST` | `::` (a rede privada do Railway usa IPv6) |
+| `api` | `PORT` | `3333` |
+| `api` | `CORS_ORIGINS` | `https://${{web.RAILWAY_PUBLIC_DOMAIN}}` |
+
 `NODE_ENV=production` já vem definido na imagem. Em produção `/docs` fica desligado
 (`API_DOCS_ENABLED=true` para habilitar) e os logs saem em JSON, sem dados financeiros.
 

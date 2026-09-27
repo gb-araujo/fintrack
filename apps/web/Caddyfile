@@ -1,6 +1,11 @@
 {
 	admin off
 	auto_https off
+	# O proxy de borda do Railway fica na frente: confia no X-Forwarded-For dele, para a API ver o IP
+	# real do cliente (rate limit por IP).
+	servers {
+		trusted_proxies static private_ranges 100.0.0.0/8
+	}
 }
 
 # Railway injeta PORT; localmente usa 8080.
@@ -13,6 +18,14 @@
 		X-Frame-Options DENY
 		Referrer-Policy strict-origin-when-cross-origin
 		-Server
+	}
+
+	# Sem domínio próprio: a API fica atrás da web, na MESMA origem (o cookie de sessão SameSite=Lax
+	# funciona em *.up.railway.app). API_UPSTREAM = endereço privado da API no Railway, ex.:
+	# http://api.railway.internal:3333. Com domínio próprio (VITE_API_URL definido) não é usado.
+	@api path /api/* /health
+	handle @api {
+		reverse_proxy {$API_UPSTREAM:localhost:3333}
 	}
 
 	# Assets com hash no nome: cache longo e 404 real quando não existem.

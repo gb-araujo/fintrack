@@ -28,6 +28,9 @@
   contra `CORS_ORIGINS`.
 - Os subdomínios `*.up.railway.app` **não** são usados pelos clientes: estão na Public Suffix List,
   o que tornaria web e API sites diferentes e exigiria `SameSite=None`.
+- **Enquanto não há domínio próprio:** o Caddy da web faz proxy de `/api/*` e `/health` para a API
+  pela rede privada do Railway. Web e API ficam na **mesma origem** (`<web>.up.railway.app`), então o
+  mesmo cookie `SameSite=Lax` host-only funciona sem mudança na API.
 
 ## Refinamentos na implementação (FASE 1)
 
