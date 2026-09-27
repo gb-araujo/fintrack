@@ -12,6 +12,9 @@ coverage/
 .env.*
 !.env.example
 
+# Dados financeiros pessoais (nunca versionar)
+fintrack_dados_financeiros_*.json
+
 # Logs
 *.log
 npm-debug.log*
