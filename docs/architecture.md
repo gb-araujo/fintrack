@@ -181,6 +181,8 @@ PostgreSQL 17, Drizzle ORM, migrations SQL versionadas em `database/migrations`.
 - `0005`–`0007` (FASE 5): cartões, faturas, compras e parcelas (chaves compostas por cartão e usuário),
   `transactions.credit_card_invoice_id` com CHECK (`card_payment` ⇔ fatura), constraint trigger que
   exige N parcelas somando o total da compra e ajuste do CHECK de vencimento (≥ fechamento).
+- `0008` (FASE 6): `imports`, `imported_transactions`, `merchant_rules` e `UNIQUE(id, user_id)` em
+  `transactions` (chave composta das linhas importadas).
 - Schema aprovado (✅ = criado):
 
 | Tabela | Fase | Observações |
@@ -190,7 +192,7 @@ PostgreSQL 17, Drizzle ORM, migrations SQL versionadas em `database/migrations`.
 | `recurring_transactions` ✅ | 4 | geram ocorrências **virtuais** até a confirmação; `transactions` ganhou `recurring_transaction_id` + `occurrence_date` (`UNIQUE`) ([ADR 0016](./adr/0016-recorrencias-implementacao.md)) |
 | `budgets` ✅ | 4 | `UNIQUE(user_id, category_id, month)`; gasto calculado, nunca gravado ([ADR 0015](./adr/0015-orcamentos-mensais.md)) |
 | `credit_cards` ✅, `credit_card_invoices` ✅, `credit_card_transactions` ✅, `credit_card_installments` ✅ | 5 | parcelas no período da fatura; pagamento = `card_payment` (`transactions.credit_card_invoice_id`); status da fatura derivado ([ADR 0017](./adr/0017-cartao-faturas-e-parcelas.md)) |
-| `imports`, `imported_transactions`, `merchant_rules` | 6 | fingerprint para duplicidade |
+| `imports` ✅, `imported_transactions` ✅, `merchant_rules` ✅ | 6 | linhas em revisão com fingerprint, duplicidade e sugestões; só `contains`/`starts_with` ([ADR 0018](./adr/0018-importacao-de-extratos.md)) |
 | `investments` | 8 | representação de rendimentos a decidir na FASE 8 |
 
 Convenções: `id uuid` (`gen_random_uuid()`), `created_at`/`updated_at timestamptz`, dinheiro em

@@ -9,6 +9,12 @@ import { DrizzleDashboardRepository } from './modules/dashboard/dashboard.reposi
 import { DashboardService } from './modules/dashboard/dashboard.service.js';
 import { DrizzleCategoriesRepository } from './modules/categories/categories.repository.js';
 import { CategoriesService } from './modules/categories/categories.service.js';
+import {
+  DrizzleImportsRepository,
+  DrizzleMerchantRulesRepository,
+} from './modules/imports/imports.repository.js';
+import { ImportsService, type ImportsUnit } from './modules/imports/imports.service.js';
+import { MerchantRulesService } from './modules/imports/merchant-rules.service.js';
 import { DrizzleRecurringRepository } from './modules/recurring/recurring.repository.js';
 import { RecurringService } from './modules/recurring/recurring.service.js';
 import { DrizzleTransactionsRepository } from './modules/transactions/transactions.repository.js';
@@ -18,11 +24,13 @@ import { TransfersService } from './modules/transfers/transfers.service.js';
 import { DrizzleUsersRepository } from './modules/users/users.repository.js';
 import { UsersService } from './modules/users/users.service.js';
 
+type Options = { now?: () => Date };
+
 /**
- * Composição das camadas: repositórios (Drizzle) → services. Usada pelo servidor (app.ts) e por
- * scripts como o seed, para que todos passem pelas MESMAS regras de negócio.
+ * Camadas "de base": repositórios (Drizzle) → services. Pode ser montada sobre uma TRANSAÇÃO SQL
+ * (`tx`), o que permite a serviços como a importação executar vários services num só tudo-ou-nada.
  */
-export function buildDomain(db: DrizzleDb, options: { now?: () => Date } = {}) {
+function buildCore(db: DrizzleDb, options: Options) {
   const usersRepository = new DrizzleUsersRepository(db);
   const accountsRepository = new DrizzleAccountsRepository(db);
   const categoriesRepository = new DrizzleCategoriesRepository(db);
@@ -32,6 +40,8 @@ export function buildDomain(db: DrizzleDb, options: { now?: () => Date } = {}) {
   const budgetsRepository = new DrizzleBudgetsRepository(db);
   const creditCardsRepository = new DrizzleCreditCardsRepository(db);
   const recurringRepository = new DrizzleRecurringRepository(db);
+  const importsRepository = new DrizzleImportsRepository(db);
+  const merchantRulesRepository = new DrizzleMerchantRulesRepository(db);
   const now = options.now ? { now: options.now } : {};
 
   const recurringService = new RecurringService({
@@ -43,8 +53,20 @@ export function buildDomain(db: DrizzleDb, options: { now?: () => Date } = {}) {
     ...now,
   });
 
+  const creditCardsService = new CreditCardsService({
+    cards: creditCardsRepository,
+    accounts: accountsRepository,
+    categories: categoriesRepository,
+    users: usersRepository,
+    ...now,
+  });
+
   return {
     usersRepository,
+    accountsRepository,
+    categoriesRepository,
+    importsRepository,
+    merchantRulesRepository,
     usersService: new UsersService(usersRepository),
     accountsService: new AccountsService(accountsRepository),
     categoriesService: new CategoriesService(categoriesRepository),
@@ -56,12 +78,11 @@ export function buildDomain(db: DrizzleDb, options: { now?: () => Date } = {}) {
       ...now,
     }),
     recurringService,
-    creditCardsService: new CreditCardsService({
-      cards: creditCardsRepository,
+    creditCardsService,
+    merchantRulesService: new MerchantRulesService({
+      rules: merchantRulesRepository,
       accounts: accountsRepository,
       categories: categoriesRepository,
-      users: usersRepository,
-      ...now,
     }),
     budgetsService: new BudgetsService({
       budgets: budgetsRepository,
@@ -82,6 +103,37 @@ export function buildDomain(db: DrizzleDb, options: { now?: () => Date } = {}) {
       accounts: accountsRepository,
       users: usersRepository,
       ...now,
+    }),
+  };
+}
+
+/**
+ * Composição completa. Usada pelo servidor (app.ts) e por scripts como o seed, para que todos
+ * passem pelas MESMAS regras de negócio.
+ */
+export function buildDomain(db: DrizzleDb, options: Options = {}) {
+  const core = buildCore(db, options);
+  const unitOf = (c: ReturnType<typeof buildCore>): ImportsUnit => ({
+    imports: c.importsRepository,
+    rules: c.merchantRulesRepository,
+    transactions: c.transactionsService,
+    transfers: c.transfersService,
+    cards: c.creditCardsService,
+  });
+
+  return {
+    ...core,
+    importsService: new ImportsService({
+      imports: core.importsRepository,
+      rules: core.merchantRulesRepository,
+      accounts: core.accountsRepository,
+      categories: core.categoriesRepository,
+      cards: core.creditCardsService,
+      users: core.usersRepository,
+      // Cada confirmação/desfazer roda inteira numa transação: tudo ou nada.
+      withTransaction: (work) =>
+        db.transaction((tx) => work(unitOf(buildCore(tx as unknown as DrizzleDb, options)))),
+      ...(options.now ? { now: options.now } : {}),
     }),
   };
 }

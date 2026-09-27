@@ -5,6 +5,7 @@ import com.fintrack.app.data.api.AuthApi
 import com.fintrack.app.data.api.CardsApi
 import com.fintrack.app.data.api.DashboardApi
 import com.fintrack.app.data.api.HealthApi
+import com.fintrack.app.data.api.ImportsApi
 import com.fintrack.app.data.api.LedgerApi
 import com.fintrack.app.data.api.PlanningApi
 import com.fintrack.app.data.api.UsersApi
@@ -13,6 +14,7 @@ import com.fintrack.app.data.repositories.AuthRepositoryImpl
 import com.fintrack.app.data.repositories.CardsRepositoryImpl
 import com.fintrack.app.data.repositories.DashboardRepositoryImpl
 import com.fintrack.app.data.repositories.HealthRepositoryImpl
+import com.fintrack.app.data.repositories.ImportsRepositoryImpl
 import com.fintrack.app.data.repositories.LedgerRepositoryImpl
 import com.fintrack.app.data.repositories.PlanningRepositoryImpl
 import com.fintrack.app.data.session.SessionManager
@@ -20,9 +22,14 @@ import com.fintrack.app.domain.repositories.AuthRepository
 import com.fintrack.app.domain.repositories.CardsRepository
 import com.fintrack.app.domain.repositories.DashboardRepository
 import com.fintrack.app.domain.repositories.HealthRepository
+import com.fintrack.app.domain.repositories.ImportsRepository
 import com.fintrack.app.domain.repositories.LedgerRepository
 import com.fintrack.app.domain.repositories.PlanningRepository
 import com.fintrack.app.domain.usecases.CancelEntryUseCase
+import com.fintrack.app.domain.usecases.CancelImportUseCase
+import com.fintrack.app.domain.usecases.ConfirmImportUseCase
+import com.fintrack.app.domain.usecases.CreateImportUseCase
+import com.fintrack.app.domain.usecases.ListPayableInvoicesUseCase
 import com.fintrack.app.domain.usecases.CancelPurchaseUseCase
 import com.fintrack.app.domain.usecases.CreateCardUseCase
 import com.fintrack.app.domain.usecases.CreatePurchaseUseCase
@@ -94,6 +101,10 @@ class AppContainer(
         CardsRepositoryImpl(authenticatedRetrofit.create(CardsApi::class.java))
     }
 
+    val importsRepository: ImportsRepository by lazy {
+        ImportsRepositoryImpl(authenticatedRetrofit.create(ImportsApi::class.java))
+    }
+
     val dashboardRepository: DashboardRepository by lazy {
         DashboardRepositoryImpl(authenticatedRetrofit.create(DashboardApi::class.java))
     }
@@ -116,6 +127,10 @@ class AppContainer(
     val listPurchases by lazy { ListPurchasesUseCase(cardsRepository) }
     val createPurchase by lazy { CreatePurchaseUseCase(cardsRepository) }
     val cancelPurchase by lazy { CancelPurchaseUseCase(cardsRepository) }
+    val createImport by lazy { CreateImportUseCase(importsRepository) }
+    val confirmImport by lazy { ConfirmImportUseCase(importsRepository) }
+    val cancelImport by lazy { CancelImportUseCase(importsRepository) }
+    val listPayableInvoices by lazy { ListPayableInvoicesUseCase(importsRepository) }
     val getBudgets by lazy { GetBudgetsUseCase(planningRepository) }
     val saveBudget by lazy { SaveBudgetUseCase(planningRepository) }
     val listOccurrences by lazy { ListOccurrencesUseCase(planningRepository) }

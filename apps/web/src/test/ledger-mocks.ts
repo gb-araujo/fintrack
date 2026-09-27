@@ -4,8 +4,12 @@ import type {
   Budget,
   Category,
   CreditCard,
+  ImportDetail,
+  ImportRow,
+  ImportSummary,
   InvoiceDetail,
   InvoiceSummary,
+  MerchantRule,
   Occurrence,
   Purchase,
   Recurring,
@@ -172,6 +176,72 @@ export function purchase(overrides: Partial<Purchase> = {}): Purchase {
     categoryId: null,
     cancelled: false,
     installments: [],
+    createdAt: NOW,
+    ...overrides,
+  };
+}
+
+export function importRow(overrides: Partial<ImportRow> = {}): ImportRow {
+  return {
+    id: randomUUID(),
+    rowNumber: 2,
+    date: '2026-09-20',
+    amountCents: 9_099,
+    direction: 'out',
+    description: 'TELEFONICA BRAS',
+    normalizedDescription: 'TELEFONICA BRAS',
+    suggestedType: 'expense',
+    suggestedCategoryId: null,
+    suggestedTargetAccountId: null,
+    suggestedInvoiceId: null,
+    suggestionSource: 'none',
+    duplicate: null,
+    defaultAction: 'import',
+    status: 'pending',
+    ...overrides,
+  };
+}
+
+export function importSummary(overrides: Partial<ImportSummary> = {}): ImportSummary {
+  return {
+    id: randomUUID(),
+    accountId: randomUUID(),
+    source: 'csv',
+    filename: 'extrato-setembro.csv',
+    status: 'review',
+    rowsCount: 3,
+    importedCount: 0,
+    skippedCount: 0,
+    createdAt: NOW,
+    confirmedAt: null,
+    ...overrides,
+  };
+}
+
+export function importDetail(overrides: Partial<ImportDetail> = {}): ImportDetail {
+  return {
+    ...importSummary(),
+    detected: {
+      delimiter: ';',
+      headers: ['Data', 'Descrição', 'Valor'],
+      mapping: { date: 'Data', description: ['Descrição'], amount: 'Valor' },
+    },
+    ignoredRows: [],
+    ignoredRowsCount: 0,
+    rows: [],
+    ...overrides,
+  };
+}
+
+export function merchantRule(overrides: Partial<MerchantRule> = {}): MerchantRule {
+  return {
+    id: randomUUID(),
+    pattern: 'PADARIA DO ZE',
+    matchType: 'contains',
+    suggestedType: 'expense',
+    categoryId: null,
+    targetAccountId: null,
+    priority: 0,
     createdAt: NOW,
     ...overrides,
   };

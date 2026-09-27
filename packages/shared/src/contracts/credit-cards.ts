@@ -188,3 +188,12 @@ export const payInvoiceRequestSchema = z.object({
   paymentDate: dateOnlySchema.optional(),
 });
 export type PayInvoiceRequest = z.infer<typeof payInvoiceRequestSchema>;
+
+/** Faturas com valor a pagar (de todos os cartões): usadas para vincular um pagamento importado. */
+export const payableInvoiceSchema = invoiceSummarySchema.extend({
+  cardName: z.string(),
+  /** O que ainda pode ser pago/agendado (total − pago − agendado). */
+  payableCents: positiveCentsSchema,
+});
+export type PayableInvoice = z.infer<typeof payableInvoiceSchema>;
+export const payableInvoiceListResponseSchema = z.object({ items: z.array(payableInvoiceSchema) });

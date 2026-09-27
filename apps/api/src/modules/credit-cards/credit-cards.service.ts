@@ -223,6 +223,16 @@ export class CreditCardsService {
     return invoices.map((invoice) => this.view(invoice, today));
   }
 
+  /** Faturas com valor a pagar, de todos os cartões (para vincular um pagamento importado). */
+  async listPayableInvoices(userId: string): Promise<(InvoiceView & { cardName: string })[]> {
+    const today = await this.today(userId);
+    const invoices = await this.deps.cards.payableInvoices(userId);
+    return invoices.map((invoice) => ({
+      ...this.view(invoice, today),
+      cardName: invoice.cardName,
+    }));
+  }
+
   async getInvoice(
     userId: string,
     invoiceId: string,

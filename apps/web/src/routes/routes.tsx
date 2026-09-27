@@ -9,6 +9,8 @@ import { BudgetsPage } from '../features/budgets/BudgetsPage';
 import { CreditCardDetailPage } from '../features/credit-cards/CreditCardDetailPage';
 import { CreditCardsPage } from '../features/credit-cards/CreditCardsPage';
 import { CategoriesPage } from '../features/categories/CategoriesPage';
+import { ImportReviewPage } from '../features/imports/ImportReviewPage';
+import { ImportsPage } from '../features/imports/ImportsPage';
 import { RecurringPage } from '../features/recurring/RecurringPage';
 import { TransactionsPage } from '../features/transactions/TransactionsPage';
 import { DashboardPage } from '../pages/DashboardPage';
@@ -25,6 +27,7 @@ const IMPLEMENTED = new Set([
   '/budgets',
   '/recurring',
   '/credit-cards',
+  '/imports',
 ]);
 
 const placeholderRoutes: RouteObject[] = NAV_ITEMS.filter((item) => !IMPLEMENTED.has(item.to)).map(
@@ -57,6 +60,8 @@ export const routes: RouteObject[] = [
           { path: 'recurring', element: <RecurringPage /> },
           { path: 'credit-cards', element: <CreditCardsPage /> },
           { path: 'credit-cards/:cardId', element: <CreditCardDetailPage /> },
+          { path: 'imports', element: <ImportsPage /> },
+          { path: 'imports/:importId', element: <ImportReviewPage /> },
           ...placeholderRoutes,
           { path: 'more', element: <MorePage /> },
           { path: '*', element: <NotFoundPage /> },

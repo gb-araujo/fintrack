@@ -57,6 +57,13 @@
       "when": 1790481669162,
       "tag": "0007_invoice_due_not_before_closing",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1790483398063,
+      "tag": "0008_imports_and_merchant_rules",
+      "breakpoints": true
     }
   ]
 }
