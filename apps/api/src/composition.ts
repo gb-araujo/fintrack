@@ -1,6 +1,8 @@
 import type { DrizzleDb } from './db/client.js';
 import { DrizzleAccountsRepository } from './modules/accounts/accounts.repository.js';
 import { AccountsService } from './modules/accounts/accounts.service.js';
+import { DrizzleDashboardRepository } from './modules/dashboard/dashboard.repository.js';
+import { DashboardService } from './modules/dashboard/dashboard.service.js';
 import { DrizzleCategoriesRepository } from './modules/categories/categories.repository.js';
 import { CategoriesService } from './modules/categories/categories.service.js';
 import { DrizzleTransactionsRepository } from './modules/transactions/transactions.repository.js';
@@ -20,6 +22,7 @@ export function buildDomain(db: DrizzleDb, options: { now?: () => Date } = {}) {
   const categoriesRepository = new DrizzleCategoriesRepository(db);
   const transactionsRepository = new DrizzleTransactionsRepository(db);
   const transfersRepository = new DrizzleTransfersRepository(db);
+  const dashboardRepository = new DrizzleDashboardRepository(db);
   const now = options.now ? { now: options.now } : {};
 
   return {
@@ -31,6 +34,12 @@ export function buildDomain(db: DrizzleDb, options: { now?: () => Date } = {}) {
       transactions: transactionsRepository,
       accounts: accountsRepository,
       categories: categoriesRepository,
+      users: usersRepository,
+      ...now,
+    }),
+    dashboardService: new DashboardService({
+      dashboard: dashboardRepository,
+      accounts: accountsRepository,
       users: usersRepository,
       ...now,
     }),

@@ -116,6 +116,15 @@ Fluxo: arquivo → parser → normalização → detecção de duplicidade → s
   ([ADR 0013](./adr/0013-integridade-de-transferencias-no-banco.md)); pernas não têm categoria e não
   entram em receitas/despesas.
 
+## 6c. Implementado na FASE 3 (dinheiro disponível)
+
+- `GET /api/v1/dashboard` calcula o "Quanto posso gastar?" **no backend** e devolve a decomposição
+  (saldo líquido, receitas/despesas pendentes, transferências pendentes que entram/saem da fronteira
+  líquida). Definição formal e decisões no [ADR 0014](./adr/0014-dinheiro-disponivel.md).
+- Conta líquida = banco/carteira, ativa e marcada como disponível; investimento **nunca** entra.
+- Horizonte padrão: fim do mês no fuso do usuário; `?until=` opcional (não anterior a hoje).
+- Termos de recorrências (FASE 4) e faturas (FASE 5) serão acrescentados ao mesmo cálculo.
+
 ## 7. Pendências conhecidas
 
 - **Rendimentos de investimento** (FASE 8): decidir a representação preservando histórico,

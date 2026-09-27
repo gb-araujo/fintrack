@@ -1,10 +1,24 @@
+import { formatBRL } from '@fintrack/shared';
+import { useState } from 'react';
+import { Link } from 'react-router';
 import { PageHeader } from '../components/PageHeader';
+import { Badge, QueryError, Spinner } from '../components/ui/Feedback';
 import { useAuth } from '../features/auth/auth-context';
+import { AvailableToSpendCard, StatCard } from '../features/dashboard/AvailableToSpendCard';
 import { ApiStatusCard } from '../features/dashboard/ApiStatusCard';
+import { formatDate } from '../features/ledger/labels';
+import { useAccounts, useDashboard } from '../features/ledger/queries';
 
 export function DashboardPage() {
   const { user } = useAuth();
   const firstName = user?.name.split(' ')[0];
+  // '' = horizonte padrão (fim do mês), decidido pelo backend.
+  const [until, setUntil] = useState('');
+  const dashboard = useDashboard(until || undefined);
+  const accounts = useAccounts(true);
+  const accountName = (id: string) =>
+    accounts.data?.find((account) => account.id === id)?.name ?? 'Conta';
+
   return (
     <>
       <PageHeader
@@ -15,14 +29,105 @@ export function DashboardPage() {
             : 'Visão geral das suas finanças.'
         }
       />
-      <div className="grid gap-4 md:grid-cols-2">
-        <section className="rounded-xl border border-dashed border-slate-300 bg-white p-5">
-          <h2 className="text-sm font-medium text-slate-500">Quanto posso gastar?</h2>
-          <p className="mt-2 text-sm text-slate-600">
-            Este valor será calculado pelo backend a partir da FASE 3, considerando saldo, receitas
-            e despesas previstas, recorrências e faturas do cartão.
-          </p>
-        </section>
+
+      {dashboard.isPending ? (
+        <Spinner />
+      ) : dashboard.isError ? (
+        <QueryError error={dashboard.error} onRetry={() => void dashboard.refetch()} />
+      ) : (
+        <div className="grid gap-4 md:grid-cols-2">
+          <AvailableToSpendCard data={dashboard.data} until={until} onUntilChange={setUntil} />
+
+          <StatCard
+            title="Saldo total"
+            cents={dashboard.data.totalBalanceCents}
+            tone="auto"
+            hint="Bancos e carteiras"
+          />
+          <StatCard
+            title="Investimentos"
+            cents={dashboard.data.investmentsCents}
+            hint="Não entra no dinheiro disponível"
+          />
+          <StatCard
+            title="Receitas do mês"
+            cents={dashboard.data.month.incomeCents}
+            hint={`${formatDate(dashboard.data.month.from)} a ${formatDate(dashboard.data.month.to)}`}
+          />
+          <StatCard
+            title="Despesas do mês"
+            cents={dashboard.data.month.expenseCents}
+            hint="Transferências e investimentos não contam"
+          />
+
+          <section
+            aria-labelledby="pending-title"
+            className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
+          >
+            <div className="flex items-baseline justify-between gap-2">
+              <h2 id="pending-title" className="text-sm font-medium text-slate-500">
+                Contas pendentes
+              </h2>
+              <Link
+                to="/transactions"
+                className="text-xs font-medium text-brand-700 hover:underline"
+              >
+                Ver transações
+              </Link>
+            </div>
+            <p
+              className="mt-1 text-xl font-semibold tabular-nums"
+              aria-label="Total de contas pendentes"
+            >
+              {formatBRL(dashboard.data.pendingBills.totalCents)}
+            </p>
+            <p className="text-xs text-slate-500">
+              {dashboard.data.pendingBills.count} até {formatDate(dashboard.data.until)}
+              {dashboard.data.pendingBills.overdueCount > 0 ? (
+                <>
+                  {' · '}
+                  <span className="font-medium text-rose-600">
+                    {dashboard.data.pendingBills.overdueCount} vencida(s)
+                  </span>
+                </>
+              ) : null}
+            </p>
+            {dashboard.data.pendingBills.next.length > 0 ? (
+              <ul className="mt-3 divide-y divide-slate-100" aria-label="Próximas contas a pagar">
+                {dashboard.data.pendingBills.next.map((bill) => (
+                  <li
+                    key={bill.id}
+                    className="flex items-center justify-between gap-2 py-1.5 text-sm"
+                  >
+                    <span className="min-w-0 truncate">
+                      {bill.description || 'Despesa'}
+                      <span className="ml-2 text-xs text-slate-500">
+                        {formatDate(bill.date)} · {accountName(bill.accountId)}
+                      </span>
+                      {bill.overdue ? (
+                        <span className="ml-2">
+                          <Badge tone="rose">Vencida</Badge>
+                        </span>
+                      ) : null}
+                    </span>
+                    <span className="shrink-0 tabular-nums text-rose-600">
+                      {formatBRL(bill.amountCents)}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+          </section>
+
+          <StatCard
+            title="Compromissos futuros"
+            cents={dashboard.data.futureCommitments.totalCents}
+            hint={`${dashboard.data.futureCommitments.count} previsto(s) depois de ${formatDate(dashboard.data.until)}`}
+          />
+        </div>
+      )}
+
+      <div className="mt-4">
         <ApiStatusCard />
       </div>
     </>

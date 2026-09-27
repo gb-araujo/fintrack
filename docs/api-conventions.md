@@ -89,6 +89,14 @@ Recurso de outro usuário responde **404** (não 403), para não revelar sua exi
 - Recurso de outro usuário (conta, categoria, lançamento, transferência), inclusive referenciado no
   corpo, responde sempre `404`.
 
+## Painel (FASE 3)
+
+`GET /api/v1/dashboard?until=AAAA-MM-DD` devolve, calculado pelo backend: `availableToSpend { amountCents,
+components }`, `totalBalanceCents`, `investmentsCents`, `netWorthCents`, `month { incomeCents, expenseCents }`
+(efetivadas; sem transferências), `pendingBills { count, totalCents, overdueCount, next[] }` e
+`futureCommitments`. `until` anterior a hoje → `422`; data inválida → `400`. Novos componentes de fases
+futuras são acrescentados sem quebrar clientes (campos desconhecidos são ignorados).
+
 ## Paginação
 
 Listagens grandes usam cursor: `?limit=50&cursor=<opaco>` → `{ "items": [...], "nextCursor": "..." | null }`.

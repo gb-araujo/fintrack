@@ -1,10 +1,12 @@
 import {
+  keepPreviousData,
   useInfiniteQuery,
   useMutation,
   useQuery,
   useQueryClient,
   type QueryClient,
 } from '@tanstack/react-query';
+import { fetchDashboard } from '../../services/dashboard';
 import * as ledger from '../../services/ledger';
 
 export const queryKeys = {
@@ -12,6 +14,16 @@ export const queryKeys = {
   categories: (includeArchived: boolean) => ['categories', { includeArchived }] as const,
   transactions: (filters: ledger.TransactionFilters) => ['transactions', filters] as const,
 };
+
+/** Painel calculado pelo backend ("Quanto posso gastar?", saldos, mês, pendências). */
+export function useDashboard(until?: string) {
+  return useQuery({
+    queryKey: ['dashboard', { until: until ?? null }],
+    queryFn: ({ signal }) => fetchDashboard(until, signal),
+    // Ao mudar o horizonte, mantém o painel anterior na tela até o novo cálculo chegar.
+    placeholderData: keepPreviousData,
+  });
+}
 
 export function useAccounts(includeArchived = false) {
   return useQuery({
@@ -47,6 +59,7 @@ function invalidateLedger(client: QueryClient) {
   return Promise.all([
     client.invalidateQueries({ queryKey: ['accounts'] }),
     client.invalidateQueries({ queryKey: ['transactions'] }),
+    client.invalidateQueries({ queryKey: ['dashboard'] }),
   ]);
 }
 
@@ -59,7 +72,10 @@ function useLedgerMutation<TVariables, TData>(
     mutationFn,
     onSuccess: async () => {
       if (keys.includes('ledger')) await invalidateLedger(client);
-      if (keys.includes('accounts')) await client.invalidateQueries({ queryKey: ['accounts'] });
+      if (keys.includes('accounts')) {
+        await client.invalidateQueries({ queryKey: ['accounts'] });
+        await client.invalidateQueries({ queryKey: ['dashboard'] });
+      }
       if (keys.includes('categories')) await client.invalidateQueries({ queryKey: ['categories'] });
     },
   });

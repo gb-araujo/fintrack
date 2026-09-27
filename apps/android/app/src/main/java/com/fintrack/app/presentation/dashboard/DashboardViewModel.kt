@@ -5,8 +5,11 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import com.fintrack.app.core.utils.toUserMessage
+import com.fintrack.app.domain.models.DashboardSummary
 import com.fintrack.app.domain.models.SessionState
 import com.fintrack.app.domain.usecases.CheckApiHealthUseCase
+import com.fintrack.app.domain.usecases.GetDashboardUseCase
 import com.fintrack.app.domain.usecases.LogoutUseCase
 import com.fintrack.app.domain.usecases.ObserveSessionUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -27,12 +30,16 @@ data class DashboardUiState(
     val apiStatus: ApiStatus = ApiStatus.Checking,
     val isRefreshing: Boolean = false,
     val isLoggingOut: Boolean = false,
+    /** Vem pronto do servidor: o app nunca recalcula "Quanto posso gastar?". */
+    val summary: DashboardSummary? = null,
+    val summaryError: String? = null,
 )
 
 class DashboardViewModel(
     private val checkApiHealth: CheckApiHealthUseCase,
     private val observeSession: ObserveSessionUseCase,
     private val logout: LogoutUseCase,
+    private val getDashboard: GetDashboardUseCase,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(DashboardUiState())
@@ -50,7 +57,8 @@ class DashboardViewModel(
 
     fun refresh() {
         viewModelScope.launch {
-            _uiState.update { it.copy(isRefreshing = true) }
+            _uiState.update { it.copy(isRefreshing = true, summaryError = null) }
+            val summary = getDashboard()
             val status = checkApiHealth().fold(
                 onSuccess = { health ->
                     if (health.isHealthy) {
@@ -61,7 +69,14 @@ class DashboardViewModel(
                 },
                 onFailure = { ApiStatus.Offline("Não foi possível conectar à API.") },
             )
-            _uiState.update { it.copy(apiStatus = status, isRefreshing = false) }
+            _uiState.update {
+                it.copy(
+                    apiStatus = status,
+                    isRefreshing = false,
+                    summary = summary.getOrNull() ?: it.summary,
+                    summaryError = summary.exceptionOrNull()?.toUserMessage(),
+                )
+            }
         }
     }
 
@@ -77,8 +92,9 @@ class DashboardViewModel(
             checkApiHealth: CheckApiHealthUseCase,
             observeSession: ObserveSessionUseCase,
             logout: LogoutUseCase,
+            getDashboard: GetDashboardUseCase,
         ): ViewModelProvider.Factory = viewModelFactory {
-            initializer { DashboardViewModel(checkApiHealth, observeSession, logout) }
+            initializer { DashboardViewModel(checkApiHealth, observeSession, logout, getDashboard) }
         }
     }
 }

@@ -14,7 +14,7 @@ investimentos, transferências e orçamento — sem contar nenhuma movimentaçã
 | 0 | Arquitetura e setup | ✅ concluída |
 | 1 | Autenticação + banco + API básica | ✅ concluída |
 | 2 | Contas + categorias + transações | ✅ concluída |
-| 3 | Dashboard + cálculo de dinheiro disponível | — |
+| 3 | Dashboard + cálculo de dinheiro disponível | ✅ concluída |
 | 4 | Recorrências + orçamento | — |
 | 5 | Cartão + faturas + parcelas | — |
 | 6 | Importação CSV | — |

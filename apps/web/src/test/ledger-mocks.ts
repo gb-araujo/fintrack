@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import type { Account, Category, Transaction } from '@fintrack/shared';
-import { authResponse, healthyResponse, jsonResponse, mockApi } from './render';
+import { authResponse, emptyDashboard, healthyResponse, jsonResponse, mockApi } from './render';
 
 type Handler = Parameters<typeof mockApi>[0][string];
 
@@ -71,6 +71,7 @@ export function mockLedgerApi(state: LedgerState = {}, extra: Record<string, Han
   return mockApi({
     'POST /api/v1/auth/refresh': () => jsonResponse(authResponse()),
     'GET /health': () => jsonResponse(healthyResponse),
+    'GET /api/v1/dashboard': () => jsonResponse(emptyDashboard),
     'GET /api/v1/accounts': ({ url }) =>
       jsonResponse({
         items: accounts.filter(

@@ -8,3 +8,4 @@ export * from './contracts/accounts.js';
 export * from './contracts/categories.js';
 export * from './contracts/transactions.js';
 export * from './contracts/transfers.js';
+export * from './contracts/dashboard.js';

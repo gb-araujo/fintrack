@@ -142,6 +142,7 @@ private fun MainNavHost(container: AppContainer) {
                         container.checkApiHealth,
                         container.observeSession,
                         container.logout,
+                        container.getDashboard,
                     ),
                 )
                 DashboardScreen(viewModel = viewModel)

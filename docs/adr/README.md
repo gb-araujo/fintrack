@@ -18,3 +18,4 @@ Um ADR aceito só muda por meio de um novo ADR que o substitua.
 | [0011](./0011-monorepo-npm-workspaces.md) | Monorepo com npm workspaces | Aceito |
 | [0012](./0012-lancamentos-cancelar-e-regra-do-tempo.md) | Lançamentos: cancelar em vez de apagar; regra do tempo | Aceito |
 | [0013](./0013-integridade-de-transferencias-no-banco.md) | Integridade de transferências garantida no banco | Aceito |
+| [0014](./0014-dinheiro-disponivel.md) | Definição do "dinheiro disponível" | Aceito |

@@ -68,6 +68,28 @@ export const healthyResponse = {
   checks: { database: 'ok' },
 };
 
+/** Painel vazio (usuário sem dados): usado como padrão pelos mocks. */
+export const emptyDashboard = {
+  today: '2026-09-27',
+  until: '2026-09-30',
+  availableToSpend: {
+    amountCents: 0,
+    components: {
+      liquidBalanceCents: 0,
+      pendingIncomeCents: 0,
+      pendingExpensesCents: 0,
+      pendingTransfersInCents: 0,
+      pendingTransfersOutCents: 0,
+    },
+  },
+  totalBalanceCents: 0,
+  investmentsCents: 0,
+  netWorthCents: 0,
+  month: { from: '2026-09-01', to: '2026-09-30', incomeCents: 0, expenseCents: 0 },
+  pendingBills: { count: 0, totalCents: 0, overdueCount: 0, overdueCents: 0, next: [] },
+  futureCommitments: { count: 0, totalCents: 0 },
+};
+
 type Handler = (request: { url: string; init: RequestInit }) => Response | Promise<Response>;
 
 /**
@@ -103,6 +125,8 @@ export function mockAuthenticatedApi(extra: Record<string, Handler | Response> =
   return mockApi({
     'POST /api/v1/auth/refresh': () => jsonResponse(authResponse()),
     'GET /health': () => jsonResponse(healthyResponse),
+    'GET /api/v1/dashboard': () => jsonResponse(emptyDashboard),
+    'GET /api/v1/accounts': () => jsonResponse({ items: [] }),
     ...extra,
   });
 }

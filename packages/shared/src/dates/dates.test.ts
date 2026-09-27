@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
   addDaysToDate,
+  endOfMonth,
+  startOfMonth,
   dateOnlySchema,
   isFutureDate,
   isValidDateOnly,
@@ -60,5 +62,16 @@ describe('addDaysToDate', () => {
     expect(addDaysToDate('2026-03-01', -1)).toBe('2026-02-28');
     expect(addDaysToDate('2024-03-01', -1)).toBe('2024-02-29');
     expect(addDaysToDate('2026-09-27', 0)).toBe('2026-09-27');
+  });
+});
+
+describe('startOfMonth / endOfMonth', () => {
+  it('calcula os limites do mês, inclusive fevereiro e ano bissexto', () => {
+    expect(startOfMonth('2026-09-27')).toBe('2026-09-01');
+    expect(endOfMonth('2026-09-27')).toBe('2026-09-30');
+    expect(endOfMonth('2026-01-01')).toBe('2026-01-31');
+    expect(endOfMonth('2026-02-10')).toBe('2026-02-28');
+    expect(endOfMonth('2024-02-10')).toBe('2024-02-29');
+    expect(endOfMonth('2026-12-31')).toBe('2026-12-31');
   });
 });

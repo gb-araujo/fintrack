@@ -1,6 +1,6 @@
 # Arquitetura do FINTRACK
 
-> Status: **FASE 2 concluída** (contas, categorias, lançamentos e transferências). Este documento é
+> Status: **FASE 3 concluída** (dashboard e "Quanto posso gastar?"). Este documento é
 > atualizado ao fim de cada fase.
 
 ## 1. Visão geral
@@ -102,6 +102,7 @@ Endpoints existentes (FASE 1):
 | POST | `/api/v1/transfers` | Bearer | Transfere entre contas (cabeçalho + 2 pernas na mesma transação). |
 | GET/PATCH | `/api/v1/transfers/:id` | Bearer | Detalha/edita (as duas pernas mudam juntas). |
 | POST | `/api/v1/transfers/:id/complete`, `/cancel` | Bearer | Efetiva / cancela a transferência inteira. |
+| GET | `/api/v1/dashboard?until=` | Bearer | Painel calculado no backend: "Quanto posso gastar?" **com todos os componentes**, saldos, mês, contas pendentes, compromissos futuros ([ADR 0014](./adr/0014-dinheiro-disponivel.md)). |
 | GET | `/docs`, `/docs/json` | — | Swagger UI e OpenAPI (apenas fora de produção, ou com `API_DOCS_ENABLED=true`). |
 
 ## 4. Como Web e Android consomem a API

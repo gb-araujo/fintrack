@@ -43,3 +43,15 @@ export function addDaysToDate(date: DateOnly, days: number): DateOnly {
   const [year, month, day] = date.split('-').map(Number) as [number, number, number];
   return new Date(Date.UTC(year, month - 1, day + days)).toISOString().slice(0, 10);
 }
+
+/** Primeiro dia do mês de uma data ("2026-09-27" → "2026-09-01"). */
+export function startOfMonth(date: DateOnly): DateOnly {
+  return `${date.slice(0, 7)}-01`;
+}
+
+/** Último dia do mês de uma data ("2026-02-10" → "2026-02-28"; considera ano bissexto). */
+export function endOfMonth(date: DateOnly): DateOnly {
+  const [year, month] = date.split('-').map(Number) as [number, number];
+  const last = new Date(Date.UTC(year, month, 0)).getUTCDate();
+  return `${date.slice(0, 7)}-${String(last).padStart(2, '0')}`;
+}

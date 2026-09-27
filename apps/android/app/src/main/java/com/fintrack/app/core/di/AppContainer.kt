@@ -2,20 +2,24 @@ package com.fintrack.app.core.di
 
 import com.fintrack.app.core.network.NetworkModule
 import com.fintrack.app.data.api.AuthApi
+import com.fintrack.app.data.api.DashboardApi
 import com.fintrack.app.data.api.HealthApi
 import com.fintrack.app.data.api.LedgerApi
 import com.fintrack.app.data.api.UsersApi
 import com.fintrack.app.data.local.TokenStorage
 import com.fintrack.app.data.repositories.AuthRepositoryImpl
+import com.fintrack.app.data.repositories.DashboardRepositoryImpl
 import com.fintrack.app.data.repositories.HealthRepositoryImpl
 import com.fintrack.app.data.repositories.LedgerRepositoryImpl
 import com.fintrack.app.data.session.SessionManager
 import com.fintrack.app.domain.repositories.AuthRepository
+import com.fintrack.app.domain.repositories.DashboardRepository
 import com.fintrack.app.domain.repositories.HealthRepository
 import com.fintrack.app.domain.repositories.LedgerRepository
 import com.fintrack.app.domain.usecases.CancelEntryUseCase
 import com.fintrack.app.domain.usecases.CompleteEntryUseCase
 import com.fintrack.app.domain.usecases.CreateAccountUseCase
+import com.fintrack.app.domain.usecases.GetDashboardUseCase
 import com.fintrack.app.domain.usecases.CreateTransactionUseCase
 import com.fintrack.app.domain.usecases.CreateTransferUseCase
 import com.fintrack.app.domain.usecases.ListAccountsUseCase
@@ -62,6 +66,11 @@ class AppContainer(
         LedgerRepositoryImpl(authenticatedRetrofit.create(LedgerApi::class.java))
     }
 
+    val dashboardRepository: DashboardRepository by lazy {
+        DashboardRepositoryImpl(authenticatedRetrofit.create(DashboardApi::class.java))
+    }
+
+    val getDashboard by lazy { GetDashboardUseCase(dashboardRepository) }
     val listAccounts by lazy { ListAccountsUseCase(ledgerRepository) }
     val listCategories by lazy { ListCategoriesUseCase(ledgerRepository) }
     val listTransactions by lazy { ListTransactionsUseCase(ledgerRepository) }
