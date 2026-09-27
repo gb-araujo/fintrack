@@ -11,6 +11,7 @@ import { BusinessRuleError } from '../../../shared/errors/index.js';
  *            − despesas pendentes até o horizonte (inclui atrasadas)
  *            − transferências pendentes que SAEM da fronteira líquida
  *            − despesas previstas por recorrências ainda não confirmadas (inclui atrasadas)
+ *            − valor em aberto das faturas de cartão que vencem até o horizonte (inclui vencidas)
  *
  * Evita dupla contagem por construção:
  * - o saldo só conta lançamentos efetivados; pendentes entram apenas nos termos próprios;
@@ -18,7 +19,9 @@ import { BusinessRuleError } from '../../../shared/errors/index.js';
  *   ou pulado): ao confirmar, a previsão some e o lançamento passa a contar — sem dupla contagem;
  * - transferência entre duas contas líquidas tem efeito líquido zero (não entra em nenhum termo);
  * - investimentos e contas fora do disponível não entram no saldo;
- * - lançamentos cancelados nunca entram.
+ * - compras no cartão só entram pela FATURA (parcelas − pagamentos efetivados): pagar a fatura tira o
+ *   valor da conta e da fatura ao mesmo tempo, então o disponível não muda ao pagar (sem dupla contagem);
+ * - lançamentos cancelados (e compras canceladas) nunca entram.
  */
 export function availableAmount(components: AvailableComponents): number {
   return (
@@ -28,7 +31,8 @@ export function availableAmount(components: AvailableComponents): number {
     components.forecastIncomeCents -
     components.pendingExpensesCents -
     components.pendingTransfersOutCents -
-    components.forecastExpensesCents
+    components.forecastExpensesCents -
+    components.invoicesCents
   );
 }
 

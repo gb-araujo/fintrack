@@ -27,6 +27,35 @@ function rows() {
 }
 
 describe('TransactionsPage — lista', () => {
+  it('pagamento de fatura: valor neutro (não é despesa), com rótulo, sem edição — só cancelar', async () => {
+    mockLedgerApi({
+      accounts: [inter],
+      pages: page([
+        transaction({
+          accountId: inter.id,
+          type: 'card_payment',
+          amountCents: 90_000,
+          description: 'Fatura Nubank 10/2026',
+          creditCardInvoiceId: crypto.randomUUID(),
+          transactionDate: '2026-10-05',
+        }),
+      ]),
+    });
+    renderRoute('/transactions');
+
+    await screen.findByRole('list', { name: 'Lançamentos' });
+    const [row] = rows();
+
+    const item = row as HTMLElement;
+    expect(item).toHaveTextContent('Fatura Nubank 10/2026');
+    expect(within(item).getByText('Pagamento de fatura')).toBeInTheDocument();
+    expect(within(item).getByLabelText(/Valor: −R\$\s900,00/).className).toContain(
+      'text-slate-600',
+    );
+    expect(within(item).queryByRole('button', { name: 'Editar' })).not.toBeInTheDocument();
+    expect(within(item).getByRole('button', { name: 'Cancelar' })).toBeInTheDocument();
+  });
+
   it('mostra valores com sinal, categoria, conta e situação', async () => {
     mockLedgerApi({
       accounts: [inter, mercadoPago],

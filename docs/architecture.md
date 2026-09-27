@@ -178,6 +178,9 @@ PostgreSQL 17, Drizzle ORM, migrations SQL versionadas em `database/migrations`.
   consistentes por transferência.
 - `0004_recurring_and_budgets` (FASE 4): `recurring_transactions`, `budgets`, colunas de vínculo em
   `transactions` (índice único parcial por ocorrência) e CHECKs de consistência da regra.
+- `0005`–`0007` (FASE 5): cartões, faturas, compras e parcelas (chaves compostas por cartão e usuário),
+  `transactions.credit_card_invoice_id` com CHECK (`card_payment` ⇔ fatura), constraint trigger que
+  exige N parcelas somando o total da compra e ajuste do CHECK de vencimento (≥ fechamento).
 - Schema aprovado (✅ = criado):
 
 | Tabela | Fase | Observações |
@@ -186,7 +189,7 @@ PostgreSQL 17, Drizzle ORM, migrations SQL versionadas em `database/migrations`.
 | `accounts` ✅, `categories` ✅, `transactions` ✅, `transfers` ✅ | 2 | transferência = cabeçalho + 2 transações vinculadas, verificado no banco ([ADR 0013](./adr/0013-integridade-de-transferencias-no-banco.md)) |
 | `recurring_transactions` ✅ | 4 | geram ocorrências **virtuais** até a confirmação; `transactions` ganhou `recurring_transaction_id` + `occurrence_date` (`UNIQUE`) ([ADR 0016](./adr/0016-recorrencias-implementacao.md)) |
 | `budgets` ✅ | 4 | `UNIQUE(user_id, category_id, month)`; gasto calculado, nunca gravado ([ADR 0015](./adr/0015-orcamentos-mensais.md)) |
-| `credit_cards`, `credit_card_invoices`, `credit_card_transactions`, `credit_card_installments` | 5 | parcelas no período da fatura; pagamento = `card_payment` |
+| `credit_cards` ✅, `credit_card_invoices` ✅, `credit_card_transactions` ✅, `credit_card_installments` ✅ | 5 | parcelas no período da fatura; pagamento = `card_payment` (`transactions.credit_card_invoice_id`); status da fatura derivado ([ADR 0017](./adr/0017-cartao-faturas-e-parcelas.md)) |
 | `imports`, `imported_transactions`, `merchant_rules` | 6 | fingerprint para duplicidade |
 | `investments` | 8 | representação de rendimentos a decidir na FASE 8 |
 

@@ -13,6 +13,7 @@ import { AuthService } from './modules/auth/auth.service.js';
 import { DrizzleRefreshTokensRepository } from './modules/auth/refresh-tokens.repository.js';
 import { budgetsRoutes } from './modules/budgets/budgets.controller.js';
 import { categoriesRoutes } from './modules/categories/categories.controller.js';
+import { creditCardsRoutes } from './modules/credit-cards/credit-cards.controller.js';
 import { dashboardRoutes } from './modules/dashboard/dashboard.controller.js';
 import { healthRoutes } from './modules/health/health.controller.js';
 import { HealthService } from './modules/health/health.service.js';
@@ -107,6 +108,7 @@ export async function buildApp({ config, database }: AppDependencies) {
       await api.register(transfersRoutes, { transfersService: domain.transfersService });
       await api.register(recurringRoutes, { recurringService: domain.recurringService });
       await api.register(budgetsRoutes, { budgetsService: domain.budgetsService });
+      await api.register(creditCardsRoutes, { creditCardsService: domain.creditCardsService });
       await api.register(dashboardRoutes, { dashboardService: domain.dashboardService });
     },
     { prefix: '/api/v1' },

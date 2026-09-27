@@ -63,7 +63,7 @@ export const unarchiveCategory = (id: string) =>
 // ---------- Lançamentos ----------
 export interface TransactionFilters {
   accountId?: string;
-  type?: 'income' | 'expense' | 'transfer';
+  type?: 'income' | 'expense' | 'transfer' | 'card_payment';
   status?: 'pending' | 'completed' | 'cancelled';
   from?: string;
   to?: string;

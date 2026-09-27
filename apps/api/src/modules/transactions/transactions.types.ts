@@ -16,6 +16,8 @@ export interface TransactionRecord {
   paymentMethod: PaymentMethod | null;
   status: TransactionStatus;
   recurringId: string | null;
+  /** Fatura paga por este lançamento (apenas `card_payment`). */
+  creditCardInvoiceId: string | null;
   transfer: {
     id: string;
     direction: TransferDirection;
@@ -29,7 +31,8 @@ export interface TransactionRecord {
 export interface NewTransaction {
   accountId: string;
   categoryId: string | null;
-  type: 'income' | 'expense';
+  /** `card_payment` só é criado pelo módulo de cartões (com `creditCardInvoiceId`). */
+  type: 'income' | 'expense' | 'card_payment';
   amountCents: number;
   description: string;
   transactionDate: string;
@@ -38,6 +41,8 @@ export interface NewTransaction {
   status: 'pending' | 'completed' | 'cancelled';
   /** Ocorrência de recorrência que originou este lançamento (confirmação ou "pular"). */
   recurring?: { id: string; occurrenceDate: string };
+  /** Fatura paga (obrigatório em `card_payment`, proibido nos demais). */
+  creditCardInvoiceId?: string;
 }
 
 export interface TransactionPatch {

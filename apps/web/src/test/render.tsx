@@ -80,6 +80,7 @@ export const emptyDashboard = {
       forecastIncomeCents: 0,
       pendingExpensesCents: 0,
       forecastExpensesCents: 0,
+      invoicesCents: 0,
       pendingTransfersInCents: 0,
       pendingTransfersOutCents: 0,
     },
@@ -87,7 +88,14 @@ export const emptyDashboard = {
   totalBalanceCents: 0,
   investmentsCents: 0,
   netWorthCents: 0,
-  month: { from: '2026-09-01', to: '2026-09-30', incomeCents: 0, expenseCents: 0 },
+  cardLiabilitiesCents: 0,
+  month: {
+    from: '2026-09-01',
+    to: '2026-09-30',
+    incomeCents: 0,
+    expenseCents: 0,
+    cardExpenseCents: 0,
+  },
   pendingBills: { count: 0, totalCents: 0, overdueCount: 0, overdueCents: 0, next: [] },
   futureCommitments: { count: 0, totalCents: 0 },
 };

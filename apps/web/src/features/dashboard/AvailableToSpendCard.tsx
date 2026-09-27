@@ -91,6 +91,7 @@ export function AvailableToSpendCard({
             cents={components.forecastExpensesCents}
             sign="−"
           />
+          <Line label="Faturas de cartão a pagar" cents={components.invoicesCents} sign="−" />
           <Line
             label="Saídas agendadas (aplicações)"
             cents={components.pendingTransfersOutCents}

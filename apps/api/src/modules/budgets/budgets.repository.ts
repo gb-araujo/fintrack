@@ -20,7 +20,11 @@ export interface CategorySpending {
 
 export interface BudgetsRepository {
   list(userId: string, monthStart: string): Promise<BudgetRow[]>;
-  /** Despesas (efetivadas e pendentes) por categoria no período. Transferências e cancelados ficam de fora. */
+  /**
+   * Despesas por categoria no período: efetivadas (`spentCents`) e pendentes (`pendingCents`) em conta,
+   * MAIS as parcelas de cartão das faturas que vencem no mês (`spentCents` — a compra já aconteceu;
+   * ADR 0005). Transferências, pagamentos de fatura, compras canceladas e cancelados ficam de fora.
+   */
   spending(userId: string, from: string, to: string): Promise<CategorySpending[]>;
   /** Cria ou atualiza o limite da categoria no mês (UNIQUE user+categoria+mês). */
   upsert(
@@ -60,14 +64,27 @@ export class DrizzleBudgetsRepository implements BudgetsRepository {
       spent: string;
       pending: string;
     }>(sql`
-      select category_id,
-             coalesce(sum(amount_cents) filter (where status = 'completed'), 0) as spent,
-             coalesce(sum(amount_cents) filter (where status = 'pending'), 0) as pending
-      from transactions
-      where user_id = ${userId}
-        and type = 'expense'
-        and status in ('completed', 'pending')
-        and transaction_date between ${from}::date and ${to}::date
+      select category_id, sum(spent) as spent, sum(pending) as pending
+      from (
+        select category_id,
+               coalesce(sum(amount_cents) filter (where status = 'completed'), 0) as spent,
+               coalesce(sum(amount_cents) filter (where status = 'pending'), 0) as pending
+        from transactions
+        where user_id = ${userId}
+          and type = 'expense'
+          and status in ('completed', 'pending')
+          and transaction_date between ${from}::date and ${to}::date
+        group by category_id
+        union all
+        -- Parcelas de cartão: reconhecidas no mês do vencimento da fatura (ADR 0005).
+        select p.category_id, coalesce(sum(ci.amount_cents), 0) as spent, 0 as pending
+        from credit_card_installments ci
+        join credit_card_invoices i on i.id = ci.invoice_id and i.user_id = ci.user_id
+        join credit_card_transactions p on p.id = ci.card_transaction_id and p.user_id = ci.user_id
+        where ci.user_id = ${userId} and p.cancelled_at is null
+          and i.reference_month = ${from}::date
+        group by p.category_id
+      ) u
       group by category_id`);
     return rows.map((row) => ({
       categoryId: row.category_id,

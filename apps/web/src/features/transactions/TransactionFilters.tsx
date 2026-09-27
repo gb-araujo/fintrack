@@ -8,6 +8,7 @@ const TYPE_OPTIONS = [
   { value: 'income', label: 'Receitas' },
   { value: 'expense', label: 'Despesas' },
   { value: 'transfer', label: 'Transferências' },
+  { value: 'card_payment', label: 'Pagamentos de fatura' },
 ];
 
 const STATUS_OPTIONS = [

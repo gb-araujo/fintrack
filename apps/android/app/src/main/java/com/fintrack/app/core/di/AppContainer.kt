@@ -2,6 +2,7 @@ package com.fintrack.app.core.di
 
 import com.fintrack.app.core.network.NetworkModule
 import com.fintrack.app.data.api.AuthApi
+import com.fintrack.app.data.api.CardsApi
 import com.fintrack.app.data.api.DashboardApi
 import com.fintrack.app.data.api.HealthApi
 import com.fintrack.app.data.api.LedgerApi
@@ -9,17 +10,28 @@ import com.fintrack.app.data.api.PlanningApi
 import com.fintrack.app.data.api.UsersApi
 import com.fintrack.app.data.local.TokenStorage
 import com.fintrack.app.data.repositories.AuthRepositoryImpl
+import com.fintrack.app.data.repositories.CardsRepositoryImpl
 import com.fintrack.app.data.repositories.DashboardRepositoryImpl
 import com.fintrack.app.data.repositories.HealthRepositoryImpl
 import com.fintrack.app.data.repositories.LedgerRepositoryImpl
 import com.fintrack.app.data.repositories.PlanningRepositoryImpl
 import com.fintrack.app.data.session.SessionManager
 import com.fintrack.app.domain.repositories.AuthRepository
+import com.fintrack.app.domain.repositories.CardsRepository
 import com.fintrack.app.domain.repositories.DashboardRepository
 import com.fintrack.app.domain.repositories.HealthRepository
 import com.fintrack.app.domain.repositories.LedgerRepository
 import com.fintrack.app.domain.repositories.PlanningRepository
 import com.fintrack.app.domain.usecases.CancelEntryUseCase
+import com.fintrack.app.domain.usecases.CancelPurchaseUseCase
+import com.fintrack.app.domain.usecases.CreateCardUseCase
+import com.fintrack.app.domain.usecases.CreatePurchaseUseCase
+import com.fintrack.app.domain.usecases.GetCardUseCase
+import com.fintrack.app.domain.usecases.GetInvoiceUseCase
+import com.fintrack.app.domain.usecases.ListCardsUseCase
+import com.fintrack.app.domain.usecases.ListInvoicesUseCase
+import com.fintrack.app.domain.usecases.ListPurchasesUseCase
+import com.fintrack.app.domain.usecases.PayInvoiceUseCase
 import com.fintrack.app.domain.usecases.CompleteEntryUseCase
 import com.fintrack.app.domain.usecases.ConfirmOccurrenceUseCase
 import com.fintrack.app.domain.usecases.CreateAccountUseCase
@@ -78,6 +90,10 @@ class AppContainer(
         PlanningRepositoryImpl(authenticatedRetrofit.create(PlanningApi::class.java))
     }
 
+    val cardsRepository: CardsRepository by lazy {
+        CardsRepositoryImpl(authenticatedRetrofit.create(CardsApi::class.java))
+    }
+
     val dashboardRepository: DashboardRepository by lazy {
         DashboardRepositoryImpl(authenticatedRetrofit.create(DashboardApi::class.java))
     }
@@ -91,6 +107,15 @@ class AppContainer(
     val createTransfer by lazy { CreateTransferUseCase(ledgerRepository) }
     val completeEntry by lazy { CompleteEntryUseCase(ledgerRepository) }
     val cancelEntry by lazy { CancelEntryUseCase(ledgerRepository) }
+    val listCards by lazy { ListCardsUseCase(cardsRepository) }
+    val getCard by lazy { GetCardUseCase(cardsRepository) }
+    val createCard by lazy { CreateCardUseCase(cardsRepository) }
+    val listInvoices by lazy { ListInvoicesUseCase(cardsRepository) }
+    val getInvoice by lazy { GetInvoiceUseCase(cardsRepository) }
+    val payInvoice by lazy { PayInvoiceUseCase(cardsRepository) }
+    val listPurchases by lazy { ListPurchasesUseCase(cardsRepository) }
+    val createPurchase by lazy { CreatePurchaseUseCase(cardsRepository) }
+    val cancelPurchase by lazy { CancelPurchaseUseCase(cardsRepository) }
     val getBudgets by lazy { GetBudgetsUseCase(planningRepository) }
     val saveBudget by lazy { SaveBudgetUseCase(planningRepository) }
     val listOccurrences by lazy { ListOccurrencesUseCase(planningRepository) }

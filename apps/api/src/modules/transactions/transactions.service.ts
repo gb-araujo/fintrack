@@ -26,6 +26,9 @@ import type { TransactionPatch, TransactionRecord } from './transactions.types.j
 const TRANSFER_LEG_MESSAGE =
   'Este lançamento faz parte de uma transferência. Altere ou cancele a transferência.';
 
+const CARD_PAYMENT_MESSAGE =
+  'Este lançamento é um pagamento de fatura de cartão. Para corrigi-lo, cancele e pague de novo.';
+
 export interface TransactionsServiceDeps {
   transactions: TransactionsRepository;
   accounts: AccountsRepository;
@@ -101,6 +104,7 @@ export class TransactionsService {
   ): Promise<TransactionRecord> {
     const current = await this.get(userId, id);
     if (current.transfer) throw new ConflictError(TRANSFER_LEG_MESSAGE);
+    if (current.type === 'card_payment') throw new ConflictError(CARD_PAYMENT_MESSAGE);
     assertEditable(current.status);
 
     const today = await this.today(userId);

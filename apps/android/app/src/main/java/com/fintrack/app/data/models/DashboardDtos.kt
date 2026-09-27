@@ -13,6 +13,7 @@ data class DashboardDto(
     val availableToSpend: AvailableDto,
     val totalBalanceCents: Long,
     val investmentsCents: Long,
+    val cardLiabilitiesCents: Long = 0,
     val month: MonthDto,
     val pendingBills: PendingBillsDto,
     val futureCommitments: FutureDto,
@@ -31,10 +32,12 @@ data class ComponentsDto(
     /** Previsões de recorrências ainda não confirmadas (FASE 4). */
     val forecastIncomeCents: Long = 0,
     val forecastExpensesCents: Long = 0,
+    /** Faturas de cartão a pagar até o horizonte (FASE 5). */
+    val invoicesCents: Long = 0,
 )
 
 @Serializable
-data class MonthDto(val incomeCents: Long, val expenseCents: Long)
+data class MonthDto(val incomeCents: Long, val expenseCents: Long, val cardExpenseCents: Long = 0)
 
 @Serializable
 data class PendingBillDto(
@@ -72,12 +75,15 @@ fun DashboardDto.toDomain() = DashboardSummary(
             it.pendingTransfersOutCents,
             it.forecastIncomeCents,
             it.forecastExpensesCents,
+            it.invoicesCents,
         )
     },
     totalBalanceCents = totalBalanceCents,
     investmentsCents = investmentsCents,
     monthIncomeCents = month.incomeCents,
     monthExpenseCents = month.expenseCents,
+    monthCardExpenseCents = month.cardExpenseCents,
+    cardLiabilitiesCents = cardLiabilitiesCents,
     pendingCount = pendingBills.count,
     pendingTotalCents = pendingBills.totalCents,
     overdueCount = pendingBills.overdueCount,
@@ -89,6 +95,7 @@ fun DashboardDto.toDomain() = DashboardSummary(
             date = it.date,
             overdue = it.overdue,
             recurring = it.kind == "recurring",
+            invoice = it.kind == "invoice",
             estimated = it.estimated,
         )
     },

@@ -10,6 +10,7 @@ const zero = {
   pendingTransfersOutCents: 0,
   forecastIncomeCents: 0,
   forecastExpensesCents: 0,
+  invoicesCents: 0,
 };
 
 describe('availableAmount', () => {
@@ -29,6 +30,7 @@ describe('availableAmount', () => {
         pendingTransfersOutCents: 25_000,
         forecastIncomeCents: 0,
         forecastExpensesCents: 0,
+        invoicesCents: 0,
       }),
     ).toBe(100_000 + 50_000 + 10_000 - 30_000 - 25_000);
   });
@@ -43,6 +45,17 @@ describe('availableAmount', () => {
         forecastExpensesCents: 16_798,
       }),
     ).toBe(100_000 - 10_000 + 30_000 - 16_798);
+  });
+
+  it('faturas de cartão com vencimento no horizonte subtraem o que resta pagar', () => {
+    expect(
+      availableAmount({
+        ...zero,
+        liquidBalanceCents: 250_000,
+        pendingExpensesCents: 20_000,
+        invoicesCents: 90_000,
+      }),
+    ).toBe(250_000 - 20_000 - 90_000);
   });
 
   it('pode ficar negativo (comprometido acima do saldo)', () => {

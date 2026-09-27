@@ -1,0 +1,2 @@
+ALTER TABLE "credit_card_invoices" DROP CONSTRAINT "credit_card_invoices_due_after_closing";--> statement-breakpoint
+ALTER TABLE "credit_card_invoices" ADD CONSTRAINT "credit_card_invoices_due_not_before_closing" CHECK ("credit_card_invoices"."due_date" >= "credit_card_invoices"."closing_date");
