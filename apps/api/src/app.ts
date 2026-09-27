@@ -18,6 +18,7 @@ import { dashboardRoutes } from './modules/dashboard/dashboard.controller.js';
 import { healthRoutes } from './modules/health/health.controller.js';
 import { HealthService } from './modules/health/health.service.js';
 import { recurringRoutes } from './modules/recurring/recurring.controller.js';
+import { importsRoutes } from './modules/imports/imports.controller.js';
 import { transactionsRoutes } from './modules/transactions/transactions.controller.js';
 import { transfersRoutes } from './modules/transfers/transfers.controller.js';
 import { usersRoutes } from './modules/users/users.controller.js';
@@ -109,6 +110,10 @@ export async function buildApp({ config, database }: AppDependencies) {
       await api.register(recurringRoutes, { recurringService: domain.recurringService });
       await api.register(budgetsRoutes, { budgetsService: domain.budgetsService });
       await api.register(creditCardsRoutes, { creditCardsService: domain.creditCardsService });
+      await api.register(importsRoutes, {
+        importsService: domain.importsService,
+        merchantRulesService: domain.merchantRulesService,
+      });
       await api.register(dashboardRoutes, { dashboardService: domain.dashboardService });
     },
     { prefix: '/api/v1' },

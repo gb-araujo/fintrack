@@ -127,10 +127,19 @@ A API retorna o valor **e a decomposição** de cada termo da fórmula.
 ## 6. Importação — FASE 6
 
 Fluxo: arquivo → parser → normalização → detecção de duplicidade → sugestão de categoria/tipo
-(`merchant_rules`) → revisão → confirmação → banco.
+(`merchant_rules`) → revisão → confirmação → banco. ([ADR 0018](./adr/0018-importacao-de-extratos.md))
 
-- Fingerprint = conta + data + valor + descrição normalizada; OFX usa `FITID` quando existir.
-- Possíveis duplicatas (janela de ± N dias) vão para revisão — **nunca** são descartadas silenciosamente.
+- Nada vira lançamento antes da confirmação; a confirmação usa os mesmos services do sistema, numa única
+  transação (tudo ou nada).
+- Fingerprint = conta + data + valor com sinal + descrição normalizada (+ ordinal entre linhas idênticas do
+  arquivo). **Exata**: já importada antes. **Possível**: lançamento existente na conta com mesmo valor e
+  sentido a ± 3 dias (cada lançamento é reivindicado por uma linha). Ambas começam como "pular", visíveis
+  na revisão — **nunca** são descartadas silenciosamente.
+- Transferência entre contas (ex.: Inter → Mercado Pago) é **uma** transferência, nunca despesa; o extrato
+  da outra conta traz a linha correspondente marcada como duplicata da perna existente.
+- Pagamento de fatura de cartão no extrato vira `card_payment` ligado à fatura (nunca despesa: já foi
+  contado nas parcelas); sem fatura correspondente, começa como "pular".
+- Desfazer uma importação **cancela** o que ela criou (nada é apagado).
 
 ## 6b. Implementado na FASE 2 (contas, lançamentos, transferências)
 

@@ -1,0 +1,12 @@
+Extrato Conta Corrente
+Conta;123456-7
+Periodo;01/09/2026 a 30/09/2026
+
+Data Lançamento;Histórico;Descrição;Valor;Saldo
+02/09/2026;Pix enviado;PIX ENVIADO MERCADO PAGO;-300,00;1.200,00
+05/09/2026;Pagamento efetuado;TELEFONICA BRAS;-90,99;1.109,01
+10/09/2026;Pix recebido;SALARIO EMPRESA X;5.000,00;6.109,01
+12/09/2026;Compra no débito;PADARIA DO ZE;-12,50;6.096,51
+12/09/2026;Compra no débito;PADARIA DO ZE;-12,50;6.084,01
+15/09/2026;Pagamento efetuado;PAGAMENTO FATURA NUBANK;-900,00;5.184,01
+Saldo final;;;;5.184,01

@@ -131,6 +131,22 @@ futuras são acrescentados sem quebrar clientes (campos desconhecidos são ignor
   conta de investimento → `422`; arquivada → `409`. Efetivar/cancelar: `/transactions/:id/complete|cancel`;
   editar → `409`.
 
+## Importação de extratos (FASE 6)
+
+- `POST /imports` `{ accountId, filename, content, delimiter?, mapping? }` (corpo até 4 MB) lê o CSV e
+  devolve `201` com a importação **em revisão**: `rows[]` (valor positivo + `direction`, sugestão de tipo/
+  categoria/conta/fatura, `duplicate { kind: exact|possible, transactionId }`, `defaultAction`),
+  `detected` (delimitador, cabeçalhos, colunas usadas) e `ignoredRows[]` com o motivo. Não cria
+  lançamentos. Colunas não reconhecidas → `422` com `details.headers` (envie `mapping`). Conta de
+  investimento → `422`; arquivada → `409`; formato ≠ csv → `422`.
+- `GET /imports`, `GET /imports/:id`; `POST /imports/:id/confirm` `{ decisions[] }` (linhas sem decisão
+  seguem `defaultAction`) → `200` `{ imported, skipped, transfers, cardPayments, rulesSaved }`; qualquer
+  linha inválida → `422` `Linha N: …` e **nada** é criado. Já confirmada/cancelada/desfeita → `409`.
+  `POST /imports/:id/cancel` (só em revisão) e `POST /imports/:id/revert` (só confirmada; cancela o criado).
+- `GET/POST /merchant-rules`, `DELETE /merchant-rules/:id`: regras "contém/começa com X → categoria ou
+  conta" (texto normalizado; `POST` repetido atualiza, não duplica).
+- `GET /invoices/payable`: faturas com valor a pagar de todos os cartões (para ligar um pagamento).
+
 ## Paginação
 
 Listagens grandes usam cursor: `?limit=50&cursor=<opaco>` → `{ "items": [...], "nextCursor": "..." | null }`.

@@ -37,6 +37,8 @@ export interface CreditCardsRepository {
   /** Fatura ABERTA de cada cartão (a de fechamento mais próximo que ainda não passou). */
   openInvoices(userId: string, today: string): Promise<Map<string, InvoiceRecord>>;
   listInvoices(userId: string, cardId: string): Promise<InvoiceRecord[]>;
+  /** Faturas de todos os cartões com valor a pagar (total − pago − agendado > 0), por vencimento. */
+  payableInvoices(userId: string): Promise<(InvoiceRecord & { cardName: string })[]>;
   findInvoice(userId: string, invoiceId: string): Promise<InvoiceRecord | undefined>;
   invoiceInstallments(userId: string, invoiceId: string): Promise<InvoiceInstallmentItem[]>;
   invoicePayments(userId: string, invoiceId: string): Promise<InvoicePaymentItem[]>;
@@ -208,6 +210,19 @@ export class DrizzleCreditCardsRepository implements CreditCardsRepository {
       sql`i.user_id = ${userId} and i.credit_card_id = ${cardId}`,
       sql`i.reference_month desc`,
     );
+  }
+
+  async payableInvoices(userId: string) {
+    const rows = await this.db.execute<InvoiceFiguresRow & { card_name: string }>(sql`
+      select * from (
+        select ${invoiceColumnsSql}, c.name as card_name, ${invoiceFiguresSql}
+        from credit_card_invoices i
+        join credit_cards c on c.id = i.credit_card_id and c.user_id = i.user_id
+        where i.user_id = ${userId}
+      ) x
+      where x.total_cents - x.paid_cents - x.scheduled_cents > 0
+      order by x.due_date asc, x.id asc`);
+    return rows.map((row) => ({ ...toInvoice(row), cardName: row.card_name }));
   }
 
   async findInvoice(userId: string, invoiceId: string) {

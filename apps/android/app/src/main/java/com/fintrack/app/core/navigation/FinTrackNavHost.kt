@@ -39,6 +39,8 @@ import com.fintrack.app.presentation.cards.CardsScreen
 import com.fintrack.app.presentation.cards.CardsViewModel
 import com.fintrack.app.presentation.dashboard.DashboardScreen
 import com.fintrack.app.presentation.dashboard.DashboardViewModel
+import com.fintrack.app.presentation.imports.ImportScreen
+import com.fintrack.app.presentation.imports.ImportViewModel
 import com.fintrack.app.presentation.more.MoreEntry
 import com.fintrack.app.presentation.more.MoreScreen
 import com.fintrack.app.presentation.recurring.RecurringScreen
@@ -67,6 +69,8 @@ import kotlinx.serialization.Serializable
 @Serializable data object MoreRoute
 
 @Serializable data object BudgetsRoute
+
+@Serializable data object ImportRoute
 
 @Serializable data object RecurringRoute
 
@@ -134,7 +138,7 @@ private fun MainNavHost(container: AppContainer) {
         Tab(AccountsRoute, "Contas"),
         Tab(CardsRoute, "Cartões", also = listOf(CardDetailRoute::class)),
         // Telas secundárias ficam sob "Mais" (a barra inferior não passa de 4 itens).
-        Tab(MoreRoute, "Mais", also = listOf(BudgetsRoute::class, RecurringRoute::class)),
+        Tab(MoreRoute, "Mais", also = listOf(BudgetsRoute::class, RecurringRoute::class, ImportRoute::class)),
     )
     val backStack by navController.currentBackStackEntryAsState()
     val destination = backStack?.destination
@@ -235,8 +239,24 @@ private fun MainNavHost(container: AppContainer) {
                         MoreEntry("Recorrências", "Confirme ou pule as contas previstas") {
                             navController.navigate(RecurringRoute) { launchSingleTop = true }
                         },
+                        MoreEntry("Importar extrato", "Leia o CSV do banco, revise e confirme") {
+                            navController.navigate(ImportRoute) { launchSingleTop = true }
+                        },
                     ),
                 )
+            }
+            composable<ImportRoute> {
+                val viewModel: ImportViewModel = viewModel(
+                    factory = ImportViewModel.factory(
+                        container.listAccounts,
+                        container.listCategories,
+                        container.listPayableInvoices,
+                        container.createImport,
+                        container.confirmImport,
+                        container.cancelImport,
+                    ),
+                )
+                ImportScreen(viewModel = viewModel, onBack = { navController.popBackStack() })
             }
             composable<BudgetsRoute> {
                 val viewModel: BudgetsViewModel = viewModel(

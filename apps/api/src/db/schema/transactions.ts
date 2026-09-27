@@ -6,6 +6,7 @@ import {
   foreignKey,
   index,
   pgTable,
+  unique,
   uniqueIndex,
   uuid,
   varchar,
@@ -56,6 +57,8 @@ export const transactions = pgTable(
     updatedAt: updatedAt(),
   },
   (table) => [
+    // Permite chaves compostas (id, user_id) apontando para o lançamento (ex.: importações).
+    unique('transactions_id_user_id_unique').on(table.id, table.userId),
     foreignKey({
       name: 'transactions_account_fk',
       columns: [table.accountId, table.userId],

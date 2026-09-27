@@ -6,6 +6,7 @@ import {
   invoiceDetailSchema,
   invoiceListResponseSchema,
   listCreditCardsQuerySchema,
+  payableInvoiceListResponseSchema,
   payInvoiceRequestSchema,
   purchaseListResponseSchema,
   purchaseSchema,
@@ -293,6 +294,31 @@ export const creditCardsRoutes: FastifyPluginCallbackZod<CreditCardsRoutesOption
     async (request) => {
       const items = await service.listInvoices(request.userId, request.params.id);
       return { items: items.map(toInvoiceSummary) };
+    },
+  );
+
+  app.get(
+    '/invoices/payable',
+    {
+      schema: {
+        tags: ['credit-cards'],
+        summary: 'Faturas com valor a pagar, de todos os cartões (por vencimento)',
+        security,
+        response: { 200: payableInvoiceListResponseSchema },
+      },
+    },
+    async (request) => {
+      const items = await service.listPayableInvoices(request.userId);
+      return {
+        items: items.map((invoice) => ({
+          ...toInvoiceSummary(invoice),
+          cardName: invoice.cardName,
+          payableCents: Math.max(
+            0,
+            invoice.totalCents - invoice.paidCents - invoice.scheduledCents,
+          ),
+        })),
+      };
     },
   );
 
