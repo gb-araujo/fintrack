@@ -1,136 +1,193 @@
-# FINTRACK
+# FinTrack
 
-Sistema de controle financeiro pessoal — **Web + Android + API REST + PostgreSQL** — para responder:
+Controle financeiro pessoal — **Web, Android e API REST** — que calcula o **dinheiro disponível**:
+quanto do saldo está realmente livre depois de reservar as contas a pagar, as faturas de cartão, as
+parcelas e os compromissos recorrentes, sem contar nenhuma movimentação duas vezes.
 
-> **"Quanto dinheiro eu realmente posso gastar?"**
+![Página inicial do FinTrack](docs/screenshots/inicio.png)
 
-Considerando saldo, receitas e despesas futuras, contas recorrentes, cartão de crédito, parcelas,
-investimentos, transferências e orçamento — sem contar nenhuma movimentação duas vezes.
+> Capturas feitas com o usuário de demonstração (dados fictícios).
 
-## Status
+## Funcionalidades
 
-| Fase | Escopo | Status |
-|---|---|---|
-| 0 | Arquitetura e setup | ✅ concluída |
-| 1 | Autenticação + banco + API básica | ✅ concluída |
-| 2 | Contas + categorias + transações | ✅ concluída |
-| 3 | Dashboard + cálculo de dinheiro disponível | ✅ concluída |
-| 4 | Recorrências + orçamento | ✅ concluída |
-| 5 | Cartão + faturas + parcelas | ✅ concluída |
-| 6 | Importação CSV | ✅ concluída |
-| 7 | Relatórios | ✅ concluída |
-| 8 | Investimentos | ✅ concluída |
-| 9 | Melhorias e automações | — |
+- **Painel de planejamento** — dinheiro disponível hoje, quanto reservar para as contas e o que vai
+  entrar, num horizonte configurável (fim do mês, 30 ou 60 dias, ou uma data escolhida).
+- **Lançamentos** — receitas, despesas e transferências entre contas. Lançamentos pendentes funcionam
+  como previsão e só alteram o saldo quando efetivados.
+- **Recorrências** — contas fixas e recebimentos entram na previsão sem gerar lançamentos duplicados;
+  contas de valor variável (como energia) usam uma estimativa sinalizada.
+- **Cartão de crédito** — faturas, parcelas e limite. Pagar a fatura não altera o dinheiro
+  disponível, porque as compras já foram consideradas pela fatura.
+- **Orçamentos mensais** por categoria.
+- **Importação de extratos CSV** (Banco Inter e Mercado Pago) com revisão linha a linha, sugestão de
+  categoria, reconhecimento de transferências entre contas próprias e detecção de duplicatas.
+- **Relatórios** — despesas por categoria, conta e cartão, receitas × despesas, evolução mensal,
+  fluxo de caixa, orçamento, patrimônio e investimentos.
+- **Investimentos** tratados como movimentação entre contas, com rendimento calculado a partir de
+  avaliações periódicas.
+- **App Android nativo** (Kotlin + Jetpack Compose) consumindo a mesma API.
 
-## Documentação
+## Capturas de tela
 
-- [Arquitetura](docs/architecture.md) — camadas, monorepo, segurança, schema planejado, deploy
-- [Regras financeiras](docs/financial-rules.md) — o que entra (e o que não entra) em cada cálculo
-- [Convenções da API](docs/api-conventions.md) — formatos, erros, paginação, autenticação
-- [ADRs](docs/adr/README.md) — decisões arquiteturais registradas
+<table>
+  <tr>
+    <td width="50%"><img src="docs/screenshots/transacoes.png" alt="Lista de transações com filtros"><br><sub><b>Transações</b> — filtros por conta, tipo, situação e período.</sub></td>
+    <td width="50%"><img src="docs/screenshots/cartao-fatura.png" alt="Cartão de crédito com faturas e compras parceladas"><br><sub><b>Cartão de crédito</b> — limite, faturas e compras parceladas.</sub></td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/importacao-revisao.png" alt="Revisão de um extrato CSV importado"><br><sub><b>Importação</b> — revisão com sugestões; a possível duplicata começa desmarcada.</sub></td>
+    <td><img src="docs/screenshots/orcamentos.png" alt="Orçamentos mensais por categoria"><br><sub><b>Orçamentos</b> — limite mensal e acompanhamento por categoria.</sub></td>
+  </tr>
+  <tr>
+    <td colspan="2"><img src="docs/screenshots/relatorio-fluxo-de-caixa.png" alt="Relatório de fluxo de caixa"><br><sub><b>Relatórios</b> — fluxo de caixa do período, conciliando saldo inicial e final.</sub></td>
+  </tr>
+</table>
 
-## Stack
+## Como o dinheiro disponível é calculado
 
-| Parte | Tecnologias |
-|---|---|
-| API (`apps/api`) | Node 24, TypeScript 6, Fastify 5, Zod 4, Drizzle ORM, PostgreSQL 17, Vitest |
-| Web (`apps/web`) | Vite 8, React 19, TypeScript, Tailwind CSS 4, React Router, TanStack Query, Zod, Vitest |
-| Android (`apps/android`) | Kotlin 2.4, Jetpack Compose, Coroutines, Retrofit 3, OkHttp 5, JUnit (compile/target SDK 37, min 26) |
-| Compartilhado (`packages/shared`) | Schemas Zod, enums e utilitários de dinheiro usados por API e Web |
-| Infra | Docker, docker compose, Railway, GitHub Actions |
+O saldo bancário sozinho não mostra quanto dinheiro está livre. O FinTrack parte do saldo das contas
+do dia a dia e aplica tudo o que já está previsto até o horizonte escolhido:
+
+```
+dinheiro disponível =
+    saldo das contas líquidas (conta corrente e carteira)
+  + receitas pendentes e recebimentos recorrentes previstos
+  − despesas pendentes e contas recorrentes previstas
+  − valor em aberto das faturas que vencem no período
+  ± transferências agendadas que entram ou saem dessas contas (ex.: aplicações)
+```
+
+**Disponível hoje** é o menor saldo projetado no período: o valor que pode sair hoje sem que o saldo
+fique negativo em nenhum dia, mesmo quando uma conta vence antes de um recebimento.
+
+Princípios que sustentam o cálculo:
+
+- Valores monetários em **centavos inteiros**, nunca em ponto flutuante
+  ([ADR 0001](docs/adr/0001-dinheiro-em-centavos.md)).
+- Saldos **sempre calculados** a partir dos lançamentos, nunca armazenados
+  ([ADR 0002](docs/adr/0002-saldo-calculado.md)).
+- **Sem dupla contagem**: transferências são pares vinculados, recorrências confirmadas saem da
+  previsão e compras no cartão entram apenas pela fatura.
+- O cálculo acontece **só no backend**; web e Android exibem o resultado com a decomposição de cada
+  termo.
+
+Regras completas em [docs/financial-rules.md](docs/financial-rules.md) e no
+[ADR 0014](docs/adr/0014-dinheiro-disponivel.md).
+
+## Arquitetura
 
 ```
 fintrack/
-├── apps/{api,web,android}
-├── packages/shared
-├── database/{migrations,seeds,init}
-├── docs/
-├── docker-compose.yml
-└── package.json          # npm workspaces
+├── apps/
+│   ├── api/        # API REST (Fastify + Drizzle + PostgreSQL)
+│   ├── web/        # SPA React
+│   └── android/    # App nativo Kotlin (projeto Gradle independente)
+├── packages/
+│   └── shared/     # Schemas Zod, enums e utilitários de dinheiro (API e web)
+├── database/       # Migrations SQL, seeds e init do PostgreSQL
+└── docs/           # Arquitetura, regras financeiras, convenções da API e ADRs
 ```
 
-## Pré-requisitos
+- **Contratos compartilhados**: os schemas Zod de `packages/shared` validam as requisições na API e
+  tipam as respostas na web.
+- **Integridade no banco**: além das validações da API, triggers do PostgreSQL garantem a consistência
+  de transferências e parcelas ([ADR 0013](docs/adr/0013-integridade-de-transferencias-no-banco.md)).
+- **Autenticação**: access token JWT de curta duração e refresh token rotativo em cookie `httpOnly`
+  ([ADR 0007](docs/adr/0007-autenticacao-jwt-refresh-rotativo.md)).
+- **API documentada** com OpenAPI (Swagger UI em `/docs` no ambiente de desenvolvimento).
+- **Decisões registradas** em [20 ADRs](docs/adr/README.md).
 
-- **Node.js 24** e npm 11 (`.nvmrc`)
-- **Docker** (PostgreSQL local)
-- Android: **JDK 17** e Android SDK (Android Studio), com a plataforma 37 instalada
+## Stack
 
-## Desenvolvimento local
+| Parte                             | Tecnologias                                                                                     |
+| --------------------------------- | ----------------------------------------------------------------------------------------------- |
+| API (`apps/api`)                  | Node 24, TypeScript 6, Fastify 5, Zod 4, Drizzle ORM, PostgreSQL 17, Vitest                     |
+| Web (`apps/web`)                  | Vite 8, React 19, TypeScript, Tailwind CSS 4, React Router, TanStack Query, Zod, Vitest         |
+| Android (`apps/android`)          | Kotlin 2.4, Jetpack Compose, Coroutines, Retrofit 3, OkHttp 5, JUnit (compile/target SDK 37, min 26) |
+| Compartilhado (`packages/shared`) | Schemas Zod, enums e utilitários de dinheiro usados por API e web                               |
+| Infra                             | Docker, docker compose, GitHub Actions, Railway                                                 |
+
+## Rodando localmente
+
+Pré-requisitos: **Node.js 24** e npm 11 (`.nvmrc`) e **Docker** (para o PostgreSQL). Para o app
+Android: **JDK 17** e Android SDK com a plataforma 37.
 
 ```bash
-# 1. Dependências (todos os workspaces)
+# 1. Dependências de todos os workspaces
 npm install
 
-# 2. Variáveis de ambiente (credenciais locais de desenvolvimento apenas)
+# 2. Variáveis de ambiente (valores locais de desenvolvimento)
 cp .env.example .env
-#    Recomendado: preencha JWT_SECRET no .env (sem ele, as sessões caem a cada restart da API)
+#    Recomendado: defina JWT_SECRET no .env (sem ele, as sessões caem a cada restart da API)
 node -e "console.log(require('node:crypto').randomBytes(48).toString('base64url'))"
 
-# 3. PostgreSQL local (cria também o banco fintrack_test)
-npm run db:up                  # = docker compose up -d db
+# 3. PostgreSQL local (também cria o banco fintrack_test)
+npm run db:up
 
-# 4. Migrations e seeds
+# 4. Migrations e dados de demonstração
 npm run db:migrate
 npm run db:seed
 
-# 5. API (http://localhost:3333) + Web (http://localhost:5173)
-npm run dev                    # ou: npm run dev:api / npm run dev:web
+# 5. API (http://localhost:3333) + web (http://localhost:5173)
+npm run dev
 ```
 
-- Web: <http://localhost:5173> → entre com o usuário de demonstração criado pelo seed (`demo@fintrack.dev` / `demo-fintrack-123`) ou use **Criar conta**.
-- Status da API: <http://localhost:3333/health>
-- Documentação OpenAPI (dev): <http://localhost:3333/docs>
-- Em desenvolvimento a web chama a API pela mesma origem (proxy do Vite para `/api` e `/health`),
-  então o cookie de sessão funciona sem configuração de CORS.
+Acesse <http://localhost:5173> e entre com o usuário de demonstração **`demo@fintrack.dev`** / senha
+**`demo-fintrack-123`**, ou crie uma conta. O seed cria contas, lançamentos, transferências,
+recorrências, um cartão com compras parceladas e orçamentos de exemplo
+([database/seeds](database/seeds/README.md)). Para testar a importação, use os extratos de
+`database/seeds/samples/`.
 
-O sistema funciona inteiramente local, sem Railway.
+| Endereço                         | O que é                       |
+| -------------------------------- | ----------------------------- |
+| <http://localhost:5173>          | Aplicação web                 |
+| <http://localhost:3333/health>   | Status da API e do banco      |
+| <http://localhost:3333/docs>     | Documentação OpenAPI          |
 
-### PostgreSQL local
+Em desenvolvimento a web chama a API pela mesma origem (proxy do Vite para `/api` e `/health`), então
+o cookie de sessão funciona sem configurar CORS.
 
-| Item | Valor padrão |
-|---|---|
-| Host / porta | `localhost:5432` (`POSTGRES_PORT` para mudar) |
-| Usuário / senha | `fintrack` / `fintrack` |
-| Bancos | `fintrack` (desenvolvimento), `fintrack_test` (testes de integração) |
+<details>
+<summary>PostgreSQL local e migrations</summary>
+
+| Item            | Valor padrão                                                         |
+| --------------- | -------------------------------------------------------------------- |
+| Host / porta    | `localhost:5432` (`POSTGRES_PORT` para mudar)                        |
+| Usuário / senha | `fintrack` / `fintrack`                                              |
+| Bancos          | `fintrack` (desenvolvimento), `fintrack_test` (testes de integração) |
 
 ```bash
 docker compose exec db psql -U fintrack -d fintrack   # console SQL
 npm run db:down                                        # para os containers (dados preservados no volume)
 docker compose down -v                                 # remove também os dados
+npm run db:generate                                    # gera migration a partir do schema (drizzle-kit)
+npm run db:migrate                                     # aplica migrations pendentes (idempotente)
 ```
 
-### Migrations
+O schema fica em `apps/api/src/db/schema`; as migrations SQL geradas ficam versionadas em
+`database/migrations`.
 
-O schema fica em `apps/api/src/db/schema`; as migrations SQL geradas vão para `database/migrations`
-(versionadas).
+</details>
 
-```bash
-npm run db:generate    # gera migration a partir de mudanças no schema (drizzle-kit)
-npm run db:migrate     # aplica migrations pendentes (idempotente)
-```
-
-Em produção as migrations rodam automaticamente antes de cada deploy (Railway `preDeployCommand`).
-
-### Seeds
-
-`npm run db:seed` — cria o usuário `demo@fintrack.dev` (senha `demo-fintrack-123`) com 4 contas, categorias, lançamentos e transferências de exemplo, usando os mesmos services da API. Idempotente; recusa rodar em produção.
-Ver [database/seeds/README.md](database/seeds/README.md).
-
-## Qualidade
+## Testes e qualidade
 
 ```bash
 npm run lint           # ESLint (type-aware) em shared, api e web
 npm run typecheck      # tsc --noEmit
-npm run format:check   # Prettier (npm run format para corrigir)
+npm run format:check   # Prettier
 npm test               # Vitest em shared, api e web
 npm run build          # build de shared, api e web
 ```
 
-Testes de integração da API com PostgreSQL real rodam quando `TEST_DATABASE_URL` está definido:
+Os testes de integração da API rodam contra um PostgreSQL real quando `TEST_DATABASE_URL` está
+definido:
 
 ```bash
 TEST_DATABASE_URL=postgres://fintrack:fintrack@localhost:5432/fintrack_test npm test -w @fintrack/api
 ```
+
+O CI (GitHub Actions) executa formatação, lint, typecheck, migrations, testes de integração e build;
+gera as imagens Docker; e roda testes, lint e build do app Android.
 
 ## Android
 
@@ -138,13 +195,12 @@ Projeto Gradle independente em `apps/android` (abra essa pasta no Android Studio
 
 ```bash
 cd apps/android
-./gradlew testDebugUnitTest     # testes JUnit (ViewModels, UseCases, repositório com MockWebServer)
+./gradlew testDebugUnitTest     # testes JUnit (ViewModels, casos de uso, repositórios com MockWebServer)
 ./gradlew lintDebug             # Android lint
 ./gradlew assembleDebug         # APK debug
-./gradlew assembleRelease -Pfintrack.apiBaseUrl=https://sua-api.exemplo/   # APK release (R8)
 ```
 
-**Conectar o app à API local** (emulador ou celular via USB):
+Para conectar o app à API local (emulador ou celular via USB):
 
 ```bash
 npm run dev:api                     # na raiz do monorepo
@@ -152,79 +208,20 @@ adb reverse tcp:3333 tcp:3333       # repita sempre que o dispositivo reconectar
 ```
 
 O build debug usa `http://localhost:3333/`. Não use `10.0.2.2`: no Android 17 (targetSdk 37) o acesso
-a IPs de rede local exige uma permissão de runtime — ver [ADR 0009](docs/adr/0009-android-dev-adb-reverse.md).
+a IPs da rede local exige uma permissão de runtime — veja o
+[ADR 0009](docs/adr/0009-android-dev-adb-reverse.md).
 
-Teste de ponta a ponta contra a API real:
+## Deploy
 
-```bash
-# health + fluxo completo de autenticação (cadastro, /me, rotação, logout, login) contra a API real
-FINTRACK_LIVE_API_URL=http://localhost:3333/ ./gradlew testDebugUnitTest --tests "*HealthLiveApiTest*"
-```
+API e web têm imagens Docker próprias. O passo a passo para publicar no Railway, com ou sem domínio
+próprio, está em [docs/deploy.md](docs/deploy.md). Todas as variáveis de ambiente estão documentadas
+em [.env.example](.env.example); a API valida a configuração no boot e não sobe se algo estiver
+inválido.
 
-## Docker
+## Documentação
 
-```bash
-docker build -f apps/api/Dockerfile -t fintrack-api .                                   # API (produção)
-docker build -f apps/web/Dockerfile --build-arg VITE_API_URL=https://api.exemplo -t fintrack-web .
-docker compose --profile full up -d --build   # PostgreSQL + API (imagem de produção; exige JWT_SECRET no .env)
-```
-
-Ambos os Dockerfiles usam a **raiz do monorepo** como contexto.
-
-## Deploy no Railway
-
-1. Crie um projeto no Railway e conecte este repositório GitHub.
-2. **PostgreSQL**: *New → Database → PostgreSQL*.
-3. **Serviço `api`**:
-   - *Settings → Config-as-code*: `apps/api/railway.json` (usa `apps/api/Dockerfile`, roda
-     `node dist/db/migrate.js` como pre-deploy e usa `/health` como healthcheck).
-   - Variáveis:
-
-     | Variável | Valor |
-     |---|---|
-     | `DATABASE_URL` | `${{Postgres.DATABASE_URL}}` (referência — rede privada) |
-     | `CORS_ORIGINS` | `https://app.<dominio>` (domínio próprio da web) |
-     | `TRUST_PROXY` | `true` |
-     | `APP_VERSION` | opcional (ex.: SHA do commit) |
-     | `JWT_SECRET` | **obrigatório** — 48 bytes aleatórios (comando acima); a API não sobe sem ele |
-
-4. **Serviço `web`**:
-   - *Config-as-code*: `apps/web/railway.json` (usa `apps/web/Dockerfile`).
-   - Variável `VITE_API_URL` = `https://api.<dominio>` (usada no build).
-5. **Domínio próprio** (decidido): *Settings → Networking → Custom Domain* em cada serviço —
-   `app.<dominio>` no `web` e `api.<dominio>` na `api` — e crie os registros CNAME indicados pelo
-   Railway no seu provedor de DNS. Depois ajuste `CORS_ORIGINS=https://app.<dominio>` na API e
-   `VITE_API_URL=https://api.<dominio>` na web. Web e API no mesmo site permitem o cookie de sessão
-   com `SameSite=Lax` ([ADR 0007](docs/adr/0007-autenticacao-jwt-refresh-rotativo.md)).
-
-> O Railway não aceita mais apontar *Config-as-code* (`railway.json`) em serviços novos. Os valores de
-> `apps/*/railway.json` (Dockerfile, pre-deploy, healthcheck, restart) foram aplicados direto nas
-> configurações de cada serviço; os arquivos ficam como referência desses valores.
-
-**Sem domínio próprio:** gere o domínio `*.up.railway.app` só no `web` e deixe `VITE_API_URL`
-vazio. O Caddy da web repassa `/api/*` e `/health` para a API pela rede privada, na mesma origem
-(o cookie `SameSite=Lax` continua funcionando). Variáveis extras:
-
-| Serviço | Variável | Valor |
-|---|---|---|
-| `web` | `API_UPSTREAM` | `http://${{api.RAILWAY_PRIVATE_DOMAIN}}:${{api.PORT}}` |
-| `api` | `HOST` | `::` (a rede privada do Railway usa IPv6) |
-| `api` | `PORT` | `3333` |
-| `api` | `CORS_ORIGINS` | `https://${{web.RAILWAY_PUBLIC_DOMAIN}}` |
-
-`NODE_ENV=production` já vem definido na imagem. Em produção `/docs` fica desligado
-(`API_DOCS_ENABLED=true` para habilitar) e os logs saem em JSON, sem dados financeiros.
-
-## Variáveis de ambiente
-
-Todas documentadas em [.env.example](.env.example). A API valida as variáveis no boot e não sobe
-se alguma estiver inválida. **Nunca** coloque credenciais no código ou no git.
-
-## CI
-
-`.github/workflows/ci.yml` executa em push/PR para `main`:
-
-- **API + Web + Shared**: `npm ci`, format check, lint, typecheck, migrations em PostgreSQL de
-  serviço, testes (incluindo integração) e build;
-- **Imagens Docker**: build de `apps/api` e `apps/web`;
-- **Android**: `testDebugUnitTest`, `lintDebug` e `assembleDebug`.
+- [Arquitetura](docs/architecture.md) — camadas, monorepo, segurança, schema e endpoints
+- [Regras financeiras](docs/financial-rules.md) — o que entra (e o que não entra) em cada cálculo
+- [Convenções da API](docs/api-conventions.md) — formatos, erros, paginação e autenticação
+- [Decisões de arquitetura (ADRs)](docs/adr/README.md)
+- [Deploy](docs/deploy.md)
