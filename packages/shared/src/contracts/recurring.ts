@@ -31,7 +31,7 @@ const recurringFields = {
   endDate: dateOnlySchema.nullish(),
   /** Confirma sozinha ao chegar o dia (só para valor fixo). */
   autoConfirm: z.boolean().default(false),
-  /** Entra nas previsões do "Quanto posso gastar?". */
+  /** Entra nas previsões do dinheiro disponível. */
   includeInForecast: z.boolean().default(true),
 };
 

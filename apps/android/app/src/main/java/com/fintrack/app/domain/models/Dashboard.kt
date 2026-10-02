@@ -1,6 +1,6 @@
 package com.fintrack.app.domain.models
 
-/** Componentes do cálculo de "Quanto posso gastar?" — calculados pelo backend. */
+/** Componentes do cálculo do dinheiro disponível — calculados pelo backend. */
 data class AvailableComponents(
     val liquidBalanceCents: Long,
     val pendingIncomeCents: Long,

@@ -37,7 +37,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 @Composable
 fun LoginScreen(viewModel: LoginViewModel, onNavigateToRegister: () -> Unit) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    AuthScaffold(title = "Entrar", subtitle = "Acesse sua conta para ver quanto você pode gastar.") {
+    AuthScaffold(title = "Entrar", subtitle = "Acesse sua conta para ver seu dinheiro disponível.") {
         FormField(
             label = "E-mail",
             value = state.email,

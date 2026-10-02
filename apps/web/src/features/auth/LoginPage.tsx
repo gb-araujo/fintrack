@@ -35,7 +35,7 @@ export function LoginPage() {
   return (
     <AuthLayout
       title="Entrar"
-      subtitle="Acesse sua conta para ver quanto você pode gastar."
+      subtitle="Acesse sua conta para ver seu dinheiro disponível."
       footer={
         <>
           Ainda não tem conta?{' '}

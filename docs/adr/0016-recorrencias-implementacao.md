@@ -26,7 +26,7 @@
 5. **Valor variável** (ex.: Enel): a previsão usa o último valor confirmado da regra; sem histórico, a
    estimativa informada; sem nenhum dos dois, a previsão vale 0 e a interface pede o valor ao
    confirmar. Sempre sinalizado `estimated`.
-6. **Efeito no "Quanto posso gastar?" (ADR 0014):** só previsões com `includeInForecast`, em conta
+6. **Efeito no dinheiro disponível (ADR 0014):** só previsões com `includeInForecast`, em conta
    líquida e dentro do horizonte somam em `forecastIncomeCents`/`forecastExpensesCents`. Confirmar move
    o valor da previsão para o saldo — o disponível não muda (teste de integração de "sem dupla
    contagem"). Previsões vencidas contam nas "contas pendentes" como atrasadas.

@@ -55,7 +55,7 @@ Regras derivadas:
 - Investimentos não são despesas; resgates não são receitas operacionais.
   ([ADR 0006](./adr/0006-investimentos-como-movimentacao-entre-contas.md))
 
-## 4. "Quanto posso gastar?" (dinheiro disponível) — FASE 3
+## 4. Dinheiro disponível — FASE 3
 
 Horizonte padrão: **de hoje até o último dia do mês corrente** (fuso do usuário). A API aceita
 `?until=YYYY-MM-DD`.
@@ -90,9 +90,9 @@ O horizonte também pode ser pedido por dias: `?days=N` = hoje + N dias (1 a 366
 `until`). A página inicial usa 30 dias por padrão, para enxergar a próxima fatura e o próximo
 recebimento mesmo no fim do mês.
 
-## 4c. Fluxo de caixa e "pode gastar hoje"
+## 4c. Fluxo de caixa e "disponível hoje"
 
-O painel devolve também `cashflow`: **os mesmos itens** do "Quanto posso gastar?", um a um
+O painel devolve também `cashflow`: **os mesmos itens** do dinheiro disponível, um a um
 (pendentes em contas líquidas, transferências que cruzam a fronteira líquida, ocorrências de
 recorrências que entram na previsão e faturas que vencem até o horizonte), em ordem de data, com o
 saldo projetado depois de cada um. Por construção:
@@ -104,7 +104,7 @@ saldo das contas líquidas + Σ entradas − Σ saídas = disponível   (= saldo
 - Itens vencidos (data < hoje, ainda pendentes) contam **hoje**.
 - No mesmo dia, entradas vêm antes das saídas (dá para pagar a conta no dia em que o dinheiro entra).
 - `lowestBalanceCents` = menor saldo projetado entre hoje (inclusive) e o horizonte.
-- `safeToSpendNowCents` = `max(0, lowestBalanceCents)`: o que dá para gastar **hoje** sem o saldo
+- `safeToSpendNowCents` = `max(0, lowestBalanceCents)`: o que está disponível **hoje** sem o saldo
   ficar negativo em nenhum dia. É ≤ disponível: uma receita que chega depois de uma conta não a paga.
 - `outCents` é o "precisa guardar": o total que sai até o horizonte.
 
@@ -118,7 +118,7 @@ saldo das contas líquidas + Σ entradas − Σ saídas = disponível   (= saldo
   parcelas é sempre o total da compra (garantido no banco).
 - Fatura: total − pago = em aberto (negativo = crédito de estorno); status derivado
   (aberta → fechada → paga; vencida se passou do vencimento com valor em aberto).
-- "Quanto posso gastar?" subtrai o valor em aberto das faturas com vencimento até o horizonte
+- O dinheiro disponível subtrai o valor em aberto das faturas com vencimento até o horizonte
   (inclui vencidas); pagar a fatura não muda o disponível. Faturas depois do horizonte são
   compromissos futuros. Patrimônio = saldos − tudo que se deve nos cartões.
 - Não se paga nem agenda mais que o em aberto da fatura; cancelar a compra (estorno) tira as parcelas
@@ -130,7 +130,7 @@ saldo das contas líquidas + Σ entradas − Σ saídas = disponível   (= saldo
 - A transação efetiva só é criada quando o usuário confirma — ou automaticamente se a recorrência
   tiver `auto_confirm = true` e valor fixo. ([ADR 0008](./adr/0008-recorrencias-como-previsao.md),
   [ADR 0016](./adr/0016-recorrencias-implementacao.md))
-- **Confirmar** move a ocorrência da previsão para o saldo (o "posso gastar" não muda); **pular** grava
+- **Confirmar** move a ocorrência da previsão para o saldo (o dinheiro disponível não muda); **pular** grava
   uma transação `cancelled` vinculada (some da previsão, sem efeito em nada); ambas são únicas por
   `(recorrência, data)`. Ocorrência futura só é efetivada com data até hoje.
 - Ocorrências vencidas e não resolvidas (janela de 62 dias) são **atrasadas** e contam em "contas
@@ -205,7 +205,7 @@ Fluxo: arquivo → parser → normalização → detecção de duplicidade → s
 
 ## 6c. Implementado na FASE 3 (dinheiro disponível)
 
-- `GET /api/v1/dashboard` calcula o "Quanto posso gastar?" **no backend** e devolve a decomposição
+- `GET /api/v1/dashboard` calcula o dinheiro disponível **no backend** e devolve a decomposição
   (saldo líquido, receitas/despesas pendentes, transferências pendentes que entram/saem da fronteira
   líquida). Definição formal e decisões no [ADR 0014](./adr/0014-dinheiro-disponivel.md).
 - Conta líquida = banco/carteira, ativa e marcada como disponível; investimento **nunca** entra.

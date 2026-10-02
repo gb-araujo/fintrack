@@ -19,7 +19,7 @@ import {
 } from '../../test/ledger-client.js';
 import { entrySign } from '../accounts/domain/balance.js';
 
-describe.skipIf(!databaseUrl)('painel e "Quanto posso gastar?" (integração)', () => {
+describe.skipIf(!databaseUrl)('painel e dinheiro disponível (integração)', () => {
   let env: LedgerTestEnv;
   let db: DrizzleDb;
 
@@ -435,7 +435,7 @@ describe.skipIf(!databaseUrl)('painel e "Quanto posso gastar?" (integração)', 
       expect(invoice?.invoiceId).toEqual(expect.any(String));
     });
 
-    it('sem pendências: pode gastar hoje o saldo inteiro', async () => {
+    it('sem pendências: o saldo inteiro fica disponível hoje', async () => {
       const user = await registerUser(env.app);
       await user.createAccount({ name: 'Inter', initialBalanceCents: 80_000 });
 

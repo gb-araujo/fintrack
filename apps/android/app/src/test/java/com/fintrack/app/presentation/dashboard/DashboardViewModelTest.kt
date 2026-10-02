@@ -53,7 +53,7 @@ class DashboardViewModelTest {
     }
 
     @Test
-    fun `o valor de quanto posso gastar vem pronto do servidor`() = runTest {
+    fun `o dinheiro disponível vem pronto do servidor`() = runTest {
         dashboard.result = { dashboardSummary(available = 130_000) }
         val viewModel = viewModel()
         advanceUntilIdle()

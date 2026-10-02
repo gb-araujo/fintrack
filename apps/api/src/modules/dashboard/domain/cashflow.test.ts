@@ -20,7 +20,7 @@ function item(
 }
 
 describe('buildCashflow', () => {
-  it('sem itens: saldo de hoje é o menor saldo e o que dá para gastar', () => {
+  it('sem itens: saldo de hoje é o menor saldo e fica todo disponível', () => {
     const flow = buildCashflow(50_000, [], TODAY);
 
     expect(flow).toEqual({
@@ -52,7 +52,7 @@ describe('buildCashflow', () => {
       outCents: 20_000,
       lowestBalanceCents: -10_000,
       lowestBalanceDate: '2026-10-01',
-      // A conta vence antes do salário: hoje não dá para gastar nada.
+      // A conta vence antes do salário: hoje não há nada disponível.
       safeToSpendNowCents: 0,
     });
   });

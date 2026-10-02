@@ -3,7 +3,7 @@ import { dateOnlySchema } from '../dates/dates.js';
 import { signedCentsSchema } from '../money/money.js';
 
 /**
- * "Quanto posso gastar?" — calculado SEMPRE no backend (docs/financial-rules.md §4).
+ * Dinheiro disponível — calculado SEMPRE no backend (docs/financial-rules.md §4).
  * Todos os componentes são devolvidos para o usuário entender o número.
  */
 export const availableComponentsSchema = z.object({
@@ -47,8 +47,8 @@ export const pendingBillSchema = z.object({
 export type PendingBill = z.infer<typeof pendingBillSchema>;
 
 /**
- * Um item do fluxo de caixa até o horizonte: exatamente os itens que compõem o "Quanto posso
- * gastar?" (docs/financial-rules.md §4c), com o saldo projetado logo depois de cada um.
+ * Um item do fluxo de caixa até o horizonte: exatamente os itens que compõem o
+ * dinheiro disponível (docs/financial-rules.md §4c), com o saldo projetado logo depois de cada um.
  */
 export const cashflowEntrySchema = z.object({
   /** Id do lançamento/transferência pendente, "recurring:<id>:<data>" ou "invoice:<id>". */
@@ -82,7 +82,7 @@ export const cashflowSchema = z.object({
   lowestBalanceCents: signedCentsSchema,
   lowestBalanceDate: dateOnlySchema,
   /**
-   * Quanto dá para gastar HOJE sem o saldo ficar negativo em nenhum dia até o horizonte
+   * Quanto está disponível HOJE sem o saldo ficar negativo em nenhum dia até o horizonte
    * (= menor saldo projetado, nunca abaixo de zero). Pode ser menor que o "disponível", que só
    * olha o saldo no fim do horizonte: uma receita que chega depois de uma conta não a paga.
    */

@@ -112,7 +112,7 @@ private fun AvailableCard(summary: DashboardSummary) {
     var expanded by remember { mutableStateOf(false) }
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text("Quanto posso gastar?", style = MaterialTheme.typography.titleMedium)
+            Text("Dinheiro disponível", style = MaterialTheme.typography.titleMedium)
             Text(
                 formatBRL(summary.availableCents),
                 style = MaterialTheme.typography.headlineMedium,

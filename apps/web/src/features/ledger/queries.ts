@@ -15,7 +15,7 @@ export const queryKeys = {
   transactions: (filters: ledger.TransactionFilters) => ['transactions', filters] as const,
 };
 
-/** Painel calculado pelo backend ("Quanto posso gastar?", saldos, mês, pendências). */
+/** Painel calculado pelo backend (dinheiro disponível, saldos, mês, pendências). */
 export function useDashboard(horizon: DashboardHorizon = {}) {
   return useQuery({
     queryKey: ['dashboard', { until: horizon.until ?? null, days: horizon.days ?? null }],

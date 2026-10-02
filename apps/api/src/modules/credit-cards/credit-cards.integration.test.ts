@@ -202,7 +202,7 @@ describe.skipIf(!databaseUrl)('cartão de crédito, faturas e parcelas (integra�
       expect(purchase.installments.map((item) => item.amountCents)).toEqual([3_334, 3_333, 3_333]);
     });
 
-    it('compra não mexe em saldo, lançamentos nem "posso gastar"; só a fatura e o limite mudam', async () => {
+    it('compra não mexe em saldo, lançamentos nem o dinheiro disponível; só a fatura e o limite mudam', async () => {
       const user = await registerUser(env.app);
       const account = await user.createAccount({ name: 'Inter', initialBalanceCents: 300_000 });
       const created = await createCard(user);
@@ -390,7 +390,7 @@ describe.skipIf(!databaseUrl)('cartão de crédito, faturas e parcelas (integra�
       expect(monthAfter.cardExpenseCents).toBe(20_000);
     });
 
-    it('SEM DUPLA CONTAGEM: pagar a fatura não altera o "posso gastar" nem o patrimônio', async () => {
+    it('SEM DUPLA CONTAGEM: pagar a fatura não altera o dinheiro disponível nem o patrimônio', async () => {
       const user = await registerUser(env.app);
       const account = await user.createAccount({ name: 'Inter', initialBalanceCents: 500_000 });
       const created = await createCard(user);

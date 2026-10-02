@@ -15,5 +15,5 @@
 
 ## Consequências
 
-- Não há "despesas fantasmas" no extrato; a previsão aparece no "Quanto posso gastar?" e em
+- Não há "despesas fantasmas" no extrato; a previsão aparece no dinheiro disponível e em
   "Contas pendentes" com rótulo de previsão.

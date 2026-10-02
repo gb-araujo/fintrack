@@ -172,7 +172,7 @@ describe.skipIf(!databaseUrl)('recorrências (integração)', () => {
       expect(d.totalBalanceCents).toBe(100_000);
     });
 
-    it('entra em "Quanto posso gastar?" só dentro do horizonte, decomposta em forecastExpenses', async () => {
+    it('entra no dinheiro disponível só dentro do horizonte, decomposta em forecastExpenses', async () => {
       const user = await registerUser(env.app);
       const account = await user.createAccount({ name: 'Inter', initialBalanceCents: 100_000 });
       await weekly(user, account.id, user.today(2)); // +2, +9, +16
@@ -321,7 +321,7 @@ describe.skipIf(!databaseUrl)('recorrências (integração)', () => {
       expect(await user.listAll()).toHaveLength(1);
     });
 
-    it('SEM DUPLA CONTAGEM: confirmar não altera o "posso gastar" (sai da previsão e entra no saldo)', async () => {
+    it('SEM DUPLA CONTAGEM: confirmar não altera o dinheiro disponível (sai da previsão e entra no saldo)', async () => {
       const user = await registerUser(env.app);
       const account = await user.createAccount({ name: 'Inter', initialBalanceCents: 100_000 });
       const rule = await weekly(user, account.id, user.today(-3)); // -3 e +4 dentro do horizonte

@@ -108,7 +108,7 @@ function Tile({
 }
 
 /**
- * As três respostas da página inicial — quanto dá para gastar hoje, quanto guardar para as contas e
+ * As três respostas da página inicial — quanto está disponível hoje, quanto guardar para as contas e
  * quanto vai entrar — até o horizonte escolhido. Os números vêm prontos do backend (`cashflow`).
  */
 export function MoneyPlan({
@@ -167,7 +167,7 @@ export function MoneyPlan({
 
       <div className="mt-4 grid gap-3 sm:grid-cols-3">
         <Tile
-          label="Pode gastar hoje"
+          label="Disponível hoje"
           cents={cashflow.safeToSpendNowCents}
           tone={shortfall ? 'text-rose-600' : 'text-brand-700'}
         >

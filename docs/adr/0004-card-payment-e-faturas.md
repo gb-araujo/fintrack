@@ -22,4 +22,4 @@ uma conta de destino (o cartão não é uma conta).
 ## Consequências
 
 - Pagamentos parciais e múltiplos pagamentos por fatura são suportados naturalmente.
-- O "Quanto posso gastar?" desconta o valor em aberto das faturas que vencem no horizonte.
+- O dinheiro disponível desconta o valor em aberto das faturas que vencem no horizonte.

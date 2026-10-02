@@ -33,8 +33,8 @@ export function DashboardPage() {
         title="Início"
         description={
           firstName
-            ? `Olá, ${firstName}! Quanto dá para gastar, o que guardar e o que vem por aí.`
-            : 'Quanto dá para gastar, o que guardar e o que vem por aí.'
+            ? `Olá, ${firstName}! Seu dinheiro disponível, o que guardar e o que vem por aí.`
+            : 'Seu dinheiro disponível, o que guardar e o que vem por aí.'
         }
       />
 

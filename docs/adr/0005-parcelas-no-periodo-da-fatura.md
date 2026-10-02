@@ -6,7 +6,7 @@
 ## Contexto
 
 Uma compra de R$ 900 em 3x pode ser reconhecida (a) inteira na data da compra ou (b) R$ 300 em cada
-fatura. A escolha afeta relatórios, orçamento e o "Quanto posso gastar?".
+fatura. A escolha afeta relatórios, orçamento e o dinheiro disponível.
 
 ## Decisão
 

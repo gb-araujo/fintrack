@@ -7,7 +7,7 @@
 
 Uma compra no cartão não sai da conta na hora: vira parcelas em faturas, e a fatura é paga depois por
 uma conta. Os riscos são os de sempre — contar a compra duas vezes (na parcela **e** no pagamento) ou
-deixar o "Quanto posso gastar?" de fora de um compromisso que já existe.
+deixar o dinheiro disponível de fora de um compromisso que já existe.
 
 ## Decisões
 
@@ -50,7 +50,7 @@ deixar o "Quanto posso gastar?" de fora de um compromisso que já existe.
 8. **Limite:** usado = Σ parcelas das compras não canceladas − Σ pagamentos efetivados (piso 0);
    disponível = limite − usado. Ultrapassar o limite **não bloqueia** a compra (quem manda é o banco):
    a API devolve o número negativo e os clientes avisam.
-9. **"Quanto posso gastar?" (ADR 0014):** subtrai `invoicesCents` = valor em aberto das faturas com
+9. **Dinheiro disponível (ADR 0014):** subtrai `invoicesCents` = valor em aberto das faturas com
    vencimento **até o horizonte** (inclui as vencidas e as ainda abertas), qualquer que seja a conta que
    vá pagá-las. Pagar a fatura tira o mesmo valor da conta e da fatura: o disponível **não muda** ao
    pagar (teste de "sem dupla contagem"). Crédito (fatura negativa) não vira dinheiro disponível. Faturas

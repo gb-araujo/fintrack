@@ -69,7 +69,7 @@ const dashboard = {
   futureCommitments: { count: 3, totalCents: 41_000 },
 };
 
-describe('Dashboard — "Quanto posso gastar?"', () => {
+describe('Dashboard — dinheiro disponível', () => {
   it('mostra o valor calculado pelo backend, sem recalcular nada', async () => {
     mockLedgerApi(
       { accounts: [inter] },
@@ -265,7 +265,7 @@ describe('Dashboard — "Quanto posso gastar?"', () => {
   });
 });
 
-describe('Dashboard — plano: gastar, guardar, pagar e receber', () => {
+describe('Dashboard — plano: disponível, guardar, pagar e receber', () => {
   const invoiceId = crypto.randomUUID();
   const entry = {
     estimated: false,
@@ -338,11 +338,11 @@ describe('Dashboard — plano: gastar, guardar, pagar e receber', () => {
     },
   };
 
-  it('mostra quanto dá para gastar hoje, quanto guardar e quanto vai entrar', async () => {
+  it('mostra quanto está disponível hoje, quanto guardar e quanto vai entrar', async () => {
     mockLedgerApi({ accounts: [inter] }, { 'GET /api/v1/dashboard': () => jsonResponse(plan) });
     renderRoute('/');
 
-    expect(await screen.findByLabelText('Pode gastar hoje')).toHaveTextContent(/R\$\s0,00/);
+    expect(await screen.findByLabelText('Disponível hoje')).toHaveTextContent(/R\$\s0,00/);
     expect(screen.getByLabelText('Precisa guardar')).toHaveTextContent(/R\$\s2\.923,81/);
     expect(screen.getByLabelText('Vai entrar')).toHaveTextContent(/R\$\s3\.000,00/);
     expect(screen.getByText('Seu plano até 27/10/2026')).toBeInTheDocument();
@@ -403,7 +403,7 @@ describe('Dashboard — plano: gastar, guardar, pagar e receber', () => {
     mockLedgerApi({ accounts: [inter] }, { 'GET /api/v1/dashboard': () => jsonResponse(calm) });
     renderRoute('/');
 
-    expect(await screen.findByLabelText('Pode gastar hoje')).toHaveTextContent(/R\$\s800,00/);
+    expect(await screen.findByLabelText('Disponível hoje')).toHaveTextContent(/R\$\s800,00/);
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
     expect(screen.getByText('Nenhuma conta a pagar no período.')).toBeInTheDocument();
     expect(screen.getByText(/Nenhuma entrada prevista no período/)).toBeInTheDocument();

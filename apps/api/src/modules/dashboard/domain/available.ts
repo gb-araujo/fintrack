@@ -7,7 +7,7 @@ import {
 import { BusinessRuleError } from '../../../shared/errors/index.js';
 
 /**
- * "Quanto posso gastar?" — regras em docs/financial-rules.md §4. Funções puras.
+ * Dinheiro disponível — regras em docs/financial-rules.md §4. Funções puras.
  *
  * disponível = saldo das contas líquidas
  *            + receitas pendentes até o horizonte

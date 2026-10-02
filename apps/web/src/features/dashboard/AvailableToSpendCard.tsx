@@ -16,12 +16,12 @@ function Line({ label, cents, sign }: { label: string; cents: number; sign: '+' 
 }
 
 /**
- * "Quanto posso gastar?" — o valor vem pronto do backend; aqui só é exibido junto com os
+ * Dinheiro disponível — o valor vem pronto do backend; aqui só é exibido junto com os
  * componentes do cálculo (transparência) e o horizonte escolhido.
  */
 export function AvailableToSpendCard({
   data,
-  title = 'Quanto posso gastar?',
+  title = 'Dinheiro disponível',
   until,
   onUntilChange,
 }: {

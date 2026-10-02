@@ -30,7 +30,7 @@ data class DashboardUiState(
     val apiStatus: ApiStatus = ApiStatus.Checking,
     val isRefreshing: Boolean = false,
     val isLoggingOut: Boolean = false,
-    /** Vem pronto do servidor: o app nunca recalcula "Quanto posso gastar?". */
+    /** Vem pronto do servidor: o app nunca recalcula o dinheiro disponível. */
     val summary: DashboardSummary? = null,
     val summaryError: String? = null,
 )

@@ -19,7 +19,7 @@ export const dashboardRoutes: FastifyPluginCallbackZod<DashboardRoutesOptions> =
       schema: {
         tags: ['dashboard'],
         summary:
-          'Painel: "Quanto posso gastar?", fluxo de caixa, saldos, mês, contas pendentes e compromissos futuros',
+          'Painel: dinheiro disponível, fluxo de caixa, saldos, mês, contas pendentes e compromissos futuros',
         description:
           'O valor de "disponível" é calculado no backend e devolvido junto com todos os componentes e o fluxo de caixa item a item. Horizonte padrão: último dia do mês corrente no fuso do usuário; `until` (data) ou `days` (hoje + N dias) mudam o horizonte.',
         security: [{ bearerAuth: [] }],

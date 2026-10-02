@@ -1,10 +1,10 @@
-# ADR 0014 — Definição do "dinheiro disponível" (Quanto posso gastar?)
+# ADR 0014 — Definição do "dinheiro disponível"
 
 - **Status:** aceito (FASE 3). Detalha o §4 de [financial-rules.md](../financial-rules.md).
 
 ## Contexto
 
-O objetivo do sistema é responder "Quanto dinheiro eu realmente posso gastar?". O saldo bancário não
+O objetivo do sistema é mostrar quanto dinheiro está realmente disponível. O saldo bancário não
 basta: é preciso considerar o que ainda vai entrar e sair, sem contar nada duas vezes.
 
 ## Decisão

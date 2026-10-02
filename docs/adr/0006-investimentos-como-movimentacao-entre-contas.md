@@ -12,7 +12,7 @@ operações como despesa/receita distorce relatórios e cria patrimônio artific
 - Investimentos ficam em contas do tipo `investment`.
 - **Aplicação** = transferência (ADR 0003) de uma conta líquida para a conta de investimento.
 - **Resgate** = transferência da conta de investimento para uma conta líquida. Não é receita operacional.
-- Contas `investment` não entram no "Quanto posso gastar?", mas entram no patrimônio.
+- Contas `investment` não entram no dinheiro disponível, mas entram no patrimônio.
 - A tabela `investment_details` registra instituição/produto da posição (FASE 8, ADR 0020).
 
 ## Rendimentos (resolvido — ver ADR 0020)
