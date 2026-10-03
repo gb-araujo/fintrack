@@ -11,7 +11,7 @@ import {
   netWorthSchema,
   type InvoiceSummary,
 } from '@fintrack/shared';
-import { addDaysToDate, startOfMonth } from '@fintrack/shared';
+import { addDaysToDate, endOfMonth, startOfMonth } from '@fintrack/shared';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import {
   createLedgerTestEnv,
@@ -35,6 +35,8 @@ describe.skipIf(!databaseUrl)('relatórios (integração)', () => {
   // Cartão fechamento 28 / vencimento 5: comprado 5 dias antes do início do mês, a parcela única
   // fecha no mês anterior e VENCE no mês corrente (mesmo padrão de credit-cards.integration.test.ts).
   const oldPurchaseDate = (user: TestClient) => addDaysToDate(startOfMonth(user.today()), -5);
+  // O período precisa ir até o fim do mês: do dia 1 ao 4 o vencimento (dia 5) ainda é futuro.
+  const monthEnd = (user: TestClient) => endOfMonth(user.today());
 
   const get = <T>(user: TestClient, path: string, schema: { parse: (v: unknown) => T }) =>
     user.ok(user.get(path)).then((body) => schema.parse(body));
@@ -131,7 +133,7 @@ describe.skipIf(!databaseUrl)('relatórios (integração)', () => {
         201,
       );
 
-      const report = await byCategory(user, `?from=${currentMonth(user)}-01&to=${user.today()}`);
+      const report = await byCategory(user, `?from=${currentMonth(user)}-01&to=${monthEnd(user)}`);
       const item = report.items.find((entry) => entry.categoryId === food);
 
       expect(item).toMatchObject({ totalCents: 15_000, accountCents: 0, cardCents: 15_000 });
@@ -331,7 +333,7 @@ describe.skipIf(!databaseUrl)('relatórios (integração)', () => {
         201,
       );
 
-      const report = await byCard(user, `?from=${oldPurchaseDate(user)}&to=${user.today()}`);
+      const report = await byCard(user, `?from=${oldPurchaseDate(user)}&to=${monthEnd(user)}`);
 
       // Compra feita antes do início do mês: só a 1ª parcela cai neste período de compra, mas
       // "comprado" soma o total da compra inteira (informativo).
