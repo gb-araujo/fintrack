@@ -45,7 +45,7 @@ export function TrendChart({ labels, series }: { labels: string[]; series: Trend
     <div>
       <ul className="mb-2 flex flex-wrap gap-x-4 gap-y-1" aria-label="Legenda">
         {series.map((item) => (
-          <li key={item.key} className="flex items-center gap-1.5 text-xs text-slate-600">
+          <li key={item.key} className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-300">
             <span
               aria-hidden="true"
               className="inline-block size-2.5 rounded-full"
@@ -69,7 +69,7 @@ export function TrendChart({ labels, series }: { labels: string[]; series: Trend
             y1={zeroY}
             y2={zeroY}
             stroke="currentColor"
-            className="text-slate-300"
+            className="text-slate-300 dark:text-slate-600"
             strokeDasharray="3 3"
           />
         ) : null}
@@ -113,7 +113,7 @@ export function TrendChart({ labels, series }: { labels: string[]; series: Trend
             y1={PAD_TOP}
             y2={PAD_TOP + plotHeight}
             stroke="currentColor"
-            className="text-slate-300"
+            className="text-slate-300 dark:text-slate-600"
           />
         ) : null}
         {tickIndexes.map((index) => (
@@ -122,7 +122,7 @@ export function TrendChart({ labels, series }: { labels: string[]; series: Trend
             x={xAt(index)}
             y={HEIGHT - 6}
             textAnchor="middle"
-            className="fill-slate-500 text-[9px]"
+            className="fill-slate-500 dark:fill-slate-400 text-[9px]"
           >
             {labels[index]}
           </text>
@@ -133,9 +133,9 @@ export function TrendChart({ labels, series }: { labels: string[]; series: Trend
         <dl
           role="status"
           aria-label={`Valores de ${labels[hover]}`}
-          className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-600"
+          className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-600 dark:text-slate-300"
         >
-          <dt className="font-medium text-slate-800">{labels[hover]}</dt>
+          <dt className="font-medium text-slate-800 dark:text-slate-100">{labels[hover]}</dt>
           {series.map((item) => (
             <div key={item.key} className="flex items-center gap-1">
               <dt>{item.label}:</dt>

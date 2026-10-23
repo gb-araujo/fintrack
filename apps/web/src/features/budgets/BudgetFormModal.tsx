@@ -64,7 +64,7 @@ export function BudgetFormModal({
       onClose={onClose}
     >
       <form noValidate onSubmit={(event) => void handleSubmit(event)} className="space-y-4">
-        <p className="text-sm text-slate-600">Limite de gastos em {formatMonth(month)}.</p>
+        <p className="text-sm text-slate-600 dark:text-slate-300">Limite de gastos em {formatMonth(month)}.</p>
         {!editing ? (
           <SelectField
             label="Categoria"

@@ -41,7 +41,7 @@ export function ReportsPage() {
       <div
         role="tablist"
         aria-label="Relatórios"
-        className="mb-4 flex gap-1 overflow-x-auto border-b border-slate-200 pb-px"
+        className="mb-4 flex gap-1 overflow-x-auto border-b border-slate-200 dark:border-slate-800 pb-px"
       >
         {TABS.map((tab) => (
           <button
@@ -52,15 +52,15 @@ export function ReportsPage() {
             onClick={() => setActive(tab.key)}
             className={`shrink-0 whitespace-nowrap border-b-2 px-3 py-2 text-sm font-medium ${
               active === tab.key
-                ? 'border-brand-700 text-brand-700'
-                : 'border-transparent text-slate-500 hover:text-slate-700'
+                ? 'border-brand-700 text-brand-700 dark:text-brand-400'
+                : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
             }`}
           >
             {tab.label}
           </button>
         ))}
       </div>
-      <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+      <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-sm">
         <Current />
       </div>
     </>

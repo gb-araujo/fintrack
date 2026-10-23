@@ -62,7 +62,7 @@ export function ValuationFormModal({
   return (
     <Modal title="Registrar avaliação" onClose={onClose}>
       <form noValidate onSubmit={(event) => void handleSubmit(event)} className="space-y-4">
-        <p className="rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-600">
+        <p className="rounded-lg bg-slate-50 dark:bg-slate-800 px-3 py-2 text-xs text-slate-600 dark:text-slate-300">
           Informe o valor total da posição no extrato da corretora nesta data. Já existe uma
           avaliação nesta data? Ela é corrigida — o histórico das outras datas não muda.
         </p>

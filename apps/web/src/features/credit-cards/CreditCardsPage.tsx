@@ -19,7 +19,7 @@ export function LimitBar({ card }: { card: CreditCard }) {
       aria-valuemin={0}
       aria-valuemax={100}
       aria-valuenow={percent}
-      className="h-2 overflow-hidden rounded-full bg-slate-100"
+      className="h-2 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800"
     >
       <div
         className={`h-full rounded-full ${card.availableLimitCents < 0 ? 'bg-rose-500' : 'bg-brand-600'}`}
@@ -60,11 +60,11 @@ export function CreditCardsPage() {
       ) : (
         <ul className="grid gap-3 sm:grid-cols-2" aria-label="Cartões">
           {cards.data.map((card) => (
-            <li key={card.id} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+            <li key={card.id} className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-sm">
               <div className="flex items-start justify-between gap-2">
                 <Link
                   to={`/credit-cards/${card.id}`}
-                  className="min-w-0 truncate font-semibold text-brand-700 hover:underline"
+                  className="min-w-0 truncate font-semibold text-brand-700 dark:text-brand-400 hover:underline"
                 >
                   {card.name}
                 </Link>
@@ -75,19 +75,19 @@ export function CreditCardsPage() {
               </div>
               <dl className="mt-2 grid grid-cols-2 gap-2 text-sm">
                 <div>
-                  <dt className="text-xs text-slate-500">Usado</dt>
+                  <dt className="text-xs text-slate-500 dark:text-slate-400">Usado</dt>
                   <dd className="tabular-nums">{formatBRL(card.usedLimitCents)}</dd>
                 </div>
                 <div>
-                  <dt className="text-xs text-slate-500">Disponível</dt>
+                  <dt className="text-xs text-slate-500 dark:text-slate-400">Disponível</dt>
                   <dd
-                    className={`tabular-nums ${card.availableLimitCents < 0 ? 'text-rose-600' : ''}`}
+                    className={`tabular-nums ${card.availableLimitCents < 0 ? 'text-rose-600 dark:text-rose-400' : ''}`}
                   >
                     {formatBRL(card.availableLimitCents)}
                   </dd>
                 </div>
               </dl>
-              <p className="mt-2 text-xs text-slate-500">
+              <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
                 {card.openInvoice
                   ? `Fatura aberta: ${formatBRL(card.openInvoice.totalCents)} · fecha ${formatDate(card.openInvoice.closingDate)} · vence ${formatDate(card.openInvoice.dueDate)}`
                   : 'Sem fatura aberta.'}

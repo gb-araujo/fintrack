@@ -67,12 +67,12 @@ export function RulesSection() {
   return (
     <section
       aria-labelledby="rules-title"
-      className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
+      className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-sm"
     >
-      <h2 id="rules-title" className="font-semibold text-slate-900">
+      <h2 id="rules-title" className="font-semibold text-slate-900 dark:text-slate-50">
         Regras de importação
       </h2>
-      <p className="mb-3 text-xs text-slate-500">
+      <p className="mb-3 text-xs text-slate-500 dark:text-slate-400">
         Quando a descrição contiver o texto, o app sugere a categoria (ou a transferência). Suas
         regras valem antes das regras padrão.
       </p>
@@ -134,12 +134,12 @@ export function RulesSection() {
         ) : rules.data.length === 0 ? (
           <EmptyState title="Nenhuma regra própria" />
         ) : (
-          <ul className="divide-y divide-slate-100" aria-label="Regras de importação">
+          <ul className="divide-y divide-slate-100 dark:divide-slate-800" aria-label="Regras de importação">
             {rules.data.map((rule) => (
               <li key={rule.id} className="flex flex-wrap items-center justify-between gap-2 py-2">
                 <span className="min-w-0 text-sm">
-                  <span className="font-medium text-slate-900">{rule.pattern}</span>
-                  <span className="ml-2 text-xs text-slate-500">
+                  <span className="font-medium text-slate-900 dark:text-slate-50">{rule.pattern}</span>
+                  <span className="ml-2 text-xs text-slate-500 dark:text-slate-400">
                     → {TYPE_LABEL[rule.suggestedType]}
                     {rule.suggestedType === 'transfer'
                       ? ` para ${nameOf(rule.targetAccountId, accounts.data)}`

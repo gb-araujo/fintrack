@@ -4,7 +4,7 @@ import { useAuth } from './auth-context';
 function FullScreenLoading() {
   return (
     <div className="grid min-h-dvh place-items-center" role="status" aria-live="polite">
-      <span className="text-sm text-slate-500">Carregando…</span>
+      <span className="text-sm text-slate-500 dark:text-slate-400">Carregando…</span>
     </div>
   );
 }

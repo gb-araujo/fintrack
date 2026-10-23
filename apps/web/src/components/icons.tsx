@@ -11,7 +11,9 @@ export type IconName =
   | 'chart'
   | 'trending'
   | 'upload'
-  | 'more';
+  | 'more'
+  | 'sun'
+  | 'moon';
 
 const paths: Record<IconName, string> = {
   home: 'M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z',
@@ -26,6 +28,8 @@ const paths: Record<IconName, string> = {
   trending: 'M3 17l6-6 4 4 8-8m0 0h-6m6 0v6',
   upload: 'M12 16V4m0 0-4 4m4-4 4 4M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3',
   more: 'M5 12h.01M12 12h.01M19 12h.01',
+  sun: 'M12 17a5 5 0 1 0 0-10 5 5 0 0 0 0 10zM12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72 1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42',
+  moon: 'M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z',
 };
 
 export function Icon({ name, ...props }: { name: IconName } & SVGProps<SVGSVGElement>) {

@@ -139,9 +139,9 @@ function NewImportSection() {
   return (
     <section
       aria-labelledby="new-import-title"
-      className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
+      className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-sm"
     >
-      <h2 id="new-import-title" className="mb-3 font-semibold text-slate-900">
+      <h2 id="new-import-title" className="mb-3 font-semibold text-slate-900 dark:text-slate-50">
         Nova importação
       </h2>
       <form noValidate onSubmit={(event) => void handleSubmit(event)} className="space-y-4">
@@ -164,8 +164,8 @@ function NewImportSection() {
           }}
         />
         {mapping ? (
-          <fieldset className="space-y-3 rounded-lg border border-amber-200 bg-amber-50 p-3">
-            <legend className="px-1 text-sm font-medium text-amber-900">
+          <fieldset className="space-y-3 rounded-lg border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950 p-3">
+            <legend className="px-1 text-sm font-medium text-amber-900 dark:text-amber-200">
               Indique as colunas do arquivo
             </legend>
             <SelectField
@@ -221,9 +221,9 @@ function HistorySection() {
   return (
     <section
       aria-labelledby="history-title"
-      className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
+      className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-sm"
     >
-      <h2 id="history-title" className="mb-3 font-semibold text-slate-900">
+      <h2 id="history-title" className="mb-3 font-semibold text-slate-900 dark:text-slate-50">
         Histórico
       </h2>
       {history.isPending ? (
@@ -233,17 +233,17 @@ function HistorySection() {
       ) : history.data.length === 0 ? (
         <EmptyState title="Nenhuma importação ainda" />
       ) : (
-        <ul className="divide-y divide-slate-100" aria-label="Importações">
+        <ul className="divide-y divide-slate-100 dark:divide-slate-800" aria-label="Importações">
           {history.data.map((item) => (
             <li key={item.id} className="flex flex-wrap items-center justify-between gap-2 py-2">
               <div className="min-w-0">
-                <p className="truncate text-sm text-slate-900">
+                <p className="truncate text-sm text-slate-900 dark:text-slate-50">
                   {item.filename}
                   <span className="ml-2">
                     <Badge tone={STATUS[item.status].tone}>{STATUS[item.status].label}</Badge>
                   </span>
                 </p>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-slate-500 dark:text-slate-400">
                   {accountName(item.accountId)} · {formatDate(item.createdAt.slice(0, 10))} ·{' '}
                   {item.rowsCount} linhas
                   {item.status === 'confirmed' || item.status === 'reverted'
@@ -255,7 +255,7 @@ function HistorySection() {
                 {item.status === 'review' ? (
                   <Link
                     to={`/imports/${item.id}`}
-                    className="rounded-lg border border-slate-300 px-2.5 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                    className="rounded-lg border border-slate-300 dark:border-slate-700 px-2.5 py-1 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800"
                   >
                     Revisar
                   </Link>

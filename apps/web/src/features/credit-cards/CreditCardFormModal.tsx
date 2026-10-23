@@ -126,7 +126,7 @@ export function CreditCardFormModal({ card, onClose }: { card?: CreditCard; onCl
             error={errors.dueDay}
           />
         </div>
-        <p className="-mt-2 text-xs text-slate-500">
+        <p className="-mt-2 text-xs text-slate-500 dark:text-slate-400">
           Compras até o dia do fechamento entram na fatura do mês; depois, na seguinte. Em meses
           mais curtos vale o último dia.
         </p>

@@ -34,7 +34,7 @@ export function PeriodControls({
         <button
           type="button"
           onClick={() => onChange({})}
-          className="mb-[1px] h-fit text-sm font-medium text-brand-700 hover:underline"
+          className="mb-[1px] h-fit text-sm font-medium text-brand-700 dark:text-brand-400 hover:underline"
         >
           Mês corrente
         </button>

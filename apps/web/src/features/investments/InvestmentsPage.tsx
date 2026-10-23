@@ -41,27 +41,27 @@ function InvestmentCard({ investment }: { investment: InvestmentSummary }) {
     <li>
       <Link
         to={`/investments/${investment.accountId}`}
-        className="block rounded-xl border border-slate-200 bg-white p-4 shadow-sm hover:border-brand-300 hover:shadow"
+        className="block rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-sm hover:border-brand-300 hover:shadow"
       >
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
-            <h3 className="truncate font-medium text-slate-900">{investment.accountName}</h3>
-            {subtitle ? <p className="truncate text-xs text-slate-500">{subtitle}</p> : null}
+            <h3 className="truncate font-medium text-slate-900 dark:text-slate-50">{investment.accountName}</h3>
+            {subtitle ? <p className="truncate text-xs text-slate-500 dark:text-slate-400">{subtitle}</p> : null}
           </div>
-          <span className="shrink-0 text-lg font-semibold tabular-nums text-slate-900">
+          <span className="shrink-0 text-lg font-semibold tabular-nums text-slate-900 dark:text-slate-50">
             {formatBRL(investment.balanceCents)}
           </span>
         </div>
 
         <dl className="mt-3 grid grid-cols-2 gap-2 text-sm">
           <div>
-            <dt className="text-xs text-slate-500">Aportado (líquido)</dt>
+            <dt className="text-xs text-slate-500 dark:text-slate-400">Aportado (líquido)</dt>
             <dd className="tabular-nums">{formatBRL(investment.netContributedCents)}</dd>
           </div>
           <div>
-            <dt className="text-xs text-slate-500">Rendimento desde a 1ª avaliação</dt>
+            <dt className="text-xs text-slate-500 dark:text-slate-400">Rendimento desde a 1ª avaliação</dt>
             {investment.totalYieldCents === null ? (
-              <dd className="text-slate-400">Sem avaliação</dd>
+              <dd className="text-slate-400 dark:text-slate-500">Sem avaliação</dd>
             ) : (
               <dd className={`tabular-nums ${amountTone(investment.totalYieldCents)}`}>
                 {formatSigned(investment.totalYieldCents)}

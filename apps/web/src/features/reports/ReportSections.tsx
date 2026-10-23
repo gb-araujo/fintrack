@@ -29,11 +29,11 @@ function shortMonth(month: string): string {
 function Line({ label, cents, sign }: { label: string; cents: number; sign: '+' | '−' | '=' }) {
   return (
     <li className="flex items-baseline justify-between gap-3 py-1 text-sm">
-      <span className="text-slate-600">
-        <span className="mr-2 inline-block w-3 text-center font-medium text-slate-400">{sign}</span>
+      <span className="text-slate-600 dark:text-slate-300">
+        <span className="mr-2 inline-block w-3 text-center font-medium text-slate-400 dark:text-slate-500">{sign}</span>
         {label}
       </span>
-      <span className="tabular-nums text-slate-900">{formatBRL(cents)}</span>
+      <span className="tabular-nums text-slate-900 dark:text-slate-50">{formatBRL(cents)}</span>
     </li>
   );
 }
@@ -50,7 +50,7 @@ export function ExpensesByCategorySection() {
         <QueryError error={report.error} onRetry={() => void report.refetch()} />
       ) : (
         <>
-          <p className="mb-3 text-sm text-slate-600">
+          <p className="mb-3 text-sm text-slate-600 dark:text-slate-300">
             Total:{' '}
             <span className="font-semibold tabular-nums">{formatBRL(report.data.totalCents)}</span>
           </p>
@@ -139,13 +139,13 @@ export function MonthlyEvolutionSection() {
             ]}
           />
           <details className="mt-3">
-            <summary className="cursor-pointer text-sm font-medium text-slate-700">
+            <summary className="cursor-pointer text-sm font-medium text-slate-700 dark:text-slate-200">
               Ver tabela
             </summary>
             <div className="mt-2 overflow-x-auto">
               <table className="w-full min-w-[420px] text-sm">
                 <thead>
-                  <tr className="text-left text-xs text-slate-500">
+                  <tr className="text-left text-xs text-slate-500 dark:text-slate-400">
                     <th className="py-1 pr-2">Mês</th>
                     <th className="py-1 pr-2 text-right">Receitas</th>
                     <th className="py-1 pr-2 text-right">Despesas</th>
@@ -154,7 +154,7 @@ export function MonthlyEvolutionSection() {
                 </thead>
                 <tbody>
                   {report.data.items.map((item) => (
-                    <tr key={item.month} className="border-t border-slate-100">
+                    <tr key={item.month} className="border-t border-slate-100 dark:border-slate-800">
                       <td className="py-1 pr-2 capitalize">{formatMonth(item.month)}</td>
                       <td className="py-1 pr-2 text-right tabular-nums">
                         {formatBRL(item.incomeCents)}
@@ -163,7 +163,7 @@ export function MonthlyEvolutionSection() {
                         {formatBRL(item.expenseCents)}
                       </td>
                       <td
-                        className={`py-1 text-right tabular-nums ${item.netCents < 0 ? 'text-rose-600' : 'text-emerald-700'}`}
+                        className={`py-1 text-right tabular-nums ${item.netCents < 0 ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-700 dark:text-emerald-300'}`}
                       >
                         {formatBRL(item.netCents)}
                       </td>
@@ -220,16 +220,16 @@ export function ExpensesByCardSection() {
       ) : (
         <ul className="space-y-3" aria-label="Gastos por cartão">
           {report.data.items.map((item) => (
-            <li key={item.cardId} className="rounded-lg border border-slate-200 p-3">
-              <p className="font-medium text-slate-900">{item.cardName}</p>
+            <li key={item.cardId} className="rounded-lg border border-slate-200 dark:border-slate-800 p-3">
+              <p className="font-medium text-slate-900 dark:text-slate-50">{item.cardName}</p>
               <dl className="mt-1 grid grid-cols-2 gap-2 text-sm">
                 <div>
-                  <dt className="text-xs text-slate-500">Parcelas no período</dt>
+                  <dt className="text-xs text-slate-500 dark:text-slate-400">Parcelas no período</dt>
                   <dd className="tabular-nums">{formatBRL(item.installmentsCents)}</dd>
                 </div>
                 <div>
-                  <dt className="text-xs text-slate-500">Comprado no período (informativo)</dt>
-                  <dd className="tabular-nums text-slate-500">{formatBRL(item.purchasedCents)}</dd>
+                  <dt className="text-xs text-slate-500 dark:text-slate-400">Comprado no período (informativo)</dt>
+                  <dd className="tabular-nums text-slate-500 dark:text-slate-400">{formatBRL(item.purchasedCents)}</dd>
                 </div>
               </dl>
             </li>
@@ -251,7 +251,7 @@ export function CashFlowSection() {
       ) : report.isError ? (
         <QueryError error={report.error} onRetry={() => void report.refetch()} />
       ) : (
-        <ul className="divide-y divide-slate-100" aria-label="Composição do fluxo de caixa">
+        <ul className="divide-y divide-slate-100 dark:divide-slate-800" aria-label="Composição do fluxo de caixa">
           <Line
             label="Saldo das contas disponíveis no início"
             cents={report.data.openingBalanceCents}
@@ -297,7 +297,7 @@ export function BudgetHistorySection() {
         <div className="overflow-x-auto">
           <table className="w-full min-w-[480px] text-sm">
             <thead>
-              <tr className="text-left text-xs text-slate-500">
+              <tr className="text-left text-xs text-slate-500 dark:text-slate-400">
                 <th className="py-1 pr-2">Mês</th>
                 <th className="py-1 pr-2 text-right">Orçado</th>
                 <th className="py-1 pr-2 text-right">Gasto</th>
@@ -310,7 +310,7 @@ export function BudgetHistorySection() {
                 const status =
                   item.budgetsCount === 0 ? null : item.exceededCount > 0 ? 'exceeded' : 'ok';
                 return (
-                  <tr key={item.month} className="border-t border-slate-100">
+                  <tr key={item.month} className="border-t border-slate-100 dark:border-slate-800">
                     <td className="py-1 pr-2 capitalize">{formatMonth(item.month)}</td>
                     <td className="py-1 pr-2 text-right tabular-nums">
                       {formatBRL(item.limitCents)}
@@ -319,7 +319,7 @@ export function BudgetHistorySection() {
                       {formatBRL(item.spentCents)}
                     </td>
                     <td
-                      className={`py-1 pr-2 text-right tabular-nums ${item.remainingCents < 0 ? 'text-rose-600' : ''}`}
+                      className={`py-1 pr-2 text-right tabular-nums ${item.remainingCents < 0 ? 'text-rose-600 dark:text-rose-400' : ''}`}
                     >
                       {formatBRL(item.remainingCents)}
                     </td>
@@ -331,7 +331,7 @@ export function BudgetHistorySection() {
                             : 'Dentro do limite'}
                         </Badge>
                       ) : (
-                        <span className="text-xs text-slate-400">Sem orçamento</span>
+                        <span className="text-xs text-slate-400 dark:text-slate-500">Sem orçamento</span>
                       )}
                     </td>
                   </tr>
@@ -369,13 +369,13 @@ export function NetWorthSection() {
             ]}
           />
           <details className="mt-3">
-            <summary className="cursor-pointer text-sm font-medium text-slate-700">
+            <summary className="cursor-pointer text-sm font-medium text-slate-700 dark:text-slate-200">
               Ver tabela
             </summary>
             <div className="mt-2 overflow-x-auto">
               <table className="w-full min-w-[480px] text-sm">
                 <thead>
-                  <tr className="text-left text-xs text-slate-500">
+                  <tr className="text-left text-xs text-slate-500 dark:text-slate-400">
                     <th className="py-1 pr-2">Data</th>
                     <th className="py-1 pr-2 text-right">Caixa</th>
                     <th className="py-1 pr-2 text-right">Investimentos</th>
@@ -385,7 +385,7 @@ export function NetWorthSection() {
                 </thead>
                 <tbody>
                   {report.data.items.map((item) => (
-                    <tr key={item.date} className="border-t border-slate-100">
+                    <tr key={item.date} className="border-t border-slate-100 dark:border-slate-800">
                       <td className="py-1 pr-2">{formatDate(item.date)}</td>
                       <td className="py-1 pr-2 text-right tabular-nums">
                         {formatBRL(item.cashCents)}
@@ -393,7 +393,7 @@ export function NetWorthSection() {
                       <td className="py-1 pr-2 text-right tabular-nums">
                         {formatBRL(item.investmentsCents)}
                       </td>
-                      <td className="py-1 pr-2 text-right tabular-nums text-rose-600">
+                      <td className="py-1 pr-2 text-right tabular-nums text-rose-600 dark:text-rose-400">
                         {formatBRL(item.cardLiabilitiesCents)}
                       </td>
                       <td className="py-1 text-right font-medium tabular-nums">
@@ -432,9 +432,9 @@ export function InvestmentsSection() {
               hint="Resgate não é receita"
             />
             {report.data.yieldCents === null ? (
-              <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-                <h2 className="text-sm font-medium text-slate-500">Rendimento no período</h2>
-                <p className="mt-1 text-sm text-slate-400">Sem avaliação registrada</p>
+              <section className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-sm">
+                <h2 className="text-sm font-medium text-slate-500 dark:text-slate-400">Rendimento no período</h2>
+                <p className="mt-1 text-sm text-slate-400 dark:text-slate-500">Sem avaliação registrada</p>
               </section>
             ) : (
               <StatCard
@@ -450,28 +450,28 @@ export function InvestmentsSection() {
           ) : (
             <ul className="space-y-3" aria-label="Contas de investimento">
               {report.data.items.map((item) => (
-                <li key={item.accountId} className="rounded-lg border border-slate-200 p-3">
-                  <p className="font-medium text-slate-900">{item.accountName}</p>
+                <li key={item.accountId} className="rounded-lg border border-slate-200 dark:border-slate-800 p-3">
+                  <p className="font-medium text-slate-900 dark:text-slate-50">{item.accountName}</p>
                   <dl className="mt-1 grid grid-cols-2 gap-2 text-sm sm:grid-cols-5">
                     <div>
-                      <dt className="text-xs text-slate-500">Saldo</dt>
+                      <dt className="text-xs text-slate-500 dark:text-slate-400">Saldo</dt>
                       <dd className="tabular-nums">{formatBRL(item.balanceCents)}</dd>
                     </div>
                     <div>
-                      <dt className="text-xs text-slate-500">Aplicado</dt>
+                      <dt className="text-xs text-slate-500 dark:text-slate-400">Aplicado</dt>
                       <dd className="tabular-nums">{formatBRL(item.appliedCents)}</dd>
                     </div>
                     <div>
-                      <dt className="text-xs text-slate-500">Resgatado</dt>
+                      <dt className="text-xs text-slate-500 dark:text-slate-400">Resgatado</dt>
                       <dd className="tabular-nums">{formatBRL(item.redeemedCents)}</dd>
                     </div>
                     <div>
-                      <dt className="text-xs text-slate-500">Aportado (líquido)</dt>
+                      <dt className="text-xs text-slate-500 dark:text-slate-400">Aportado (líquido)</dt>
                       <dd className="tabular-nums">{formatBRL(item.netContributedCents)}</dd>
                     </div>
                     <div>
-                      <dt className="text-xs text-slate-500">Rendimento</dt>
-                      <dd className={item.yieldCents === null ? 'text-slate-400' : 'tabular-nums'}>
+                      <dt className="text-xs text-slate-500 dark:text-slate-400">Rendimento</dt>
+                      <dd className={item.yieldCents === null ? 'text-slate-400 dark:text-slate-500' : 'tabular-nums'}>
                         {item.yieldCents === null ? 'Sem avaliação' : formatSigned(item.yieldCents)}
                       </dd>
                     </div>
@@ -480,9 +480,9 @@ export function InvestmentsSection() {
               ))}
             </ul>
           )}
-          <p className="mt-3 text-xs text-slate-500">
+          <p className="mt-3 text-xs text-slate-500 dark:text-slate-400">
             Rendimento é derivado das avaliações registradas em cada conta —{' '}
-            <Link to="/investments" className="text-brand-700 hover:underline">
+            <Link to="/investments" className="text-brand-700 dark:text-brand-400 hover:underline">
               gerencie as avaliações em Investimentos
             </Link>
             .

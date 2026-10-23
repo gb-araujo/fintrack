@@ -51,7 +51,7 @@ export function DashboardPage() {
             <CashflowList data={dashboard.data} direction="in" />
           </div>
 
-          <h2 className="mt-8 mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">
+          <h2 className="mt-8 mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
             Mais detalhes
           </h2>
           <div className="grid gap-4 md:grid-cols-2">
@@ -93,28 +93,28 @@ export function DashboardPage() {
 
             <section
               aria-labelledby="pending-title"
-              className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
+              className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-sm"
             >
               <div className="flex items-baseline justify-between gap-2">
-                <h2 id="pending-title" className="text-sm font-medium text-slate-500">
+                <h2 id="pending-title" className="text-sm font-medium text-slate-500 dark:text-slate-400">
                   Contas pendentes
                 </h2>
                 <span className="flex gap-3">
                   <Link
                     to="/credit-cards"
-                    className="text-xs font-medium text-brand-700 hover:underline"
+                    className="text-xs font-medium text-brand-700 dark:text-brand-400 hover:underline"
                   >
                     Cartões
                   </Link>
                   <Link
                     to="/recurring"
-                    className="text-xs font-medium text-brand-700 hover:underline"
+                    className="text-xs font-medium text-brand-700 dark:text-brand-400 hover:underline"
                   >
                     Recorrências
                   </Link>
                   <Link
                     to="/transactions"
-                    className="text-xs font-medium text-brand-700 hover:underline"
+                    className="text-xs font-medium text-brand-700 dark:text-brand-400 hover:underline"
                   >
                     Ver transações
                   </Link>
@@ -126,19 +126,19 @@ export function DashboardPage() {
               >
                 {formatBRL(dashboard.data.pendingBills.totalCents)}
               </p>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-slate-500 dark:text-slate-400">
                 {dashboard.data.pendingBills.count} até {formatDate(dashboard.data.until)}
                 {dashboard.data.pendingBills.overdueCount > 0 ? (
                   <>
                     {' · '}
-                    <span className="font-medium text-rose-600">
+                    <span className="font-medium text-rose-600 dark:text-rose-400">
                       {dashboard.data.pendingBills.overdueCount} vencida(s)
                     </span>
                   </>
                 ) : null}
               </p>
               {dashboard.data.pendingBills.next.length > 0 ? (
-                <ul className="mt-3 divide-y divide-slate-100" aria-label="Próximas contas a pagar">
+                <ul className="mt-3 divide-y divide-slate-100 dark:divide-slate-800" aria-label="Próximas contas a pagar">
                   {dashboard.data.pendingBills.next.map((bill) => (
                     <li
                       key={bill.id}
@@ -146,7 +146,7 @@ export function DashboardPage() {
                     >
                       <span className="min-w-0 truncate">
                         {bill.description || 'Despesa'}
-                        <span className="ml-2 text-xs text-slate-500">
+                        <span className="ml-2 text-xs text-slate-500 dark:text-slate-400">
                           {formatDate(bill.date)}
                           {bill.accountId ? ` · ${accountName(bill.accountId)}` : ''}
                         </span>
@@ -168,7 +168,7 @@ export function DashboardPage() {
                           </span>
                         ) : null}
                       </span>
-                      <span className="shrink-0 tabular-nums text-rose-600">
+                      <span className="shrink-0 tabular-nums text-rose-600 dark:text-rose-400">
                         {formatBRL(bill.amountCents)}
                       </span>
                     </li>

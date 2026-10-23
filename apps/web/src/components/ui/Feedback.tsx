@@ -5,7 +5,7 @@ import { Modal } from './Modal';
 
 export function Spinner({ label = 'Carregando…' }: { label?: string }) {
   return (
-    <p role="status" className="py-10 text-center text-sm text-slate-500">
+    <p role="status" className="py-10 text-center text-sm text-slate-500 dark:text-slate-400">
       {label}
     </p>
   );
@@ -15,7 +15,7 @@ export function QueryError({ error, onRetry }: { error: unknown; onRetry: () => 
   return (
     <div
       role="alert"
-      className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800"
+      className="rounded-xl border border-rose-200 dark:border-rose-800 bg-rose-50 dark:bg-rose-950 p-4 text-sm text-rose-800 dark:text-rose-300"
     >
       <p>{formErrorMessage(error)}</p>
       <Button variant="secondary" size="sm" className="mt-3" onClick={onRetry}>
@@ -27,9 +27,9 @@ export function QueryError({ error, onRetry }: { error: unknown; onRetry: () => 
 
 export function EmptyState({ title, children }: { title: string; children?: ReactNode }) {
   return (
-    <div className="rounded-xl border border-dashed border-slate-300 bg-white p-8 text-center">
-      <p className="font-medium text-slate-700">{title}</p>
-      {children ? <div className="mt-2 text-sm text-slate-500">{children}</div> : null}
+    <div className="rounded-xl border border-dashed border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-8 text-center">
+      <p className="font-medium text-slate-700 dark:text-slate-200">{title}</p>
+      {children ? <div className="mt-2 text-sm text-slate-500 dark:text-slate-400">{children}</div> : null}
     </div>
   );
 }
@@ -37,18 +37,18 @@ export function EmptyState({ title, children }: { title: string; children?: Reac
 export function FormError({ message }: { message: string | null }) {
   if (!message) return null;
   return (
-    <p role="alert" className="rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700">
+    <p role="alert" className="rounded-lg bg-rose-50 dark:bg-rose-950 px-3 py-2 text-sm text-rose-700 dark:text-rose-300">
       {message}
     </p>
   );
 }
 
 const badgeTones = {
-  slate: 'bg-slate-100 text-slate-700',
-  amber: 'bg-amber-100 text-amber-800',
-  emerald: 'bg-emerald-100 text-emerald-800',
-  rose: 'bg-rose-100 text-rose-800',
-  sky: 'bg-sky-100 text-sky-800',
+  slate: 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200',
+  amber: 'bg-amber-100 dark:bg-amber-900 text-amber-800 dark:text-amber-300',
+  emerald: 'bg-emerald-100 dark:bg-emerald-900 text-emerald-800 dark:text-emerald-300',
+  rose: 'bg-rose-100 dark:bg-rose-900 text-rose-800 dark:text-rose-300',
+  sky: 'bg-sky-100 dark:bg-sky-900 text-sky-800 dark:text-sky-300',
 } as const;
 
 export function Badge({
@@ -87,7 +87,7 @@ export function ConfirmDialog({
 }) {
   return (
     <Modal title={title} onClose={onCancel}>
-      <p className="text-sm text-slate-600">{message}</p>
+      <p className="text-sm text-slate-600 dark:text-slate-300">{message}</p>
       <div className="mt-4 space-y-3">
         <FormError message={error} />
         <div className="flex justify-end gap-2">

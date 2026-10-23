@@ -28,7 +28,7 @@ export function InvestmentDetailPage() {
 
   return (
     <>
-      <Link to="/investments" className="text-sm text-brand-700 hover:underline">
+      <Link to="/investments" className="text-sm text-brand-700 dark:text-brand-400 hover:underline">
         ← Investimentos
       </Link>
       <div className="mt-2">
@@ -40,23 +40,23 @@ export function InvestmentDetailPage() {
 
       <section
         aria-label="Resumo"
-        className="mb-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
+        className="mb-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-sm"
       >
         <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           <div>
-            <dt className="text-xs text-slate-500">Saldo</dt>
-            <dd className="text-lg font-semibold tabular-nums text-slate-900">
+            <dt className="text-xs text-slate-500 dark:text-slate-400">Saldo</dt>
+            <dd className="text-lg font-semibold tabular-nums text-slate-900 dark:text-slate-50">
               {formatBRL(data.balanceCents)}
             </dd>
           </div>
           <div>
-            <dt className="text-xs text-slate-500">Aportado (líquido)</dt>
+            <dt className="text-xs text-slate-500 dark:text-slate-400">Aportado (líquido)</dt>
             <dd className="tabular-nums">{formatBRL(data.netContributedCents)}</dd>
           </div>
           <div>
-            <dt className="text-xs text-slate-500">Rendimento total</dt>
+            <dt className="text-xs text-slate-500 dark:text-slate-400">Rendimento total</dt>
             {data.totalYieldCents === null ? (
-              <dd className="text-slate-400">Sem avaliação</dd>
+              <dd className="text-slate-400 dark:text-slate-500">Sem avaliação</dd>
             ) : (
               <dd className={`tabular-nums ${amountTone(data.totalYieldCents)}`}>
                 {formatSigned(data.totalYieldCents)}
@@ -64,7 +64,7 @@ export function InvestmentDetailPage() {
             )}
           </div>
           <div>
-            <dt className="text-xs text-slate-500">Rendimento (%)</dt>
+            <dt className="text-xs text-slate-500 dark:text-slate-400">Rendimento (%)</dt>
             <dd className="tabular-nums">
               {data.totalYieldPercent === null
                 ? '—'
@@ -130,9 +130,9 @@ function ValuationsSection({
   return (
     <section
       aria-labelledby="valuations-title"
-      className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
+      className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-sm"
     >
-      <h2 id="valuations-title" className="mb-3 font-semibold text-slate-900">
+      <h2 id="valuations-title" className="mb-3 font-semibold text-slate-900 dark:text-slate-50">
         Histórico de avaliações
       </h2>
       {valuations.isPending ? (
@@ -144,15 +144,15 @@ function ValuationsSection({
           Registre o valor da posição no extrato da corretora para começar a medir o rendimento.
         </EmptyState>
       ) : (
-        <ul className="divide-y divide-slate-100" aria-label="Avaliações">
+        <ul className="divide-y divide-slate-100 dark:divide-slate-800" aria-label="Avaliações">
           {[...valuations.data].reverse().map((valuation) => (
             <li
               key={valuation.id}
               className="flex flex-wrap items-center justify-between gap-2 py-2"
             >
               <div className="min-w-0">
-                <p className="text-sm font-medium text-slate-900">{formatDate(valuation.date)}</p>
-                <p className="text-xs text-slate-500">
+                <p className="text-sm font-medium text-slate-900 dark:text-slate-50">{formatDate(valuation.date)}</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
                   Saldo {formatBRL(valuation.balanceCents)}
                   {valuation.contributedCents !== 0
                     ? ` · aportes/resgates no período ${formatSigned(valuation.contributedCents)}`
@@ -162,7 +162,7 @@ function ValuationsSection({
               </div>
               <div className="flex items-center gap-2">
                 {valuation.yieldCents === null ? (
-                  <span className="text-sm text-slate-400">1ª avaliação</span>
+                  <span className="text-sm text-slate-400 dark:text-slate-500">1ª avaliação</span>
                 ) : (
                   <span className={`text-sm tabular-nums ${amountTone(valuation.yieldCents)}`}>
                     {formatSigned(valuation.yieldCents)}
