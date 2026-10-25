@@ -62,7 +62,7 @@ export function TransactionFilters({
       role="search"
       aria-label="Filtros de lançamentos"
       onSubmit={(event) => event.preventDefault()}
-      className="mb-4 grid gap-3 rounded-xl border border-slate-200 bg-white p-4 sm:grid-cols-2 lg:grid-cols-3"
+      className="mb-4 grid gap-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:grid-cols-2 lg:grid-cols-3"
     >
       <InputField
         label="Buscar na descrição"

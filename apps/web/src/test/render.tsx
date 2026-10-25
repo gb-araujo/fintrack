@@ -5,6 +5,7 @@ import type { ReactElement } from 'react';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 import { vi } from 'vitest';
 import { AuthProvider } from '../features/auth/AuthProvider';
+import { ThemeProvider } from '../lib/ThemeProvider';
 import { routes } from '../routes/routes';
 
 function testQueryClient() {
@@ -14,11 +15,13 @@ function testQueryClient() {
 export function renderRoute(path: string) {
   const router = createMemoryRouter(routes, { initialEntries: [path] });
   const view = render(
-    <QueryClientProvider client={testQueryClient()}>
-      <AuthProvider>
-        <RouterProvider router={router} />
-      </AuthProvider>
-    </QueryClientProvider>,
+    <ThemeProvider>
+      <QueryClientProvider client={testQueryClient()}>
+        <AuthProvider>
+          <RouterProvider router={router} />
+        </AuthProvider>
+      </QueryClientProvider>
+    </ThemeProvider>,
   );
   return { ...view, router };
 }

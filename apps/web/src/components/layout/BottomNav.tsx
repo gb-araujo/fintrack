@@ -8,7 +8,7 @@ export function BottomNav() {
   return (
     <nav
       aria-label="Navegação inferior"
-      className="fixed inset-x-0 bottom-0 z-10 border-t border-slate-200 bg-white pb-[env(safe-area-inset-bottom)] md:hidden"
+      className="fixed inset-x-0 bottom-0 z-10 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 pb-[env(safe-area-inset-bottom)] md:hidden"
     >
       <ul className="grid grid-cols-5">
         {items.map((item) => (
@@ -19,7 +19,7 @@ export function BottomNav() {
               className={({ isActive }) =>
                 [
                   'flex flex-col items-center gap-1 py-2 text-[11px] font-medium',
-                  isActive ? 'text-brand-700' : 'text-slate-500',
+                  isActive ? 'text-brand-700 dark:text-brand-400' : 'text-slate-500 dark:text-slate-400',
                 ].join(' ')
               }
             >

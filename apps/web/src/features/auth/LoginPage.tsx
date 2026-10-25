@@ -39,7 +39,7 @@ export function LoginPage() {
       footer={
         <>
           Ainda não tem conta?{' '}
-          <Link to="/register" className="font-medium text-brand-700 hover:underline">
+          <Link to="/register" className="font-medium text-brand-700 dark:text-brand-400 hover:underline">
             Criar conta
           </Link>
         </>
@@ -63,14 +63,14 @@ export function LoginPage() {
           error={errors.password}
         />
         {formError ? (
-          <p role="alert" className="rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700">
+          <p role="alert" className="rounded-lg bg-rose-50 dark:bg-rose-950 px-3 py-2 text-sm text-rose-700 dark:text-rose-300">
             {formError}
           </p>
         ) : null}
         <button
           type="submit"
           disabled={submitting}
-          className="w-full rounded-lg bg-brand-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-900 disabled:opacity-60"
+          className="w-full rounded-lg bg-brand-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-900 dark:hover:bg-brand-600 disabled:opacity-60"
         >
           {submitting ? 'Entrando…' : 'Entrar'}
         </button>

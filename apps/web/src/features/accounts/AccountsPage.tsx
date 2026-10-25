@@ -42,7 +42,7 @@ export function AccountsPage() {
       </div>
 
       {actionError ? (
-        <p role="alert" className="mb-3 rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700">
+        <p role="alert" className="mb-3 rounded-lg bg-rose-50 dark:bg-rose-950 px-3 py-2 text-sm text-rose-700 dark:text-rose-300">
           {actionError}
         </p>
       ) : null}
@@ -61,11 +61,11 @@ export function AccountsPage() {
           {accounts.data.map((account) => (
             <li
               key={account.id}
-              className={`rounded-xl border bg-white p-4 shadow-sm ${account.archivedAt ? 'border-slate-200 opacity-70' : 'border-slate-200'}`}
+              className={`rounded-xl border bg-white dark:bg-slate-900 p-4 shadow-sm ${account.archivedAt ? 'border-slate-200 dark:border-slate-800 opacity-70' : 'border-slate-200 dark:border-slate-800'}`}
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <h2 className="truncate font-semibold text-slate-900">{account.name}</h2>
+                  <h2 className="truncate font-semibold text-slate-900 dark:text-slate-50">{account.name}</h2>
                   <div className="mt-1 flex flex-wrap gap-1.5">
                     <Badge>{ACCOUNT_TYPE_LABEL[account.type]}</Badge>
                     {account.archivedAt ? <Badge tone="amber">Arquivada</Badge> : null}

@@ -1,7 +1,7 @@
 import { useId, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes } from 'react';
 
 const controlClass =
-  'mt-1 block w-full rounded-lg border bg-white px-3 py-2 text-sm shadow-sm outline-none transition focus:border-brand-600 focus:ring-2 focus:ring-brand-100';
+  'mt-1 block w-full rounded-lg border bg-white dark:bg-slate-900 px-3 py-2 text-sm shadow-sm outline-none transition focus:border-brand-600 focus:ring-2 focus:ring-brand-100 dark:focus:ring-brand-700';
 
 function FieldShell({
   id,
@@ -20,16 +20,16 @@ function FieldShell({
 }) {
   return (
     <div className={className}>
-      <label htmlFor={id} className="block text-sm font-medium text-slate-700">
+      <label htmlFor={id} className="block text-sm font-medium text-slate-700 dark:text-slate-200">
         {label}
       </label>
       {children}
       {error ? (
-        <p id={`${id}-error`} className="mt-1 text-xs text-rose-600">
+        <p id={`${id}-error`} className="mt-1 text-xs text-rose-600 dark:text-rose-400">
           {error}
         </p>
       ) : hint ? (
-        <p className="mt-1 text-xs text-slate-500">{hint}</p>
+        <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{hint}</p>
       ) : null}
     </div>
   );
@@ -64,7 +64,7 @@ export function SelectField({
         id={id}
         aria-invalid={error ? true : undefined}
         aria-describedby={error ? `${id}-error` : undefined}
-        className={`${controlClass} ${error ? 'border-rose-400' : 'border-slate-300'}`}
+        className={`${controlClass} ${error ? 'border-rose-400 dark:border-rose-600' : 'border-slate-300 dark:border-slate-700'}`}
         {...props}
       >
         {placeholder !== undefined ? <option value="">{placeholder}</option> : null}
@@ -92,7 +92,7 @@ export function InputField({ label, error, hint, className, ...props }: InputFie
         id={id}
         aria-invalid={error ? true : undefined}
         aria-describedby={error ? `${id}-error` : undefined}
-        className={`${controlClass} ${error ? 'border-rose-400' : 'border-slate-300'}`}
+        className={`${controlClass} ${error ? 'border-rose-400 dark:border-rose-600' : 'border-slate-300 dark:border-slate-700'}`}
         {...props}
       />
     </FieldShell>
@@ -117,16 +117,16 @@ export function CheckboxField({
   const id = useId();
   return (
     <div>
-      <label htmlFor={id} className="flex cursor-pointer items-start gap-2 text-sm text-slate-700">
+      <label htmlFor={id} className="flex cursor-pointer items-start gap-2 text-sm text-slate-700 dark:text-slate-200">
         <input
           id={id}
           type="checkbox"
-          className="mt-0.5 size-4 rounded border-slate-300"
+          className="mt-0.5 size-4 rounded border-slate-300 dark:border-slate-700"
           {...props}
         />
         <span>{label}</span>
       </label>
-      {hint ? <p className="ml-6 mt-0.5 text-xs text-slate-500">{hint}</p> : null}
+      {hint ? <p className="ml-6 mt-0.5 text-xs text-slate-500 dark:text-slate-400">{hint}</p> : null}
     </div>
   );
 }

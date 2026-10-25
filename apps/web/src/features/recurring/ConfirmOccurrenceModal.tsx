@@ -56,7 +56,7 @@ export function ConfirmOccurrenceModal({
   return (
     <Modal title="Confirmar ocorrência" onClose={onClose}>
       <form noValidate onSubmit={(event) => void handleSubmit(event)} className="space-y-4">
-        <p className="text-sm text-slate-600">
+        <p className="text-sm text-slate-600 dark:text-slate-300">
           {occurrence.name} — prevista para {formatDate(occurrence.date)}.
         </p>
         <MoneyField

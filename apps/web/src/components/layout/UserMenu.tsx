@@ -17,15 +17,15 @@ export function UserMenu({ compact = false }: { compact?: boolean }) {
     >
       {!compact && user ? (
         <div className="min-w-0">
-          <p className="truncate text-sm font-medium text-slate-900">{user.name}</p>
-          <p className="truncate text-xs text-slate-500">{user.email}</p>
+          <p className="truncate text-sm font-medium text-slate-900 dark:text-slate-50">{user.name}</p>
+          <p className="truncate text-xs text-slate-500 dark:text-slate-400">{user.email}</p>
         </div>
       ) : null}
       <button
         type="button"
         onClick={() => void handleLogout()}
         disabled={leaving}
-        className="shrink-0 rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+        className="shrink-0 rounded-lg border border-slate-200 dark:border-slate-800 px-3 py-1.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-50"
       >
         Sair
       </button>

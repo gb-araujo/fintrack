@@ -45,7 +45,7 @@ export function Modal({
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className="max-h-[92dvh] w-full max-w-md overflow-y-auto rounded-t-2xl bg-white p-5 shadow-xl sm:rounded-2xl"
+        className="max-h-[92dvh] w-full max-w-md overflow-y-auto rounded-t-2xl bg-white dark:bg-slate-900 p-5 shadow-xl sm:rounded-2xl"
       >
         <div className="mb-4 flex items-start justify-between gap-4">
           <h2 id={titleId} className="text-lg font-semibold tracking-tight">
@@ -56,7 +56,7 @@ export function Modal({
             data-close
             onClick={onClose}
             aria-label="Fechar"
-            className="rounded-lg p-1 text-slate-500 hover:bg-slate-100"
+            className="rounded-lg p-1 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700"
           >
             <svg
               viewBox="0 0 24 24"

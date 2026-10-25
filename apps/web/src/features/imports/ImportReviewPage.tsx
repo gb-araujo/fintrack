@@ -161,7 +161,7 @@ function Review({ data }: { data: ImportDetail }) {
         <PageHeader title="Importação concluída" />
         <div
           role="status"
-          className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900"
+          className="rounded-xl border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950 p-4 text-sm text-emerald-900 dark:text-emerald-200"
         >
           <p className="font-semibold">
             {result.imported} lançamento(s) criado(s), {result.skipped} pulado(s).
@@ -179,13 +179,13 @@ function Review({ data }: { data: ImportDetail }) {
         <div className="mt-4 flex gap-2">
           <Link
             to="/transactions"
-            className="rounded-lg bg-brand-700 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-900"
+            className="rounded-lg bg-brand-700 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-900 dark:hover:bg-brand-600"
           >
             Ver transações
           </Link>
           <Link
             to="/imports"
-            className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+            className="rounded-lg border border-slate-300 dark:border-slate-700 px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800"
           >
             Nova importação
           </Link>
@@ -198,7 +198,7 @@ function Review({ data }: { data: ImportDetail }) {
 
   return (
     <>
-      <Link to="/imports" className="text-sm text-brand-700 hover:underline">
+      <Link to="/imports" className="text-sm text-brand-700 dark:text-brand-400 hover:underline">
         ← Importar extrato
       </Link>
       <div className="mt-2">
@@ -213,11 +213,11 @@ function Review({ data }: { data: ImportDetail }) {
       </div>
 
       {data.ignoredRowsCount > 0 ? (
-        <details className="mb-4 rounded-lg border border-slate-200 bg-white p-3 text-sm">
-          <summary className="cursor-pointer font-medium text-slate-700">
+        <details className="mb-4 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3 text-sm">
+          <summary className="cursor-pointer font-medium text-slate-700 dark:text-slate-200">
             {data.ignoredRowsCount} linha(s) do arquivo não viraram movimentação
           </summary>
-          <ul className="mt-2 space-y-1 text-xs text-slate-600" aria-label="Linhas ignoradas">
+          <ul className="mt-2 space-y-1 text-xs text-slate-600 dark:text-slate-300" aria-label="Linhas ignoradas">
             {data.ignoredRows.map((item) => (
               <li key={item.line}>
                 Linha {item.line}: {item.reason}
@@ -228,7 +228,7 @@ function Review({ data }: { data: ImportDetail }) {
       ) : null}
 
       {duplicates > 0 && inReview ? (
-        <p role="status" className="mb-4 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-900">
+        <p role="status" className="mb-4 rounded-lg bg-amber-50 dark:bg-amber-950 px-3 py-2 text-sm text-amber-900 dark:text-amber-200">
           {duplicates} linha(s) parecem já estar no sistema e começam <strong>desmarcadas</strong>.
           Nada foi descartado: marque uma linha se quiser importá-la mesmo assim.
         </p>
@@ -241,10 +241,10 @@ function Review({ data }: { data: ImportDetail }) {
             checked={onlyAttention}
             onChange={(event) => setOnlyAttention(event.target.checked)}
           />
-          <p className="text-sm text-slate-600">
+          <p className="text-sm text-slate-600 dark:text-slate-300">
             {selected.length} de {data.rows.length} serão importadas · entradas{' '}
-            <span className="tabular-nums text-emerald-700">{formatBRL(totals.inflow)}</span> ·
-            saídas <span className="tabular-nums text-rose-600">{formatBRL(totals.outflow)}</span>
+            <span className="tabular-nums text-emerald-700 dark:text-emerald-300">{formatBRL(totals.inflow)}</span> ·
+            saídas <span className="tabular-nums text-rose-600 dark:text-rose-400">{formatBRL(totals.outflow)}</span>
           </p>
         </div>
       ) : null}
@@ -266,10 +266,10 @@ function Review({ data }: { data: ImportDetail }) {
       </ul>
 
       {inReview ? (
-        <div className="sticky bottom-0 mt-4 space-y-2 border-t border-slate-200 bg-slate-50/95 py-3 backdrop-blur">
+        <div className="sticky bottom-0 mt-4 space-y-2 border-t border-slate-200 dark:border-slate-800 bg-slate-50/95 py-3 backdrop-blur dark:bg-slate-900/95">
           <FormError message={error} />
           {problems.length > 0 ? (
-            <p role="status" className="text-sm text-amber-800">
+            <p role="status" className="text-sm text-amber-800 dark:text-amber-300">
               Falta escolher a conta/fatura em {problems.length} linha(s) marcada(s).
             </p>
           ) : null}
@@ -329,7 +329,7 @@ function ReviewRow({
 
   return (
     <li
-      className={`rounded-xl border p-3 shadow-sm ${choice.import ? 'border-slate-200 bg-white' : 'border-slate-200 bg-slate-100/70'}`}
+      className={`rounded-xl border p-3 shadow-sm ${choice.import ? 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900' : 'border-slate-200 dark:border-slate-800 bg-slate-100/70 dark:bg-slate-800/70'}`}
     >
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="min-w-0">
@@ -339,8 +339,8 @@ function ReviewRow({
             disabled={disabled}
             onChange={(event) => onChange({ import: event.target.checked })}
           />
-          <p className="mt-1 truncate font-medium text-slate-900">{row.description}</p>
-          <p className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-500">
+          <p className="mt-1 truncate font-medium text-slate-900 dark:text-slate-50">{row.description}</p>
+          <p className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
             <span>{formatDate(row.date)}</span>
             {row.duplicate?.kind === 'exact' ? <Badge tone="rose">Já importada</Badge> : null}
             {row.duplicate?.kind === 'possible' ? (
@@ -355,7 +355,7 @@ function ReviewRow({
           </p>
         </div>
         <span
-          className={`text-base font-semibold tabular-nums ${inflow ? 'text-emerald-700' : 'text-rose-600'}`}
+          className={`text-base font-semibold tabular-nums ${inflow ? 'text-emerald-700 dark:text-emerald-300' : 'text-rose-600 dark:text-rose-400'}`}
           aria-label={`Valor da linha ${row.rowNumber}`}
         >
           {inflow ? '+' : '−'}
@@ -419,9 +419,9 @@ function ReviewRow({
         </div>
       ) : null}
       {row.status === 'imported' ? (
-        <p className="mt-2 text-xs text-emerald-700">Importada.</p>
+        <p className="mt-2 text-xs text-emerald-700 dark:text-emerald-300">Importada.</p>
       ) : row.status === 'skipped' ? (
-        <p className="mt-2 text-xs text-slate-500">Pulada.</p>
+        <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">Pulada.</p>
       ) : null}
     </li>
   );

@@ -6,11 +6,11 @@ import { amountTone, formatDate, formatSigned } from '../ledger/labels';
 function Line({ label, cents, sign }: { label: string; cents: number; sign: '+' | '−' | '=' }) {
   return (
     <li className="flex items-baseline justify-between gap-3 py-1 text-sm">
-      <span className="text-slate-600">
-        <span className="mr-2 inline-block w-3 text-center font-medium text-slate-400">{sign}</span>
+      <span className="text-slate-600 dark:text-slate-300">
+        <span className="mr-2 inline-block w-3 text-center font-medium text-slate-400 dark:text-slate-500">{sign}</span>
         {label}
       </span>
-      <span className="tabular-nums text-slate-900">{formatBRL(cents)}</span>
+      <span className="tabular-nums text-slate-900 dark:text-slate-50">{formatBRL(cents)}</span>
     </li>
   );
 }
@@ -37,18 +37,18 @@ export function AvailableToSpendCard({
   return (
     <section
       aria-labelledby="available-title"
-      className="rounded-2xl border border-brand-100 bg-brand-50 p-5 shadow-sm md:col-span-2"
+      className="rounded-2xl border border-brand-100 dark:border-brand-700 bg-brand-50 dark:bg-brand-900 p-5 shadow-sm md:col-span-2"
     >
-      <h2 id="available-title" className="text-sm font-medium text-brand-900">
+      <h2 id="available-title" className="text-sm font-medium text-brand-900 dark:text-brand-100">
         {title}
       </h2>
       <p
         aria-label="Dinheiro disponível"
-        className={`mt-1 text-4xl font-semibold tabular-nums tracking-tight ${amountCents < 0 ? 'text-rose-600' : 'text-brand-900'}`}
+        className={`mt-1 text-4xl font-semibold tabular-nums tracking-tight ${amountCents < 0 ? 'text-rose-600 dark:text-rose-400' : 'text-brand-900 dark:text-brand-100'}`}
       >
         {formatBRL(amountCents)}
       </p>
-      <p className="mt-1 text-sm text-slate-600">
+      <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
         {amountCents < 0
           ? 'Seus compromissos até essa data passam do que você tem em conta.'
           : `Já descontando o que está previsto até ${formatDate(data.until)}.`}
@@ -69,11 +69,11 @@ export function AvailableToSpendCard({
         </div>
       ) : null}
 
-      <details className="mt-4 rounded-lg bg-white/70 p-3">
-        <summary className="cursor-pointer text-sm font-medium text-slate-700">
+      <details className="mt-4 rounded-lg bg-white/70 p-3 dark:bg-slate-900/40">
+        <summary className="cursor-pointer text-sm font-medium text-slate-700 dark:text-slate-200">
           Como calculamos
         </summary>
-        <ul className="mt-2 divide-y divide-slate-100" aria-label="Componentes do cálculo">
+        <ul className="mt-2 divide-y divide-slate-100 dark:divide-slate-800" aria-label="Componentes do cálculo">
           <Line
             label="Saldo das contas disponíveis"
             cents={components.liquidBalanceCents}
@@ -104,7 +104,7 @@ export function AvailableToSpendCard({
           />
           <Line label="Disponível" cents={amountCents} sign="=" />
         </ul>
-        <p className="mt-2 text-xs text-slate-500">
+        <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
           Transferências entre suas contas, investimentos e lançamentos cancelados não entram na
           conta.
         </p>
@@ -128,15 +128,15 @@ export function StatCard({
   signed?: boolean;
 }) {
   return (
-    <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-      <h2 className="text-sm font-medium text-slate-500">{title}</h2>
+    <section className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-sm">
+      <h2 className="text-sm font-medium text-slate-500 dark:text-slate-400">{title}</h2>
       <p
-        className={`mt-1 text-xl font-semibold tabular-nums ${tone === 'auto' ? amountTone(cents) : 'text-slate-900'}`}
+        className={`mt-1 text-xl font-semibold tabular-nums ${tone === 'auto' ? amountTone(cents) : 'text-slate-900 dark:text-slate-50'}`}
         aria-label={title}
       >
         {signed ? formatSigned(cents) : formatBRL(cents)}
       </p>
-      {hint ? <p className="mt-1 text-xs text-slate-500">{hint}</p> : null}
+      {hint ? <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{hint}</p> : null}
     </section>
   );
 }

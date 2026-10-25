@@ -114,7 +114,7 @@ export function TransactionsPage() {
       />
 
       {actionError && dialog?.kind !== 'complete' ? (
-        <p role="alert" className="mb-3 rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700">
+        <p role="alert" className="mb-3 rounded-lg bg-rose-50 dark:bg-rose-950 px-3 py-2 text-sm text-rose-700 dark:text-rose-300">
           {actionError}
         </p>
       ) : null}
@@ -133,7 +133,7 @@ export function TransactionsPage() {
         <>
           <ul
             aria-label="Lançamentos"
-            className="divide-y divide-slate-100 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm"
+            className="divide-y divide-slate-100 dark:divide-slate-800 overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm"
           >
             {items.map((transaction) => (
               <TransactionRow
@@ -275,7 +275,7 @@ function CompleteDateModal({
       onClose={onClose}
     >
       <form noValidate onSubmit={handleSubmit} className="space-y-4">
-        <p className="text-sm text-slate-600">
+        <p className="text-sm text-slate-600 dark:text-slate-300">
           O vencimento é futuro. Informe o dia em que realmente aconteceu para efetivar o
           lançamento.
         </p>

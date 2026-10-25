@@ -64,12 +64,12 @@ function OccurrencesSection() {
   return (
     <section
       aria-labelledby="occurrences-title"
-      className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
+      className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-sm"
     >
-      <h2 id="occurrences-title" className="font-semibold text-slate-900">
+      <h2 id="occurrences-title" className="font-semibold text-slate-900 dark:text-slate-50">
         Previsões
       </h2>
-      <p className="mb-3 text-xs text-slate-500">
+      <p className="mb-3 text-xs text-slate-500 dark:text-slate-400">
         Ainda não são lançamentos: não mexem no saldo nem nos relatórios.
       </p>
 
@@ -80,14 +80,14 @@ function OccurrencesSection() {
       ) : occurrences.data.length === 0 ? (
         <EmptyState title="Nenhuma previsão" />
       ) : (
-        <ul className="divide-y divide-slate-100" aria-label="Ocorrências previstas">
+        <ul className="divide-y divide-slate-100 dark:divide-slate-800" aria-label="Ocorrências previstas">
           {occurrences.data.map((item) => (
             <li
               key={`${item.recurringId}|${item.date}`}
               className="flex flex-wrap items-center justify-between gap-2 py-2"
             >
               <div className="min-w-0">
-                <p className="truncate text-sm text-slate-900">
+                <p className="truncate text-sm text-slate-900 dark:text-slate-50">
                   {item.name}
                   {item.overdue ? (
                     <span className="ml-2">
@@ -100,13 +100,13 @@ function OccurrencesSection() {
                     </span>
                   ) : null}
                 </p>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-slate-500 dark:text-slate-400">
                   {formatDate(item.date)} · {accountName(item.accountId)}
                 </p>
               </div>
               <div className="flex shrink-0 items-center gap-2">
                 <span
-                  className={`text-sm tabular-nums ${item.type === 'income' ? 'text-emerald-700' : 'text-rose-600'}`}
+                  className={`text-sm tabular-nums ${item.type === 'income' ? 'text-emerald-700 dark:text-emerald-300' : 'text-rose-600 dark:text-rose-400'}`}
                 >
                   {item.type === 'income' ? '+' : '−'}
                   {formatBRL(item.amountCents)}
@@ -182,9 +182,9 @@ function RulesSection({
   return (
     <section
       aria-labelledby="rules-title"
-      className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
+      className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-sm"
     >
-      <h2 id="rules-title" className="mb-3 font-semibold text-slate-900">
+      <h2 id="rules-title" className="mb-3 font-semibold text-slate-900 dark:text-slate-50">
         Regras
       </h2>
       <div className="mb-3">
@@ -195,7 +195,7 @@ function RulesSection({
         />
       </div>
       {actionError ? (
-        <p role="alert" className="mb-2 text-sm text-rose-700">
+        <p role="alert" className="mb-2 text-sm text-rose-700 dark:text-rose-300">
           {actionError}
         </p>
       ) : null}
@@ -209,12 +209,12 @@ function RulesSection({
           Cadastre aluguel, assinaturas, salário… para acompanhar o que ainda vem pela frente.
         </EmptyState>
       ) : (
-        <ul className="divide-y divide-slate-100" aria-label="Recorrências">
+        <ul className="divide-y divide-slate-100 dark:divide-slate-800" aria-label="Recorrências">
           {rules.data.map((rule) => (
             <li key={rule.id} className="flex flex-wrap items-center justify-between gap-2 py-2">
               <div className="min-w-0">
                 <p
-                  className={`truncate text-sm ${rule.active ? 'text-slate-900' : 'text-slate-400'}`}
+                  className={`truncate text-sm ${rule.active ? 'text-slate-900 dark:text-slate-50' : 'text-slate-400 dark:text-slate-500'}`}
                 >
                   {rule.name}
                   {!rule.active ? (
@@ -228,13 +228,13 @@ function RulesSection({
                     </span>
                   ) : null}
                 </p>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-slate-500 dark:text-slate-400">
                   {describeRecurrence(rule)} · {accountName(rule.accountId)}
                   {rule.nextDate ? ` · próxima ${formatDate(rule.nextDate)}` : ''}
                 </p>
               </div>
               <div className="flex shrink-0 items-center gap-1">
-                <span className="mr-1 text-sm tabular-nums text-slate-700">
+                <span className="mr-1 text-sm tabular-nums text-slate-700 dark:text-slate-200">
                   {rule.amountCents !== null
                     ? `${rule.isVariableAmount ? '~' : ''}${formatBRL(rule.amountCents)}`
                     : 'Variável'}

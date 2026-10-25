@@ -69,14 +69,14 @@ function CategorySection({ kind, items }: { kind: CategoryKind; items: Category[
   return (
     <section
       aria-labelledby={`cat-${kind}`}
-      className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
+      className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-sm"
     >
-      <h2 id={`cat-${kind}`} className="mb-3 font-semibold text-slate-900">
+      <h2 id={`cat-${kind}`} className="mb-3 font-semibold text-slate-900 dark:text-slate-50">
         {KIND_TITLE[kind]}
       </h2>
       <NewCategoryForm kind={kind} />
       {actionError ? (
-        <p role="alert" className="mt-2 text-sm text-rose-700">
+        <p role="alert" className="mt-2 text-sm text-rose-700 dark:text-rose-300">
           {actionError}
         </p>
       ) : null}
@@ -86,11 +86,11 @@ function CategorySection({ kind, items }: { kind: CategoryKind; items: Category[
           <EmptyState title="Nenhuma categoria" />
         </div>
       ) : (
-        <ul className="mt-3 divide-y divide-slate-100" aria-label={KIND_TITLE[kind]}>
+        <ul className="mt-3 divide-y divide-slate-100 dark:divide-slate-800" aria-label={KIND_TITLE[kind]}>
           {items.map((category) => (
             <li key={category.id} className="flex items-center justify-between gap-2 py-2">
               <span
-                className={`min-w-0 truncate text-sm ${category.archivedAt ? 'text-slate-400' : 'text-slate-800'}`}
+                className={`min-w-0 truncate text-sm ${category.archivedAt ? 'text-slate-400 dark:text-slate-500' : 'text-slate-800 dark:text-slate-100'}`}
               >
                 {category.name}
                 {category.archivedAt ? (

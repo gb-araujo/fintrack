@@ -133,7 +133,7 @@ export function TransactionFormModal({
       {accounts.isPending || categories.isPending ? (
         <Spinner />
       ) : usableAccounts.length === 0 ? (
-        <p className="text-sm text-slate-600">
+        <p className="text-sm text-slate-600 dark:text-slate-300">
           Cadastre uma conta bancária ou carteira antes de lançar receitas e despesas.
         </p>
       ) : (

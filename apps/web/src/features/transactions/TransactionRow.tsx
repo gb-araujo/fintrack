@@ -40,20 +40,20 @@ export function TransactionRow({
   // valor em cinza, para não parecer uma despesa nova.
   const tone =
     isTransfer || isCardPayment
-      ? 'text-slate-600'
+      ? 'text-slate-600 dark:text-slate-300'
       : cents > 0
-        ? 'text-emerald-700'
-        : 'text-rose-600';
+        ? 'text-emerald-700 dark:text-emerald-300'
+        : 'text-rose-600 dark:text-rose-400';
 
   return (
     <li className="flex flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
       <div className="min-w-0">
         <p
-          className={`truncate font-medium ${cancelled ? 'text-slate-400 line-through' : 'text-slate-900'}`}
+          className={`truncate font-medium ${cancelled ? 'text-slate-400 dark:text-slate-500 line-through' : 'text-slate-900 dark:text-slate-50'}`}
         >
           {title}
         </p>
-        <p className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-500">
+        <p className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
           <span>{formatDate(transaction.transactionDate)}</span>
           <span>{subtitle}</span>
           {transaction.status === 'pending' ? <Badge tone="amber">Pendente</Badge> : null}
@@ -65,7 +65,7 @@ export function TransactionRow({
 
       <div className="flex items-center justify-between gap-3 sm:justify-end">
         <span
-          className={`text-base font-semibold tabular-nums ${cancelled ? 'text-slate-400 line-through' : tone}`}
+          className={`text-base font-semibold tabular-nums ${cancelled ? 'text-slate-400 dark:text-slate-500 line-through' : tone}`}
           aria-label={`Valor: ${formatSigned(cents)}`}
         >
           {formatSigned(cents)}
